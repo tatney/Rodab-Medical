@@ -1,0 +1,1229 @@
+﻿import supabase from './supabaseClient'
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config'
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+async function invokeEdge(path, method = 'GET', body = null) {
+  const { data: { session } } = await supabase.auth.getSession()
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_ANON_KEY,
+      ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+    },
+  }
+  if (body) opts.body = JSON.stringify(body)
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/${path}`, opts)
+  const json = await res.json()
+  if (!res.ok) throw new Error(json.error || `Edge function error (${res.status})`)
+  return json
+}
+
+function ok(data) {
+  return { data, error: null }
+}
+
+function fail(error) {
+  return { data: null, error }
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
+export const login = async (email, password) => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error) throw error
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', data.user.id)
+    .single()
+  if (profileError) throw profileError
+
+  return ok({
+    token: data.session.access_token,
+    user: profile,
+    session: {
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+      expires_at: data.session.expires_at,
+    },
+  })
+}
+
+export const signup = async ({ full_name, email, password, phone, role, age, gender, blood_group, chronic_disease }) => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name, phone, role: role || 'user' },
+    },
+  })
+  if (error) throw error
+
+  if (data.user && !data.session) {
+    return ok({ message: 'Check your email for verification link' })
+  }
+
+  if (data.user) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: data.user.id,
+        email,
+        full_name: full_name || '',
+        phone: phone || '',
+        role: role || 'user',
+      })
+    if (profileError) console.error('Profile insert error:', profileError)
+  }
+
+  return ok({
+    token: data.session?.access_token || null,
+    user: data.user ? { id: data.user.id, email, full_name, role: role || 'user' } : null,
+  })
+}
+
+export const getProfile = async () => {
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) throw authError || new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
+  if (error) throw error
+
+  return ok({ user: data })
+}
+
+export const updateProfile = async (updates) => {
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) throw authError || new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', user.id)
+    .select()
+    .single()
+  if (error) throw error
+
+  return ok({ user: data })
+}
+
+// ─── Doctors ──────────────────────────────────────────────────────────────────
+
+export const getDoctors = async (params) => {
+  let query = supabase
+    .from('profiles')
+    .select('*, doctor!user_id(*)')
+    .eq('role', 'doctor')
+
+  if (params) {
+    if (params.department) query = query.eq('doctor.department_id', params.department)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ doctors: data || [] })
+}
+
+export const getDoctorsDepartments = async () => {
+  const { data: departments, error: deptError } = await supabase
+    .from('departments')
+    .select('*')
+    .eq('is_active', true)
+  if (deptError) throw deptError
+
+  const { data: doctors, error: docError } = await supabase
+    .from('doctors')
+    .select('*, profiles(*)')
+  if (docError) throw docError
+
+  const deptMap = (departments || []).map(d => ({
+    ...d,
+    doctors: (doctors || []).filter(doc => doc.department_id === d.id),
+  }))
+
+  return ok({ departments: deptMap })
+}
+
+export const deleteDoctor = async (id) => {
+  const { error: docError } = await supabase.from('doctors').delete().eq('id', id)
+  if (docError) throw docError
+  const { error: profileError } = await supabase.from('profiles').update({ role: 'user' }).eq('id', id)
+  if (profileError) throw profileError
+  return ok({ message: 'Doctor removed successfully' })
+}
+
+// ─── Appointments ─────────────────────────────────────────────────────────────
+
+export const getAppointments = async (params) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const role = profile?.role
+
+  let query = supabase.from('appointments').select('*, profiles(*), doctors(*, profiles!user_id(*))')
+
+  if (role === 'user') {
+    query = query.eq('patient_id', user.id)
+  } else if (role === 'doctor') {
+    const { data: doc } = await supabase.from('doctors').select('id').eq('user_id', user.id).single()
+    if (doc) query = query.eq('doctor_id', doc.id)
+  }
+
+  query = query.order('appointment_date', { ascending: false })
+
+  if (params?.limit) query = query.limit(params.limit)
+
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ appointments: data || [] })
+}
+
+export const createAppointment = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: result, error } = await supabase
+    .from('appointments')
+    .insert({
+      patient_id: user.id,
+      doctor_id: data.doctor_id,
+      appointment_date: data.appointment_date || data.date,
+      appointment_time: data.appointment_time || data.time,
+      reason: data.reason,
+      department_id: data.department_id,
+      hospital_id: data.hospital_id,
+      status: 'pending',
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ appointment: result })
+}
+
+export const deleteAppointment = async (id) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+
+  let query = supabase.from('appointments').delete().eq('id', id)
+  if (profile?.role === 'user') query = query.eq('patient_id', user.id)
+
+  const { error } = await query
+  if (error) throw error
+  return ok({ message: 'Appointment cancelled successfully' })
+}
+
+// ─── Consultations ────────────────────────────────────────────────────────────
+
+export const getConsultations = async (params) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const role = profile?.role
+
+  let query = supabase.from('consultations').select('*, profiles(*), doctors(*, profiles!user_id(*))')
+
+  if (role === 'user') {
+    query = query.eq('patient_id', user.id)
+  } else if (role === 'doctor') {
+    const { data: doc } = await supabase.from('doctors').select('specialty').eq('user_id', user.id).single()
+    if (doc) query = query.eq('specialty', doc.specialty)
+  }
+
+  query = query.order('created_at', { ascending: false })
+
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ consultations: data || [] })
+}
+
+export const createConsultation = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: result, error } = await supabase
+    .from('consultations')
+    .insert({
+      patient_id: user.id,
+      doctor_id: data.doctor_id,
+      subject: data.subject || data.specialty,
+      message: data.message,
+      specialty: data.specialty,
+      department_id: data.department_id,
+      status: 'open',
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ consultation: result })
+}
+
+export const updateConsultation = async (id, data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const updates = {}
+  if (data.response !== undefined) updates.response = data.response
+  if (data.status !== undefined) updates.status = data.status
+  updates.responder_id = user.id
+  updates.responded_at = new Date().toISOString()
+
+  const { data: result, error } = await supabase
+    .from('consultations')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ consultation: result })
+}
+
+// ─── Ambulance ────────────────────────────────────────────────────────────────
+
+export const dispatchAmbulance = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: profile } = await supabase.from('profiles').select('full_name, phone').eq('id', user.id).single()
+
+  const pickup = data.pickup_address || data.location || ''
+  const dest = data.destination_address || data.destination || 'Rodab Medical Hospital'
+
+  const { data: result, error } = await supabase
+    .from('ambulance_requests')
+    .insert({
+      patient_id: user.id,
+      patient_name: profile?.full_name || data.patient_name || '',
+      contact_phone: profile?.phone || data.contact_phone || '',
+      location: pickup,
+      pickup_address: pickup,
+      destination: dest,
+      destination_address: dest,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      emergency_level: data.emergency_level || data.priority || 'normal',
+      condition: data.notes || '',
+      notes: data.notes,
+      status: 'requested',
+      is_guest: false,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ id: result.id, request: result })
+}
+
+export const dispatchAmbulanceGuest = async (data) => {
+  const pickup = data.pickup_address || data.location || ''
+  const dest = data.destination_address || data.destination || 'Rodab Medical Hospital'
+
+  let patientId = null
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) patientId = user.id
+  } catch { /* guest */ }
+
+  const { data: result, error } = await supabase
+    .from('ambulance_requests')
+    .insert({
+      patient_id: patientId,
+      guest_name: data.guest_name || data.patient_name || '',
+      guest_phone: data.guest_phone || data.patient_phone || '',
+      patient_name: data.guest_name || data.patient_name || '',
+      contact_phone: data.guest_phone || data.patient_phone || '',
+      location: pickup,
+      pickup_address: pickup,
+      destination: dest,
+      destination_address: dest,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      emergency_level: data.emergency_level || 'normal',
+      condition: data.notes || '',
+      notes: data.notes,
+      status: 'dispatched',
+      is_guest: true,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ id: result.id, request: result })
+}
+
+export const cancelAmbulanceRequest = async (id) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('ambulance_requests')
+    .update({ status: 'cancelled' })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ request: data })
+}
+
+export const getAmbulanceHistory = async (params) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('ambulance_requests')
+    .select('*')
+    .eq('patient_id', user.id)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ history: data || [], rides: data || [] })
+}
+
+export const getActiveEmergencies = async () => {
+  const { data, error } = await supabase
+    .from('ambulance_requests')
+    .select('*')
+    .not('status', 'in', '(completed,cancelled)')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ active: data || [], emergencies: data || [], rides: data || [] })
+}
+
+export const getDriverActiveRides = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: driver, error: driverErr } = await supabase.from('drivers').select('id').eq('profile_id', user.id).maybeSingle()
+  if (driverErr) console.error('[getDriverActiveRides] driver lookup error:', driverErr)
+  if (!driver) return ok({ active: [] })
+
+  const { data, error } = await supabase
+    .from('ambulance_requests')
+    .select('*')
+    .eq('driver_id', driver.id)
+    .not('status', 'in', '(completed,cancelled)')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ active: data || [], rides: data || [] })
+}
+
+export const getDriverRides = async (userId) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  const uid = userId || user?.id
+  if (!uid) return ok({ rides: [] })
+
+  const { data: driver } = await supabase.from('drivers').select('id').eq('profile_id', uid).maybeSingle()
+  if (!driver) return ok({ rides: [] })
+
+  const { data, error } = await supabase
+    .from('ambulance_requests')
+    .select('*')
+    .eq('driver_id', driver.id)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ rides: data || [] })
+}
+
+export const trackAmbulance = async (id) => {
+  const { data, error } = await supabase
+    .from('ambulance_requests')
+    .select('*')
+    .eq('id', id)
+    .single()
+  if (error) throw error
+  return ok({ tracking: data, request: data })
+}
+
+export const assignDriver = async (rideId, driverId) => {
+  const { data, error } = await supabase
+    .from('ambulance_requests')
+    .update({
+      driver_id: driverId,
+      status: 'dispatched',
+      assigned_at: new Date().toISOString(),
+    })
+    .eq('id', rideId)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ request: data })
+}
+
+export const updateRideStatus = async (id, data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const updates = { status: data.status }
+  if (data.status === 'completed') updates.completed_at = new Date().toISOString()
+  if (data.status === 'in_transit') updates.started_at = new Date().toISOString()
+
+  const { data: result, error } = await supabase
+    .from('ambulance_requests')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ request: result })
+}
+
+// ─── Drivers ──────────────────────────────────────────────────────────────────
+
+export const getDrivers = async (params) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*, driver(*)')
+    .eq('role', 'driver')
+  if (error) throw error
+  return ok({ drivers: data || [] })
+}
+
+export const createDriverWithAccount = async (data) => {
+  const json = await invokeEdge('drivers/create', 'POST', {
+    email: data.email,
+    password: data.password,
+    full_name: data.fullName || data.full_name,
+    phone: data.phone,
+    license_number: data.licenseNumber || data.license_number,
+    vehicle_id: data.vehicleId || data.vehicle_id,
+  })
+  return ok({ driver: json })
+}
+
+export const updateDriver = async (id, data) => {
+  const profileUpdates = {}
+  if (data.full_name !== undefined) profileUpdates.full_name = data.full_name
+  if (data.phone !== undefined) profileUpdates.phone = data.phone
+  if (data.email !== undefined) profileUpdates.email = data.email
+
+  if (Object.keys(profileUpdates).length > 0) {
+    const { error } = await supabase.from('profiles').update(profileUpdates).eq('id', id)
+    if (error) throw error
+  }
+
+  const driverUpdates = {}
+  if (data.license_number !== undefined) driverUpdates.license_number = data.license_number
+  if (data.vehicle_id !== undefined) driverUpdates.vehicle_id = data.vehicle_id
+  if (data.is_available !== undefined) driverUpdates.is_available = data.is_available
+
+  if (Object.keys(driverUpdates).length > 0) {
+    const { error } = await supabase.from('drivers').update(driverUpdates).eq('id', id)
+    if (error) throw error
+  }
+
+  const { data: result, error: fetchError } = await supabase
+    .from('profiles')
+    .select('*, driver(*)')
+    .eq('id', id)
+    .single()
+  if (fetchError) throw fetchError
+  return ok({ driver: result })
+}
+
+export const deleteDriver = async (id) => {
+  const json = await invokeEdge(`drivers/${id}`, 'DELETE')
+  return ok(json)
+}
+
+export const updateDriverLocation = async (id, data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error } = await supabase
+    .from('drivers')
+    .update({
+      current_latitude: data.lat || data.latitude,
+      current_longitude: data.lng || data.longitude,
+      last_location_update: new Date().toISOString(),
+    })
+    .eq('profile_id', user.id)
+  if (error) throw error
+  return ok({ driver: null })
+}
+
+export const getAvailableDrivers = async () => {
+  const { data, error } = await supabase
+    .from('drivers')
+    .select('*, profiles(*)')
+    .eq('is_available', true)
+  if (error) throw error
+  return ok({ drivers: data || [], data: data || [] })
+}
+
+// ─── Vehicles ─────────────────────────────────────────────────────────────────
+
+export const getVehicles = async (params) => {
+  const { data, error } = await supabase.from('vehicles').select('*')
+  if (error) throw error
+  return ok({ vehicles: data || [] })
+}
+
+export const createVehicle = async (data) => {
+  const { data: result, error } = await supabase
+    .from('vehicles')
+    .insert({
+      plate_number: data.plateNumber || data.plate_number,
+      vehicle_type: data.vehicle_type || data.type,
+      model: data.model,
+      year: data.year,
+      type: data.type,
+      capacity: data.capacity,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ vehicle: result })
+}
+
+export const updateVehicle = async (id, data) => {
+  const updates = {}
+  if (data.plate_number !== undefined || data.plateNumber !== undefined) updates.plate_number = data.plate_number || data.plateNumber
+  if (data.vehicle_type !== undefined) updates.vehicle_type = data.vehicle_type
+  if (data.model !== undefined) updates.model = data.model
+  if (data.year !== undefined) updates.year = data.year
+  if (data.type !== undefined) updates.type = data.type
+  if (data.capacity !== undefined) updates.capacity = data.capacity
+  if (data.status !== undefined) updates.status = data.status
+  updates.updated_at = new Date().toISOString()
+
+  const { data: result, error } = await supabase.from('vehicles').update(updates).eq('id', id).select().single()
+  if (error) throw error
+  return ok({ vehicle: result })
+}
+
+export const deleteVehicle = async (id) => {
+  const { error } = await supabase.from('vehicles').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Vehicle deleted successfully' })
+}
+
+// ─── Departments ──────────────────────────────────────────────────────────────
+
+export const getDepartments = async (params) => {
+  const { data, error } = await supabase.from('departments').select('*')
+  if (error) throw error
+  return ok({ departments: data || [] })
+}
+
+export const getDepartmentsWithDoctors = async () => {
+  const { data: departments, error: deptError } = await supabase.from('departments').select('*')
+  if (deptError) throw deptError
+
+  const { data: doctors, error: docError } = await supabase.from('doctors').select('*, profiles!user_id(*)')
+  if (docError) throw docError
+
+  const result = (departments || []).map(d => ({
+    ...d,
+    doctors: (doctors || []).filter(doc => doc.department_id === d.id),
+  }))
+
+  return ok({ departments: result })
+}
+
+export const createDepartment = async (data) => {
+  const { data: result, error } = await supabase
+    .from('departments')
+    .insert({ name: data.name, description: data.description, icon: data.icon })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ department: result })
+}
+
+export const updateDepartment = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('departments')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ department: result })
+}
+
+export const deleteDepartment = async (id) => {
+  const { error } = await supabase.from('departments').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Department deleted successfully' })
+}
+
+// ─── Availability ─────────────────────────────────────────────────────────────
+
+export const getAvailability = async (params) => {
+  let query = supabase.from('availability').select('*, doctors(*, profiles!user_id(*))')
+  if (params?.doctor_id) query = query.eq('doctor_id', params.doctor_id)
+  query = query.order('date').order('start_time')
+
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ slots: data || [], availability: data || [] })
+}
+
+export const createAvailabilitySlot = async (data) => {
+  const { data: result, error } = await supabase
+    .from('availability')
+    .insert({
+      doctor_id: data.doctor_id || data.doctorId,
+      day_of_week: data.day_of_week,
+      date: data.date,
+      start_time: data.start_time,
+      end_time: data.end_time,
+      max_appointments: data.max_appointments || 10,
+      department: data.department,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ slot: result, availability: result })
+}
+
+export const deleteAvailabilitySlot = async (id) => {
+  const { error } = await supabase.from('availability').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Availability slot deleted' })
+}
+
+export const getDeptAvailability = async (deptId) => {
+  const { data: doctors, error: docError } = await supabase
+    .from('doctors')
+    .select('id')
+    .eq('department_id', deptId)
+  if (docError) throw docError
+
+  const doctorIds = (doctors || []).map(d => d.id)
+  if (doctorIds.length === 0) return ok({ slots: [] })
+
+  const { data, error } = await supabase
+    .from('availability')
+    .select('*, doctors(*, profiles!user_id(*))')
+    .in('doctor_id', doctorIds)
+    .order('date')
+    .order('start_time')
+  if (error) throw error
+  return ok({ slots: data || [] })
+}
+
+// ─── Hospitals ────────────────────────────────────────────────────────────────
+
+export const getHospitals = async (params) => {
+  const { data, error } = await supabase
+    .from('hospitals')
+    .select('*')
+    .eq('is_active', true)
+  if (error) throw error
+  return ok({ hospitals: data || [] })
+}
+
+export const getAllHospitals = async () => {
+  const { data, error } = await supabase.from('hospitals').select('*').order('name')
+  if (error) throw error
+  return ok({ hospitals: data || [] })
+}
+
+export const createHospital = async (data) => {
+  const { data: result, error } = await supabase
+    .from('hospitals')
+    .insert({
+      name: data.name,
+      address: data.address,
+      phone: data.phone,
+      email: data.email,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      is_active: data.is_active !== false,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ hospital: result })
+}
+
+export const updateHospital = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('hospitals')
+    .update(data)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ hospital: result })
+}
+
+export const deleteHospital = async (id) => {
+  const { error } = await supabase.from('hospitals').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Hospital deleted successfully' })
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export const getNotifications = async (params) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  let query = supabase
+    .from('notifications')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(params?.limit || 50)
+
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ notifications: data || [] })
+}
+
+export const getUnreadCount = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return ok({ count: 0 })
+
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .eq('is_read', false)
+  if (error) throw error
+  return ok({ count: count || 0 })
+}
+
+export const createNotification = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: result, error } = await supabase
+    .from('notifications')
+    .insert({
+      user_id: data.targetUserId || data.user_id,
+      title: data.title,
+      message: data.message,
+      type: data.type,
+      sender_id: user.id,
+      is_read: false,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ notification: result })
+}
+
+export const markNotificationRead = async (id) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: result, error } = await supabase
+    .from('notifications')
+    .update({ is_read: true, read_at: new Date().toISOString() })
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ notification: result })
+}
+
+// ─── Fees ─────────────────────────────────────────────────────────────────────
+
+export const getFees = async (params) => {
+  const { data, error } = await supabase
+    .from('fees')
+    .select('*')
+    .eq('status', 'published')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ fees: data || [] })
+}
+
+export const getFeesAdmin = async (params) => {
+  const { data, error } = await supabase
+    .from('fees')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ fees: data || [] })
+}
+
+export const createFee = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: result, error } = await supabase
+    .from('fees')
+    .insert({
+      name: data.name,
+      title: data.title,
+      description: data.description,
+      amount: data.amount,
+      category: data.category || 'general',
+      status: data.status || 'draft',
+      department_id: data.department_id,
+      created_by: user?.id,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ fee: result })
+}
+
+export const updateFee = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('fees')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ fee: result })
+}
+
+export const deleteFee = async (id) => {
+  const { error } = await supabase.from('fees').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Fee deleted successfully' })
+}
+
+// ─── Prescriptions ────────────────────────────────────────────────────────────
+
+export const getPrescriptions = async (params) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('repeat_prescriptions')
+    .select('*, doctors(*, profiles!user_id(*))')
+    .eq('patient_id', user.id)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ prescriptions: data || [] })
+}
+
+export const requestPrescription = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: result, error } = await supabase
+    .from('repeat_prescriptions')
+    .insert({
+      patient_id: user.id,
+      medication_name: data.medication || data.medication_name,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      date_of_birth: data.date_of_birth,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      doctor_name: data.name_of_gp || data.doctor_name,
+      pharmacy: data.pharmacy,
+      additional_info: data.additional_info,
+      is_private_patient: data.is_private_patient,
+      consent: data.consent,
+      status: 'pending',
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ prescription: result })
+}
+
+export const getPrescriptionsAdmin = async (params) => {
+  let query = supabase
+    .from('repeat_prescriptions')
+    .select('*, profiles(*), doctors(*, profiles!user_id(*))')
+    .order('created_at', { ascending: false })
+
+  if (params?.status) query = query.eq('status', params.status)
+
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ prescriptions: data || [] })
+}
+
+export const approvePrescription = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('repeat_prescriptions')
+    .update({
+      status: data.status,
+      notes: data.notes,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ prescription: result })
+}
+
+// ─── Illness Certificates ─────────────────────────────────────────────────────
+
+export const requestIllnessCert = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: result, error } = await supabase
+    .from('illness_certificates')
+    .insert({
+      patient_id: user.id,
+      reason: data.reason,
+      start_date: data.certificate_start_date || data.start_date,
+      end_date: data.certificate_end_date || data.end_date,
+      doctor_name: '',
+      first_name: data.first_name,
+      last_name: data.last_name,
+      date_of_birth: data.date_of_birth,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      status: 'pending',
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ certificate: result })
+}
+
+export const getIllnessCertsAdmin = async (params) => {
+  let query = supabase
+    .from('illness_certificates')
+    .select('*, profiles(*), doctors(*, profiles!user_id(*))')
+    .order('created_at', { ascending: false })
+
+  if (params?.status) query = query.eq('status', params.status)
+
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ certificates: data || [] })
+}
+
+export const approveIllnessCert = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('illness_certificates')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ certificate: result })
+}
+
+// ─── Contact / Messages ───────────────────────────────────────────────────────
+
+export const sendContact = async (data) => {
+  const { data: result, error } = await supabase
+    .from('contact_messages')
+    .insert({
+      name: data.full_name || data.name,
+      email: data.email,
+      phone: data.phone,
+      subject: data.subject,
+      message: data.message,
+      status: 'unread',
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ message: result })
+}
+
+export const getMyContacts = async (params) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data: profile } = await supabase.from('profiles').select('email').eq('id', user.id).single()
+
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .select('*')
+    .eq('email', profile?.email || '')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ messages: data || [] })
+}
+
+export const updateContact = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('contact_messages')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ message: result })
+}
+
+export const getAdminMessages = async (params) => {
+  let query = supabase.from('contact_messages').select('*')
+  if (params?.status) query = query.eq('status', params.status)
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ messages: data || [] })
+}
+
+// ─── Admin Users ──────────────────────────────────────────────────────────────
+
+export const getAdminUsers = async (params) => {
+  let query = supabase.from('profiles').select('*')
+  if (params?.role) query = query.eq('role', params.role)
+  const { data, error } = await query
+  if (error) throw error
+  return ok({ users: data || [] })
+}
+
+export const createAdminUser = async (data) => {
+  const json = await invokeEdge('admin/users', 'POST', {
+    email: data.email,
+    password: data.password,
+    full_name: data.fullName || data.full_name,
+    phone: data.phone,
+    role: data.role,
+  })
+  return ok({ user: json.user })
+}
+
+export const createDoctorAccount = async (data) => {
+  const json = await invokeEdge('admin/doctors', 'POST', {
+    email: data.email,
+    password: data.password,
+    full_name: data.fullName || data.full_name,
+    phone: data.phone,
+    department_id: data.departmentId || data.department_id,
+    specialty: data.specialty,
+  })
+  return ok({ doctor: json.doctor })
+}
+
+export const deleteUser = async (id) => {
+  const json = await invokeEdge(`admin/users/${id}`, 'DELETE')
+  return ok(json)
+}
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export const getAnalytics = async (params) => {
+  const [
+    usersResult,
+    doctorsResult,
+    appointmentsResult,
+    consultationsResult,
+    emergencyResult,
+    deptsResult,
+    hospitalsResult,
+  ] = await Promise.all([
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'user'),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'doctor'),
+    supabase.from('appointments').select('id, status', { count: 'exact' }),
+    supabase.from('consultations').select('id, status', { count: 'exact' }),
+    supabase.from('ambulance_requests').select('id, status', { count: 'exact' }).not('status', 'in', '(completed,cancelled)'),
+    supabase.from('departments').select('id', { count: 'exact', head: true }),
+    supabase.from('hospitals').select('id', { count: 'exact', head: true }),
+  ])
+
+  const aptData = appointmentsResult.data || []
+  const conData = consultationsResult.data || []
+  const emgData = emergencyResult.data || []
+
+  return ok({
+    totalUsers: usersResult.count || 0,
+    totalDoctors: doctorsResult.count || 0,
+    totalDepartments: deptsResult.count || 0,
+    totalHospitals: hospitalsResult.count || 0,
+    appointments: {
+      total: appointmentsResult.count || 0,
+      pending: aptData.filter(a => a.status === 'pending').length,
+      completed: aptData.filter(a => a.status === 'completed').length,
+    },
+    consultations: {
+      total: consultationsResult.count || 0,
+      open: conData.filter(c => c.status === 'open').length,
+      resolved: conData.filter(c => c.status === 'resolved').length,
+    },
+    ambulanceRequests: {
+      total: (emergencyResult.count || 0) + emgData.length,
+      active: emergencyResult.count || 0,
+      completed: emgData.filter(e => e.status === 'completed').length,
+    },
+  })
+}
+
+// ─── Default export (for backward compat) ─────────────────────────────────────
+
+const api = {
+  login,
+  signup,
+  getProfile,
+  updateProfile,
+  getDoctors,
+  getDoctorsDepartments,
+  deleteDoctor,
+  getAppointments,
+  createAppointment,
+  deleteAppointment,
+  getConsultations,
+  createConsultation,
+  updateConsultation,
+  dispatchAmbulance,
+  dispatchAmbulanceGuest,
+  getAmbulanceHistory,
+  getActiveEmergencies,
+  getDriverActiveRides,
+  getDriverRides,
+  trackAmbulance,
+  assignDriver,
+  cancelAmbulanceRequest,
+  updateRideStatus,
+  getDrivers,
+  createDriverWithAccount,
+  updateDriver,
+  deleteDriver,
+  updateDriverLocation,
+  getAvailableDrivers,
+  getVehicles,
+  createVehicle,
+  updateVehicle,
+  deleteVehicle,
+  getDepartments,
+  getDepartmentsWithDoctors,
+  createDepartment,
+  updateDepartment,
+  deleteDepartment,
+  getAvailability,
+  createAvailabilitySlot,
+  deleteAvailabilitySlot,
+  getDeptAvailability,
+  getHospitals,
+  getAllHospitals,
+  createHospital,
+  updateHospital,
+  deleteHospital,
+  getNotifications,
+  getUnreadCount,
+  createNotification,
+  markNotificationRead,
+  getFees,
+  getFeesAdmin,
+  createFee,
+  updateFee,
+  deleteFee,
+  getPrescriptions,
+  requestPrescription,
+  getPrescriptionsAdmin,
+  approvePrescription,
+  requestIllnessCert,
+  getIllnessCertsAdmin,
+  approveIllnessCert,
+  sendContact,
+  getMyContacts,
+  updateContact,
+  getAdminMessages,
+  getAdminUsers,
+  createAdminUser,
+  createDoctorAccount,
+  deleteUser,
+  getAnalytics,
+}
+
+export default api

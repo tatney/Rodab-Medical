@@ -1,0 +1,419 @@
+﻿import React, { useEffect, useRef, useState } from 'react';
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+const Map = ({
+  center = [53.3498, -6.2603],
+  zoom = 13,
+  markers = [],
+  hospitals = [],
+  height = '400px',
+  showRoute = false,
+  driverLocation = null,
+  onMapClick = null,
+}) => {
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersLayerRef = useRef(null);
+  const routeLayerRef = useRef(null);
+  const [mapMode, setMapMode] = useState('map');
+  const [mapReady, setMapReady] = useState(false);
+  const [L, setL] = useState(null);
+
+  useEffect(() => {
+    if (!document.querySelector('link[href*="leaflet"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+    import('leaflet').then((leaflet) => {
+      setL(leaflet.default || leaflet);
+    }).catch(() => {
+      if (window.L) {
+        setL(window.L);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!L || !mapRef.current || mapInstanceRef.current) return;
+
+    const map = L.map(mapRef.current, {
+      center,
+      zoom,
+      zoomControl: true,
+      attributionControl: true,
+    });
+
+    const tileLayer = L.tileLayer(
+      mapMode === 'map'
+        ? 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }
+    );
+    tileLayer.addTo(map);
+
+    markersLayerRef.current = L.layerGroup().addTo(map);
+    routeLayerRef.current = L.layerGroup().addTo(map);
+
+    mapInstanceRef.current = map;
+    setMapReady(true);
+
+    if (onMapClick) {
+      map.on('click', (e) => {
+        onMapClick(e.latlng);
+      });
+    }
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, [L]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Switch tile layer on mode change
+  useEffect(() => {
+    if (!L || !mapInstanceRef.current) return;
+
+    const map = mapInstanceRef.current;
+    map.eachLayer((layer) => {
+      if (layer instanceof L.TileLayer) {
+        map.removeLayer(layer);
+      }
+    });
+
+    const newTileUrl =
+      mapMode === 'map'
+        ? 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+    L.tileLayer(newTileUrl, {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(map);
+  }, [mapMode, L]);
+
+  const getPriorityColor = (priority) => {
+    const colors = {
+      critical: '#dc2626',
+      urgent: '#d97706',
+      moderate: '#2563eb',
+      low: '#16a34a',
+    };
+    return colors[priority] || '#6b7280';
+  };
+
+  const createDivIcon = (color, size = 28, label = '') => {
+    if (!L) return null;
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size * 1.4}" viewBox="0 0 24 34">
+        <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 22 12 22s12-13 12-22C24 5.4 18.6 0 12 0z" fill="${color}"/>
+        <circle cx="12" cy="12" r="6" fill="white"/>
+        ${label ? `<text x="12" y="15" text-anchor="middle" font-size="8" font-weight="bold" fill="${color}">${label}</text>` : ''}
+      </svg>
+    `;
+    return L.divIcon({
+      html: svg,
+      className: 'custom-marker',
+      iconSize: [size, size * 1.4],
+      iconAnchor: [size / 2, size * 1.4],
+      popupAnchor: [0, -size * 1.4],
+    });
+  };
+
+  // Update markers
+  useEffect(() => {
+    if (!L || !mapReady || !mapInstanceRef.current) return;
+
+    const layer = markersLayerRef.current;
+    layer.clearLayers();
+    const bounds = [];
+
+    // Emergency markers
+    markers.forEach((marker) => {
+      const color = getPriorityColor(marker.priority);
+      const icon = createDivIcon(color, 30, '!');
+      if (!icon) return;
+
+      const m = L.marker([marker.lat, marker.lng], { icon })
+        .addTo(layer)
+        .bindPopup(
+          `<div style="font-family:system-ui;min-width:180px;">
+            <strong style="font-size:14px;">${escapeHtml(marker.title || 'Emergency')}</strong><br/>
+            <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${color}20;color:${color};margin:4px 0;">${escapeHtml((marker.priority || 'unknown').toUpperCase())}</span>
+            ${marker.address ? `<br/><span style="color:#666;font-size:12px;">${escapeHtml(marker.address)}</span>` : ''}
+            ${marker.patientName ? `<br/><span style="font-size:12px;">Patient: ${escapeHtml(marker.patientName)}</span>` : ''}
+          </div>`
+        );
+      bounds.push([marker.lat, marker.lng]);
+    });
+
+    // Hospital markers
+    hospitals.forEach((hospital) => {
+      const icon = createDivIcon('#16a34a', 26, '+');
+      if (!icon) return;
+
+      const m = L.marker([hospital.lat, hospital.lng], { icon })
+        .addTo(layer)
+        .bindPopup(
+          `<div style="font-family:system-ui;min-width:180px;">
+            <strong style="font-size:14px;">${escapeHtml(hospital.name || 'Hospital')}</strong><br/>
+            <span style="color:#666;font-size:12px;">${escapeHtml(hospital.address || '')}</span>
+            ${hospital.specialties ? `<br/><span style="font-size:11px;color:#888;">${escapeHtml(hospital.specialties)}</span>` : ''}
+          </div>`
+        );
+      bounds.push([hospital.lat, hospital.lng]);
+    });
+
+    // Driver location
+    if (driverLocation) {
+      const driverIcon = createDivIcon('#1e3a5f', 28, 'D');
+      if (driverIcon) {
+        L.marker([driverLocation.lat, driverLocation.lng], { icon: driverIcon })
+          .addTo(layer)
+          .bindPopup(
+            `<div style="font-family:system-ui;">
+              <strong>Driver Location</strong><br/>
+              <span style="font-size:12px;color:#666;">${escapeHtml(driverLocation.name || 'Active Driver')}</span>
+            </div>`
+          );
+        bounds.push([driverLocation.lat, driverLocation.lng]);
+      }
+    }
+
+    // Auto-fit bounds
+    if (bounds.length > 1) {
+      mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
+    } else if (bounds.length === 1) {
+      mapInstanceRef.current.setView(bounds[0], zoom);
+    }
+  }, [markers, hospitals, driverLocation, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // OSRM Route display
+  useEffect(() => {
+    if (!L || !mapReady || !mapInstanceRef.current) return;
+
+    routeLayerRef.current.clearLayers();
+
+    if (showRoute && driverLocation && markers.length >= 1) {
+      const origin = { lat: driverLocation.lat, lng: driverLocation.lng };
+      const destination = markers[markers.length - 1];
+
+      const waypoints = markers.length > 1
+        ? markers.slice(0, -1).map((m) => `${m.lng},${m.lat}`).join(';')
+        : '';
+
+      const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat}${
+        waypoints ? ';' + waypoints : ''
+      };${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+
+      fetch(url, { signal: AbortSignal.timeout(10000) })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.routes && data.routes.length > 0) {
+            const coords = data.routes[0].geometry.coordinates.map((c) => [c[1], c[0]]);
+            L.polyline(coords, {
+              color: '#0b2a57',
+              weight: 5,
+              opacity: 0.8,
+              dashArray: null,
+            }).addTo(routeLayerRef.current);
+
+            const distance = (data.routes[0].distance / 1000).toFixed(1);
+            const duration = Math.round(data.routes[0].duration / 60);
+            const midpoint = coords[Math.floor(coords.length / 2)];
+
+            L.popup()
+              .setLatLng(midpoint)
+              .setContent(
+                `<div style="font-family:system-ui;text-align:center;">
+                  <strong>${distance} km</strong><br/>
+                  <span style="color:#666;font-size:12px;">${duration} min</span>
+                </div>`
+              )
+              .openOn(mapInstanceRef.current);
+          }
+        })
+        .catch((err) => {
+          console.error('Route fetch error:', err);
+        });
+    }
+  }, [showRoute, markers, driverLocation, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <div style={{ position: 'relative', height, width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
+      {/* Map/Satellite Toggle */}
+      <div style={styles.toggleContainer}>
+        <button
+          onClick={() => setMapMode('map')}
+          aria-pressed={mapMode === 'map'}
+          style={{
+            ...styles.toggleBtn,
+            ...(mapMode === 'map' ? styles.toggleBtnActive : {}),
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+            <line x1="8" y1="2" x2="8" y2="18" />
+            <line x1="16" y1="6" x2="16" y2="22" />
+          </svg>
+          Map
+        </button>
+        <button
+          onClick={() => setMapMode('satellite')}
+          aria-pressed={mapMode === 'satellite'}
+          style={{
+            ...styles.toggleBtn,
+            ...(mapMode === 'satellite' ? styles.toggleBtnActive : {}),
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="2" y1="12" x2="22" y2="12" />
+            <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+          </svg>
+          Satellite
+        </button>
+      </div>
+
+      {/* Legend */}
+      {markers.length > 0 && (
+        <div style={styles.legend}>
+          <div style={styles.legendItem}>
+            <span style={{ ...styles.legendDot, backgroundColor: '#dc2626' }} />
+            Critical
+          </div>
+          <div style={styles.legendItem}>
+            <span style={{ ...styles.legendDot, backgroundColor: '#d97706' }} />
+            Urgent
+          </div>
+          <div style={styles.legendItem}>
+            <span style={{ ...styles.legendDot, backgroundColor: '#2563eb' }} />
+            Moderate
+          </div>
+          {driverLocation && (
+            <div style={styles.legendItem}>
+              <span style={{ ...styles.legendDot, backgroundColor: '#1e3a5f' }} />
+              Driver
+            </div>
+          )}
+          {hospitals.length > 0 && (
+            <div style={styles.legendItem}>
+              <span style={{ ...styles.legendDot, backgroundColor: '#16a34a' }} />
+              Hospital
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Map Container */}
+      <div ref={mapRef} style={{ height: '100%', width: '100%' }} />
+
+      {/* Loading state */}
+      {!mapReady && (
+        <div style={styles.loadingOverlay}>
+          <div style={styles.spinner} />
+          <span style={{ color: '#6b7280', fontSize: '14px' }}>Loading map...</span>
+        </div>
+      )}
+
+      {/* Custom marker styles injected */}
+      <style>{`
+        .custom-marker {
+          background: transparent !important;
+          border: none !important;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const styles = {
+  toggleContainer: {
+    position: 'absolute',
+    top: '12px',
+    right: '12px',
+    zIndex: 1000,
+    display: 'flex',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+  },
+  toggleBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    padding: '6px 12px',
+    border: 'none',
+    backgroundColor: 'white',
+    color: '#6b7280',
+    fontSize: '12px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    minHeight: 44,
+    minWidth: 44,
+  },
+  toggleBtnActive: {
+    backgroundColor: '#0b2a57',
+    color: 'white',
+  },
+  legend: {
+    position: 'absolute',
+    bottom: '12px',
+    left: '12px',
+    zIndex: 1000,
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    padding: '10px 14px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    fontSize: '11px',
+    fontWeight: '500',
+    color: '#374151',
+  },
+  legendItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  legendDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    display: 'inline-block',
+    flexShrink: 0,
+  },
+  loadingOverlay: {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: '#f9fafb',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '12px',
+  },
+  spinner: {
+    width: '32px',
+    height: '32px',
+    border: '3px solid #e5e7eb',
+    borderTopColor: '#0b2a57',
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+  },
+};
+
+export default Map;

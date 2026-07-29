@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /super-admin/
+Disallow: /doctor/
+Disallow: /driver/
+Disallow: /dashboard/
+Disallow: /profile/
+Disallow: /settings/
+
+Sitemap: https://rodabmed.vercel.app/sitemap.xml
