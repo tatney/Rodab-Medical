@@ -200,7 +200,7 @@ const Navbar = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const navLinks = user ? (ROLE_NAV[user.role] || []) : (LANDING_MODE ? [] : UNAUTH_NAV);
+  const navLinks = user ? (ROLE_NAV[user.role] || []) : UNAUTH_NAV;
   const roleColor = user ? ROLE_COLORS[user.role] || ROLE_COLORS.user : null;
 
   const navIconMap = {
@@ -610,7 +610,7 @@ const Navbar = () => {
               </Link>
             ))}
 
-            {!user && !LANDING_MODE && (
+            {!user && (
               <>
                 <div className="mobile-slideout-section-title">More</div>
                 <Link to="/policies" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>Policies</Link>

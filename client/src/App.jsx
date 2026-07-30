@@ -62,7 +62,17 @@ function App() {
             <Route path="/" element={<HomePage />} />
 
             {LANDING_MODE ? (
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <>
+                <Route path="/services" element={<ServicesPage />} />
+                <Route path="/find-doctor" element={<FindDoctorPage />} />
+                <Route path="/about-us" element={<AboutUsPage />} />
+                <Route path="/faqs" element={<FAQsPage />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/policies" element={<PoliciesPage />} />
+                <Route path="/sos" element={<SOSPage />} />
+                <Route path="/track/:id" element={<TrackPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </>
             ) : (
               <>
                 {/* ── Public Routes ────────────────────────────────────── */}
