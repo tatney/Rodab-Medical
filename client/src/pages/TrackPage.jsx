@@ -2,36 +2,22 @@
 import { useParams } from 'react-router-dom'
 import { trackAmbulance, cancelAmbulanceRequest } from '../api'
 import { getDrivingRoute } from '../utils/routing'
-
-const colors = {
-  primary: '#1e40af',
-  red: '#dc2626',
-  gray50: '#f9fafb',
-  gray100: '#f3f4f6',
-  gray200: '#e5e7eb',
-  gray300: '#d1d5db',
-  gray500: '#6b7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#ffffff',
-  green: '#16a34a',
-  yellow: '#f59e0b',
-  purple: '#7c3aed',
-}
+import { useI18n } from '../i18n/I18nContext'
 
 const statusSteps = [
-  { key: 'requested', label: 'Request Received', icon: '📋' },
-  { key: 'dispatched', label: 'Ambulance Dispatched', icon: '🚑' },
-  { key: 'in_transit', label: 'En Route', icon: '🛣️' },
-  { key: 'arrived', label: 'Arrived', icon: '🏥' },
-  { key: 'completed', label: 'Completed', icon: '✅' },
-  { key: 'cancelled', label: 'Cancelled', icon: '❌' },
+  { key: 'requested', icon: '📋' },
+  { key: 'dispatched', icon: '🚑' },
+  { key: 'in_transit', icon: '🛣️' },
+  { key: 'arrived', icon: '🏥' },
+  { key: 'completed', icon: '✅' },
+  { key: 'cancelled', icon: '❌' },
 ]
 
 const statusIndex = {}
 statusSteps.forEach((s, i) => { statusIndex[s.key] = i })
 
 export default function TrackPage() {
+  const { t } = useI18n()
   const { id } = useParams()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -42,6 +28,12 @@ export default function TrackPage() {
   const mapRef = useRef(null)
   const markersRef = useRef([])
   const routeLineRef = useRef(null)
+  const labelsRef = useRef({ patientLocation: '', ambulance: '' })
+
+  useEffect(() => {
+    labelsRef.current.patientLocation = t('track.patientLocation')
+    labelsRef.current.ambulance = t('track.ambulance')
+  }, [t])
 
   useEffect(() => {
     if (!id) { setLoading(false); return }
@@ -50,7 +42,7 @@ export default function TrackPage() {
         const res = await trackAmbulance(id)
         setData(res.data?.tracking || res.data?.request || res.data)
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load tracking data.')
+        setError(err.response?.data?.message || t('track.failedLoad'))
       } finally {
         setLoading(false)
       }
@@ -58,7 +50,7 @@ export default function TrackPage() {
     fetchTracking()
     const interval = setInterval(fetchTracking, 10000)
     return () => clearInterval(interval)
-  }, [id])
+  }, [id, t])
 
   useEffect(() => {
     if (mapReady || !data) return
@@ -122,7 +114,7 @@ export default function TrackPage() {
         className: '',
         iconSize: [18, 18],
       })
-      const pm = window.L.marker([pLat, pLng], { icon: patientIcon }).addTo(m).bindPopup('<strong>Patient Location</strong>')
+      const pm = window.L.marker([pLat, pLng], { icon: patientIcon }).addTo(m).bindPopup(`<strong>${labelsRef.current.patientLocation}</strong>`)
       markersRef.current.push(pm)
     }
 
@@ -135,7 +127,7 @@ export default function TrackPage() {
         className: '',
         iconSize: [18, 18],
       })
-      const dm = window.L.marker([dLat, dLng], { icon: driverIcon }).addTo(m).bindPopup('<strong>Ambulance</strong>')
+      const dm = window.L.marker([dLat, dLng], { icon: driverIcon }).addTo(m).bindPopup(`<strong>${labelsRef.current.ambulance}</strong>`)
       markersRef.current.push(dm)
 
       if (pLat && pLng) {
@@ -153,14 +145,14 @@ export default function TrackPage() {
   }
 
   const handleCancel = async () => {
-    if (!data?.id || !window.confirm('Are you sure you want to cancel this ambulance request?')) return
+    if (!data?.id || !window.confirm(t('track.cancelConfirm'))) return
     setCancelling(true)
     try {
       await cancelAmbulanceRequest(data.id)
       setCancelled(true)
       setData((prev) => prev ? { ...prev, status: 'cancelled' } : prev)
     } catch (err) {
-      setError(err.message || 'Failed to cancel request.')
+      setError(err.message || t('track.failedLoad'))
     } finally {
       setCancelling(false)
     }
@@ -170,10 +162,10 @@ export default function TrackPage() {
 
   if (loading) {
     return (
-      <main style={{ textAlign: 'center', padding: 80, color: colors.gray500 }}>
+      <main style={{ textAlign: 'center', padding: 80, color: 'var(--text-muted)' }}>
         <div role="status" aria-live="polite">
           <div className="spinner" style={{ margin: '0 auto 16px' }} aria-hidden="true" />
-          Loading tracking data...
+          {t('track.loading')}
         </div>
       </main>
     )
@@ -182,31 +174,32 @@ export default function TrackPage() {
   if (error) {
     return (
       <div style={{ textAlign: 'center', padding: 80 }}>
-        <p style={{ fontSize: 18, color: colors.red, marginBottom: 8 }}>Unable to load tracking</p>
-        <p style={{ fontSize: 14, color: colors.gray500 }}>{error}</p>
+        <p style={{ fontSize: 18, color: 'var(--error)', marginBottom: 8 }}>{t('track.failedLoad')}</p>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>{error}</p>
       </div>
     )
   }
 
   const currentStatus = data?.status || 'pending'
   const currentStep = statusIndex[currentStatus] ?? 0
+  const steps = t('track.statusSteps')
 
   return (
       <main style={{ padding: '48px 24px', maxWidth: 1100, margin: '0 auto' }}>
-      <h1 style={{ fontSize: 32, fontWeight: 800, color: colors.gray900, marginBottom: 8 }}>Ambulance Tracking</h1>
-      <p style={{ fontSize: 15, color: colors.gray500, marginBottom: 32 }}>Tracking ID: <strong>{id}</strong></p>
+      <h1 style={{ fontSize: 32, fontWeight: 800, color: 'var(--text-strong)', marginBottom: 8 }}>{t('track.heading')}</h1>
+      <p style={{ fontSize: 15, color: 'var(--text-muted)', marginBottom: 32 }}>{t('track.trackingId')} <strong>{id}</strong></p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 32, overflow: 'hidden' }}>
         {/* Left: Map */}
         <div>
-          <div id="track-map" aria-label="Ambulance tracking map" style={{ width: '100%', height: 450, borderRadius: 12, backgroundColor: colors.gray100, border: `1px solid ${colors.gray200}` }} />
+          <div id="track-map" aria-label="Ambulance tracking map" style={{ width: '100%', height: 450, borderRadius: 12, backgroundColor: 'var(--surface-container-low)', border: '1px solid var(--border)' }} />
         </div>
 
         {/* Right: Status + Info */}
         <div>
           {/* Status Timeline */}
-          <div style={{ backgroundColor: colors.white, borderRadius: 12, border: `1px solid ${colors.gray200}`, padding: 24, marginBottom: 24 }}>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: colors.gray900, marginBottom: 20 }}>Status</h2>
+          <div style={{ backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, marginBottom: 24 }}>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 20 }}>{t('track.status')}</h2>
             {statusSteps.map((step, idx) => {
               const isActive = idx <= currentStep
               const isCurrent = idx === currentStep
@@ -215,20 +208,20 @@ export default function TrackPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={{
                       width: 32, height: 32, borderRadius: '50%',
-                      backgroundColor: isActive ? colors.green : colors.gray200,
-                      color: colors.white, fontSize: 14,
+                      backgroundColor: isActive ? 'var(--status-success)' : 'var(--surface-container)',
+                      color: '#ffffff', fontSize: 14,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 700, border: isCurrent ? `3px solid ${colors.primary}` : 'none',
+                      fontWeight: 700, border: isCurrent ? '3px solid var(--primary)' : 'none',
                     }}>
                       {idx + 1}
                     </div>
                     {idx < statusSteps.length - 1 && (
-                      <div style={{ width: 2, height: 24, backgroundColor: isActive && idx < currentStep ? colors.green : colors.gray200 }} />
+                      <div style={{ width: 2, height: 24, backgroundColor: isActive && idx < currentStep ? 'var(--status-success)' : 'var(--surface-container)' }} />
                     )}
                   </div>
                   <div style={{ paddingBottom: idx < statusSteps.length - 1 ? 8 : 0 }}>
-                    <span style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 500, color: isActive ? colors.gray900 : colors.gray500 }}>
-                      {step.icon} {step.label}
+                    <span style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 500, color: isActive ? 'var(--text-strong)' : 'var(--text-muted)' }}>
+                      {step.icon} {steps[idx]}
                     </span>
                   </div>
                 </div>
@@ -237,28 +230,28 @@ export default function TrackPage() {
           </div>
 
           {/* Patient Info */}
-          <div style={{ backgroundColor: colors.white, borderRadius: 12, border: `1px solid ${colors.gray200}`, padding: 24, marginBottom: 24 }}>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: colors.gray900, marginBottom: 12 }}>Patient Details</h2>
-            <div style={{ fontSize: 14, color: colors.gray600, lineHeight: 1.8 }}>
-              <p style={{ margin: 0 }}><strong>Name:</strong> {data?.patient_name || 'N/A'}</p>
-              <p style={{ margin: 0 }}><strong>Phone:</strong> {data?.contact_phone || 'N/A'}</p>
-              <p style={{ margin: 0 }}><strong>Location:</strong> {data?.location || 'N/A'}</p>
-              {data?.destination && <p style={{ margin: 0 }}><strong>Destination:</strong> {data.destination}</p>}
-              {data?.emergency_level && <p style={{ margin: 0 }}><strong>Priority:</strong> {data.emergency_level}</p>}
+          <div style={{ backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, marginBottom: 24 }}>
+            <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 12 }}>{t('track.patientDetails')}</h2>
+            <div style={{ fontSize: 14, color: 'var(--text-body)', lineHeight: 1.8 }}>
+              <p style={{ margin: 0 }}><strong>{t('track.name')}</strong> {data?.patient_name || t('common.notAvailable')}</p>
+              <p style={{ margin: 0 }}><strong>{t('track.phone')}</strong> {data?.contact_phone || t('common.notAvailable')}</p>
+              <p style={{ margin: 0 }}><strong>{t('track.location')}</strong> {data?.location || t('common.notAvailable')}</p>
+              {data?.destination && <p style={{ margin: 0 }}><strong>{t('track.destination')}</strong> {data.destination}</p>}
+              {data?.emergency_level && <p style={{ margin: 0 }}><strong>{t('track.priority')}</strong> {data.emergency_level}</p>}
             </div>
           </div>
 
           {/* Driver Info */}
           {(data?.driver_name || data?.driver?.name) && (
-            <div style={{ backgroundColor: colors.white, borderRadius: 12, border: `1px solid ${colors.gray200}`, padding: 24 }}>
-              <h2 style={{ fontSize: 17, fontWeight: 700, color: colors.gray900, marginBottom: 12 }}>Driver Information</h2>
+            <div style={{ backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 24 }}>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 12 }}>{t('track.driverInformation')}</h2>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: colors.primary, color: colors.white, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700 }}>
+                <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: 'var(--primary)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700 }}>
                   {(data.driver_name || data.driver?.name || '?')[0]}
                 </div>
-                <div style={{ fontSize: 14, color: colors.gray600 }}>
-                  <p style={{ margin: 0, fontWeight: 600, color: colors.gray900 }}>{data.driver_name || data.driver?.name}</p>
-                  <p style={{ margin: 0 }}>Vehicle: {data.vehicle_plate || data.driver?.vehicle_plate || 'N/A'}</p>
+                <div style={{ fontSize: 14, color: 'var(--text-body)' }}>
+                  <p style={{ margin: 0, fontWeight: 600, color: 'var(--text-strong)' }}>{data.driver_name || data.driver?.name}</p>
+                  <p style={{ margin: 0 }}>{t('track.vehicle')} {data.vehicle_plate || data.driver?.vehicle_plate || t('common.notAvailable')}</p>
                 </div>
               </div>
             </div>
@@ -266,17 +259,17 @@ export default function TrackPage() {
 
           {/* Cancel Button */}
           {canCancel && (
-            <div style={{ backgroundColor: colors.white, borderRadius: 12, border: `1px solid ${colors.gray200}`, padding: 24, marginTop: 24 }}>
-              <h2 style={{ fontSize: 17, fontWeight: 700, color: colors.gray900, marginBottom: 8 }}>Need to Cancel?</h2>
-              <p style={{ fontSize: 14, color: colors.gray500, marginBottom: 16 }}>You can cancel this request if the ambulance has not been dispatched yet.</p>
+            <div style={{ backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, marginTop: 24 }}>
+              <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{t('track.needToCancel')}</h2>
+              <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 16 }}>{t('track.cancelHint')}</p>
               <button
                 onClick={handleCancel}
                 disabled={cancelling}
                 style={{
                   padding: '10px 24px',
                   backgroundColor: 'transparent',
-                  color: colors.red,
-                  border: `1px solid ${colors.red}`,
+                  color: 'var(--error)',
+                  border: '1px solid var(--error)',
                   borderRadius: 8,
                   fontSize: 14,
                   fontWeight: 600,
@@ -284,13 +277,13 @@ export default function TrackPage() {
                   opacity: cancelling ? 0.6 : 1,
                 }}
               >
-                {cancelling ? 'Cancelling...' : 'Cancel Request'}
+                {cancelling ? t('common.cancelling') : t('track.cancelRequest')}
               </button>
             </div>
           )}
           {cancelled && (
-            <div style={{ backgroundColor: '#fef2f2', borderRadius: 12, border: '1px solid #fecaca', padding: 24, marginTop: 24, textAlign: 'center' }}>
-              <p style={{ fontSize: 16, fontWeight: 700, color: colors.red, margin: 0 }}>This request has been cancelled.</p>
+            <div style={{ backgroundColor: 'var(--error-soft)', borderRadius: 12, border: '1px solid var(--error-border)', padding: 24, marginTop: 24, textAlign: 'center' }}>
+              <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--error)', margin: 0 }}>{t('track.cancelledMsg')}</p>
             </div>
           )}
         </div>

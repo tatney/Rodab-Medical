@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '../i18n/I18nContext'
 
 const COOKIE_KEY = 'rodab_cookie_consent'
 
 export default function CookieConsent() {
+  const { t } = useI18n()
   const [visible, setVisible] = useState(false)
 
   useEffect(() => {
@@ -26,15 +28,14 @@ export default function CookieConsent() {
   if (!visible) return null
 
   return (
-    <div className="cookie-consent" role="dialog" aria-label="Cookie consent">
+    <div className="cookie-consent" role="dialog" aria-label={t('cookie.message')}>
       <p>
-        We use cookies to improve your experience, analyze site traffic, and personalize content. 
-        By clicking "Accept", you consent to our use of cookies.{' '}
-        <Link to="/privacy-policy">Learn more</Link>
+        {t('cookie.message')}{' '}
+        <Link to="/privacy-policy">{t('cookie.learnMore')}</Link>
       </p>
       <div className="cookie-btn-group">
-        <button onClick={handleDecline} className="cookie-btn-decline">Decline</button>
-        <button onClick={handleAccept} className="cookie-btn-accept">Accept</button>
+        <button onClick={handleDecline} className="cookie-btn-decline">{t('cookie.decline')}</button>
+        <button onClick={handleAccept} className="cookie-btn-accept">{t('cookie.accept')}</button>
       </div>
     </div>
   )

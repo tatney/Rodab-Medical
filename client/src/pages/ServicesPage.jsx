@@ -1,71 +1,12 @@
 ﻿import React from 'react'
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
+import { useI18n } from '../i18n/I18nContext'
 
-const services = [
-  {
-    icon: '🚑',
-    title: 'Emergency Medicine',
-    desc: 'Immediate life-saving care with a fully equipped emergency department and rapid response teams available 24/7.',
-    features: ['24/7 Emergency Care', 'Rapid Response Teams', 'Trauma Center'],
-    color: '#dc2626',
-  },
-  {
-    icon: '❤️',
-    title: 'Cardiology',
-    desc: 'Comprehensive heart care including diagnostics, interventional procedures, and cardiac rehabilitation.',
-    features: ['ECG & Echocardiography', 'Angioplasty', 'Cardiac Rehab'],
-    color: '#e11d48',
-  },
-  {
-    icon: '🧠',
-    title: 'Neurology',
-    desc: 'Expert diagnosis and treatment of disorders affecting the brain, spinal cord, and nervous system.',
-    features: ['EEG Monitoring', 'Stroke Care', 'Neurosurgery'],
-    color: '#7c3aed',
-  },
-  {
-    icon: '🦴',
-    title: 'Orthopedics',
-    desc: 'Specialized care for bones, joints, ligaments, tendons, and muscles with advanced surgical techniques.',
-    features: ['Joint Replacement', 'Sports Medicine', 'Spine Surgery'],
-    color: '#2563eb',
-  },
-  {
-    icon: '👶',
-    title: 'Pediatrics',
-    desc: 'Compassionate healthcare for infants, children, and adolescents in a child-friendly environment.',
-    features: ['Well-Child Visits', 'Immunizations', 'Pediatric Surgery'],
-    color: '#16a34a',
-  },
-  {
-    icon: '🎗️',
-    title: 'Oncology',
-    desc: 'Comprehensive cancer care from screening and diagnosis to treatment and survivorship support.',
-    features: ['Chemotherapy', 'Radiation Therapy', 'Tumor Board'],
-    color: '#9333ea',
-  },
-  {
-    icon: '🤰',
-    title: 'Maternity & NICU',
-    desc: 'Complete maternity services from prenatal care to delivery, with a Level III NICU for premature infants.',
-    features: ['Prenatal Care', 'Labor & Delivery', 'Level III NICU'],
-    color: '#ec4899',
-  },
-  {
-    icon: '🔬',
-    title: 'Diagnostic Imaging',
-    desc: 'Advanced imaging services including MRI, CT scan, ultrasound, and digital X-ray with rapid results.',
-    features: ['MRI & CT Scan', 'Ultrasound', 'Digital X-Ray'],
-    color: '#0891b2',
-  },
-  {
-    icon: '🏥',
-    title: 'Surgery',
-    desc: 'Modern surgical suites performing general, minimally invasive, and specialized surgeries with expert surgeons.',
-    features: ['General Surgery', 'Minimally Invasive', 'Laparoscopic'],
-    color: '#ea580c',
-  },
+const SERVICE_ICONS = ['🚑', '❤️', '🧠', '🦴', '👶', '🎗️', '🤰', '🔬', '🏥']
+
+const SERVICE_COLORS = [
+  '#dc2626', '#e11d48', '#7c3aed', '#2563eb', '#16a34a', '#9333ea', '#ec4899', '#0891b2', '#ea580c',
 ]
 
 const containerStyle = {
@@ -80,26 +21,29 @@ const headerStyle = {
 }
 
 export default function ServicesPage() {
+  const { t, tr } = useI18n()
+  const services = tr('servicesPage.items')
+
   return (
     <div style={containerStyle}>
-      <SEO title="Our Services" description="Comprehensive healthcare services including emergency care, cardiology, neurology, orthopedics, diagnostics, and more at Rodab Medical." url="/services" />
+      <SEO title={t('servicesPage.seoTitle')} description={t('servicesPage.seoDescription')} url="/services" />
       <div style={headerStyle}>
-        <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 800, color: '#111827', marginBottom: 12 }}>
-          Our Medical Services
+        <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)', fontWeight: 800, color: 'var(--text-strong)', marginBottom: 12 }}>
+          {t('servicesPage.heading')}
         </h1>
-        <p style={{ fontSize: 18, color: '#6b7280', maxWidth: 600, margin: '0 auto', lineHeight: 1.6 }}>
-          Rodab Medical Hospital offers a comprehensive range of medical services staffed by experienced professionals using the latest technology.
+        <p style={{ fontSize: 18, color: 'var(--text-muted)', maxWidth: 600, margin: '0 auto', lineHeight: 1.6 }}>
+          {t('servicesPage.sub')}
         </p>
       </div>
 
       <div className="grid-3-col">
-        {services.map((svc) => (
+        {services.map((svc, index) => (
           <div
-            key={svc.title}
+            key={index}
             style={{
-              backgroundColor: '#ffffff',
+              backgroundColor: 'var(--surface-card)',
               borderRadius: 16,
-              border: '1px solid #e5e7eb',
+              border: '1px solid var(--border)',
               padding: 32,
               transition: 'box-shadow 0.25s, transform 0.25s',
               cursor: 'default',
@@ -107,7 +51,7 @@ export default function ServicesPage() {
               overflow: 'hidden',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.1)'
+              e.currentTarget.style.boxShadow = 'var(--shadow-lg)'
               e.currentTarget.style.transform = 'translateY(-4px)'
             }}
             onMouseLeave={(e) => {
@@ -122,14 +66,14 @@ export default function ServicesPage() {
                 left: 0,
                 right: 0,
                 height: 4,
-                backgroundColor: svc.color,
+                backgroundColor: SERVICE_COLORS[index],
               }}
             />
-            <div style={{ fontSize: 44, marginBottom: 16 }} aria-hidden="true">{svc.icon}</div>
-            <h3 style={{ fontSize: 20, fontWeight: 700, color: '#111827', marginBottom: 10 }}>
+            <div style={{ fontSize: 44, marginBottom: 16 }} aria-hidden="true">{SERVICE_ICONS[index]}</div>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 10 }}>
               {svc.title}
             </h3>
-            <p style={{ fontSize: 14, color: '#6b7280', lineHeight: 1.7, marginBottom: 16 }}>
+            <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 16 }}>
               {svc.desc}
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 20 }}>
@@ -138,11 +82,11 @@ export default function ServicesPage() {
                   key={f}
                   style={{
                     padding: '4px 12px',
-                    backgroundColor: '#f3f4f6',
+                    backgroundColor: 'var(--surface-container-low)',
                     borderRadius: 999,
                     fontSize: 12,
                     fontWeight: 500,
-                    color: '#374151',
+                    color: 'var(--text-body)',
                   }}
                 >
                   {f}
@@ -154,7 +98,7 @@ export default function ServicesPage() {
               style={{
                 display: 'inline-block',
                 padding: '10px 24px',
-                backgroundColor: svc.color,
+                backgroundColor: SERVICE_COLORS[index],
                 color: '#ffffff',
                 borderRadius: 8,
                 fontSize: 14,
@@ -165,7 +109,7 @@ export default function ServicesPage() {
               onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
-              Find a Doctor
+              {t('servicesPage.findDoctor')}
             </Link>
           </div>
         ))}

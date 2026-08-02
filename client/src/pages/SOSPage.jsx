@@ -3,21 +3,21 @@ import { Link } from 'react-router-dom'
 import { dispatchAmbulanceGuest, cancelAmbulanceRequest } from '../api'
 import { getSmartLocation, reverseGeocode } from '../utils/geolocation'
 import { useAuth } from '../context/AuthContext'
+import { useI18n } from '../i18n/I18nContext'
 
-const colors = {
-  red: '#dc2626',
-  redDark: '#991b1b',
-  gray50: '#f9fafb',
-  gray200: '#e5e7eb',
-  gray300: '#d1d5db',
-  gray500: '#6b7280',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#ffffff',
-  green: '#16a34a',
+const cardStyle = {
+  maxWidth: 480,
+  width: '100%',
+  backgroundColor: 'var(--surface-card)',
+  borderRadius: 16,
+  border: '1px solid var(--border)',
+  boxShadow: 'var(--shadow-md)',
+  padding: 48,
+  textAlign: 'center',
 }
 
 export default function SOSPage() {
+  const { t } = useI18n()
   const { user } = useAuth()
   const [form, setForm] = useState({
     patientName: '',
@@ -46,7 +46,7 @@ export default function SOSPage() {
       const addr = await reverseGeocode(pos.lat, pos.lng)
       setForm((prev) => ({ ...prev, location: addr }))
     } catch {
-      setError('Could not detect location. Please enter it manually.')
+      setError(t('sos.couldNotDetect'))
     } finally {
       setLocating(false)
     }
@@ -71,7 +71,7 @@ export default function SOSPage() {
       setTrackingId(id)
       setSuccess(true)
     } catch (err) {
-      const msg = err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to send SOS. Please try again.'
+      const msg = err.response?.data?.message || err.response?.data?.error || err.message || t('sos.failedSos')
       setError(msg)
     } finally {
       setSubmitting(false)
@@ -79,13 +79,13 @@ export default function SOSPage() {
   }
 
   const handleCancel = async () => {
-    if (!trackingId || !window.confirm('Are you sure you want to cancel this SOS request?')) return
+    if (!trackingId || !window.confirm(t('sos.cancelConfirm'))) return
     setCancelling(true)
     try {
       await cancelAmbulanceRequest(trackingId)
       setCancelled(true)
     } catch (err) {
-      setError(err.message || 'Failed to cancel request.')
+      setError(err.message || t('sos.failedSos'))
     } finally {
       setCancelling(false)
     }
@@ -95,25 +95,14 @@ export default function SOSPage() {
     if (cancelled) {
       return (
         <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-          <div
-            style={{
-              maxWidth: 480,
-              width: '100%',
-              backgroundColor: colors.white,
-              borderRadius: 16,
-              border: `1px solid ${colors.gray200}`,
-              boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-              padding: 48,
-              textAlign: 'center',
-            }}
-          >
+          <div style={cardStyle}>
             <div
               style={{
                 width: 72,
                 height: 72,
                 borderRadius: '50%',
-                backgroundColor: '#fef2f2',
-                color: colors.red,
+                backgroundColor: 'var(--error-soft)',
+                color: 'var(--error)',
                 fontSize: 36,
                 display: 'flex',
                 alignItems: 'center',
@@ -124,26 +113,26 @@ export default function SOSPage() {
             >
               &#10005;
             </div>
-            <h2 style={{ fontSize: 24, fontWeight: 800, color: colors.gray900, marginBottom: 12 }}>
-              SOS Cancelled
+            <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-strong)', marginBottom: 12 }}>
+              {t('sos.cancelledTitle')}
             </h2>
-            <p style={{ fontSize: 16, color: colors.gray500, marginBottom: 24, lineHeight: 1.6 }}>
-              Your emergency request has been cancelled.
+            <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.6 }}>
+              {t('sos.cancelledMsg')}
             </p>
             <Link
               to="/sos"
               style={{
                 display: 'inline-block',
                 padding: '12px 24px',
-                backgroundColor: colors.red,
-                color: colors.white,
+                backgroundColor: 'var(--error)',
+                color: '#ffffff',
                 borderRadius: 8,
                 fontSize: 16,
                 fontWeight: 700,
                 textDecoration: 'none',
               }}
             >
-              New SOS Request
+              {t('sos.newSosRequest')}
             </Link>
           </div>
         </div>
@@ -151,25 +140,14 @@ export default function SOSPage() {
     }
     return (
       <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-        <div
-          style={{
-            maxWidth: 480,
-            width: '100%',
-            backgroundColor: colors.white,
-            borderRadius: 16,
-            border: `1px solid ${colors.gray200}`,
-            boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-            padding: 48,
-            textAlign: 'center',
-          }}
-        >
+        <div style={cardStyle}>
           <div
             style={{
               width: 72,
               height: 72,
               borderRadius: '50%',
-              backgroundColor: '#dcfce7',
-              color: colors.green,
+              backgroundColor: 'var(--success-soft)',
+              color: 'var(--status-success)',
               fontSize: 36,
               display: 'flex',
               alignItems: 'center',
@@ -180,22 +158,22 @@ export default function SOSPage() {
           >
             &#10003;
           </div>
-          <h2 style={{ fontSize: 24, fontWeight: 800, color: colors.gray900, marginBottom: 12 }}>
-            Help is on the Way!
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-strong)', marginBottom: 12 }}>
+            {t('sos.helpOnTheWay')}
           </h2>
-          <p style={{ fontSize: 16, color: colors.gray500, marginBottom: 24, lineHeight: 1.6 }}>
-            An ambulance has been dispatched to your location. Stay where you are and keep your phone nearby.
+          <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.6 }}>
+            {t('sos.dispatchedMsg')}
           </p>
           {trackingId && (
             <div style={{ marginBottom: 24 }}>
-              <p style={{ fontSize: 14, color: colors.gray500, marginBottom: 8 }}>Your Tracking ID:</p>
+              <p style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 8 }}>{t('sos.trackingId')}</p>
               <Link
                 to={`/track/${trackingId}`}
                 style={{
                   display: 'inline-block',
                   padding: '12px 24px',
-                  backgroundColor: colors.red,
-                  color: colors.white,
+                  backgroundColor: 'var(--error)',
+                  color: '#ffffff',
                   borderRadius: 8,
                   fontSize: 18,
                   fontWeight: 700,
@@ -203,10 +181,10 @@ export default function SOSPage() {
                   letterSpacing: 1,
                 }}
               >
-                Track Ambulance
+                {t('sos.trackAmbulance')}
               </Link>
-              <p style={{ fontSize: 13, color: colors.gray500, marginTop: 12 }}>
-                Link: {window.location.origin}/track/{trackingId}
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 12 }}>
+                {t('sos.link')} {window.location.origin}/track/{trackingId}
               </p>
               <button
                 onClick={handleCancel}
@@ -215,8 +193,8 @@ export default function SOSPage() {
                   marginTop: 16,
                   padding: '10px 24px',
                   backgroundColor: 'transparent',
-                  color: colors.red,
-                  border: `1px solid ${colors.red}`,
+                  color: 'var(--error)',
+                  border: '1px solid var(--error)',
                   borderRadius: 8,
                   fontSize: 14,
                   fontWeight: 600,
@@ -224,27 +202,27 @@ export default function SOSPage() {
                   opacity: cancelling ? 0.6 : 1,
                 }}
               >
-                {cancelling ? 'Cancelling...' : 'Cancel SOS Request'}
+                {cancelling ? t('common.cancelling') : t('sos.cancelSos')}
               </button>
             </div>
           )}
           {error && (
-            <p style={{ fontSize: 14, color: colors.red, marginTop: 12 }}>{error}</p>
+            <p style={{ fontSize: 14, color: 'var(--error)', marginTop: 12 }}>{error}</p>
           )}
           <div
             style={{
               padding: 16,
-              backgroundColor: '#fef2f2',
+              backgroundColor: 'var(--error-soft)',
               borderRadius: 8,
-              border: '1px solid #fecaca',
+              border: '1px solid var(--error-border)',
               marginTop: 16,
             }}
           >
-            <p style={{ fontSize: 14, fontWeight: 600, color: colors.red, marginBottom: 4 }}>
-              Emergency Contacts
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--error)', marginBottom: 4 }}>
+              {t('sos.emergencyContacts')}
             </p>
-            <p style={{ fontSize: 13, color: colors.gray700 }}>
-              Ambulance: <strong>111</strong> &nbsp;|&nbsp; Hospital: <strong>+961 1 234 567</strong>
+            <p style={{ fontSize: 13, color: 'var(--text-body)' }}>
+              {t('sos.ambulance')} <strong>111</strong> &nbsp;|&nbsp; {t('sos.hospital')} <strong>+961 1 234 567</strong>
             </p>
           </div>
         </div>
@@ -255,24 +233,13 @@ export default function SOSPage() {
   if (!user) {
     return (
       <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-        <div
-          style={{
-            maxWidth: 520,
-            width: '100%',
-            backgroundColor: colors.white,
-            borderRadius: 16,
-            border: `1px solid ${colors.gray200}`,
-            boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
-            padding: 48,
-            textAlign: 'center',
-          }}
-        >
+        <div style={cardStyle}>
           <div
             style={{
               width: 80,
               height: 80,
               borderRadius: '50%',
-              backgroundColor: '#fef2f2',
+              backgroundColor: 'var(--error-soft)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -283,11 +250,11 @@ export default function SOSPage() {
           >
             &#128680;
           </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: colors.gray900, marginBottom: 12 }}>
-            Emergency SOS
+          <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-strong)', marginBottom: 12 }}>
+            {t('sos.emergencySos')}
           </h1>
-          <p style={{ fontSize: 16, color: colors.gray500, lineHeight: 1.7, marginBottom: 32, maxWidth: 420, margin: '0 auto 32px' }}>
-            Sign up or log in to request an ambulance emergency service, track your request in real-time, and access your medical history.
+          <p style={{ fontSize: 16, color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: 32, maxWidth: 420, margin: '0 auto 32px' }}>
+            {t('sos.signupOrLogin')}
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link
@@ -295,8 +262,8 @@ export default function SOSPage() {
               style={{
                 display: 'inline-block',
                 padding: '14px 32px',
-                backgroundColor: colors.red,
-                color: colors.white,
+                backgroundColor: 'var(--error)',
+                color: '#ffffff',
                 borderRadius: 8,
                 fontSize: 16,
                 fontWeight: 700,
@@ -304,16 +271,16 @@ export default function SOSPage() {
                 transition: 'background 0.15s',
               }}
             >
-              Sign Up Free
+              {t('sos.signUpFree')}
             </Link>
             <Link
               to="/login"
               style={{
                 display: 'inline-block',
                 padding: '14px 32px',
-                backgroundColor: colors.white,
-                color: colors.gray700,
-                border: `1px solid ${colors.gray300}`,
+                backgroundColor: 'var(--surface-card)',
+                color: 'var(--text-body)',
+                border: '1px solid var(--border)',
                 borderRadius: 8,
                 fontSize: 16,
                 fontWeight: 600,
@@ -321,11 +288,11 @@ export default function SOSPage() {
                 transition: 'background 0.15s',
               }}
             >
-              Login
+              {t('sos.login')}
             </Link>
           </div>
-          <p style={{ fontSize: 13, color: colors.gray500, marginTop: 24 }}>
-            For immediate life-threatening emergencies, call <strong>111</strong>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 24 }}>
+            {t('sos.forEmergenciesCall').replace('{phone}', '111')}
           </p>
         </div>
       </div>
@@ -338,18 +305,18 @@ export default function SOSPage() {
         style={{
           maxWidth: 480,
           width: '100%',
-          backgroundColor: colors.white,
+          backgroundColor: 'var(--surface-card)',
           borderRadius: 16,
-          border: `1px solid ${colors.gray200}`,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+          border: '1px solid var(--border)',
+          boxShadow: 'var(--shadow-md)',
           padding: 40,
         }}
       >
         {/* Red header band */}
         <div
           style={{
-            backgroundColor: colors.red,
-            color: colors.white,
+            backgroundColor: 'var(--error)',
+            color: '#ffffff',
             padding: 24,
             borderRadius: 12,
             textAlign: 'center',
@@ -357,9 +324,9 @@ export default function SOSPage() {
           }}
         >
           <div style={{ fontSize: 48, marginBottom: 8 }} aria-hidden="true">&#128680;</div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Emergency SOS</h1>
+          <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>{t('sos.emergencySos')}</h1>
           <p style={{ fontSize: 14, opacity: 0.9 }}>
-            Request an ambulance immediately.
+            {t('sos.requestAmbulance')}
           </p>
         </div>
 
@@ -369,9 +336,9 @@ export default function SOSPage() {
             style={{
               padding: '12px 16px',
               borderRadius: 8,
-              backgroundColor: '#fef2f2',
-              border: '1px solid #fecaca',
-              color: colors.red,
+              backgroundColor: 'var(--error-soft)',
+              border: '1px solid var(--error-border)',
+              color: 'var(--error)',
               fontSize: 14,
               marginBottom: 20,
             }}
@@ -381,8 +348,8 @@ export default function SOSPage() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <label htmlFor="patientName" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: colors.gray700 }}>
-            Patient Name
+          <label htmlFor="patientName" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+            {t('sos.patientName')}
           </label>
           <input
             id="patientName"
@@ -391,12 +358,14 @@ export default function SOSPage() {
             required
             value={form.patientName}
             onChange={handleChange}
-            placeholder="Full name of the patient"
+            placeholder={t('sos.patientNamePlaceholder')}
             style={{
               width: '100%',
               padding: '12px 14px',
               borderRadius: 8,
-              border: `1px solid ${colors.gray300}`,
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface-card)',
+              color: 'var(--text-body)',
               fontSize: 15,
               marginBottom: 16,
               outline: 'none',
@@ -404,8 +373,8 @@ export default function SOSPage() {
             }}
           />
 
-          <label htmlFor="contactPhone" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: colors.gray700 }}>
-            Contact Phone
+          <label htmlFor="contactPhone" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+            {t('sos.contactPhone')}
           </label>
           <input
             id="contactPhone"
@@ -414,12 +383,14 @@ export default function SOSPage() {
             required
             value={form.contactPhone}
             onChange={handleChange}
-            placeholder="+961 XX XXX XXX"
+            placeholder={t('sos.contactPhonePlaceholder')}
             style={{
               width: '100%',
               padding: '12px 14px',
               borderRadius: 8,
-              border: `1px solid ${colors.gray300}`,
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface-card)',
+              color: 'var(--text-body)',
               fontSize: 15,
               marginBottom: 16,
               outline: 'none',
@@ -427,8 +398,8 @@ export default function SOSPage() {
             }}
           />
 
-          <label htmlFor="location" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: colors.gray700 }}>
-            Pickup Location
+          <label htmlFor="location" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+            {t('sos.pickupLocation')}
           </label>
           <div className="location-row">
             <input
@@ -438,12 +409,14 @@ export default function SOSPage() {
               required
               value={form.location}
               onChange={handleChange}
-              placeholder="Address or landmark"
+              placeholder={t('sos.pickupPlaceholder')}
               style={{
                 flex: 1,
                 padding: '12px 14px',
                 borderRadius: 8,
-                border: `1px solid ${colors.gray300}`,
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--surface-card)',
+                color: 'var(--text-body)',
                 fontSize: 15,
                 outline: 'none',
               }}
@@ -455,9 +428,9 @@ export default function SOSPage() {
               style={{
                 padding: '12px 16px',
                 borderRadius: 8,
-                border: `1px solid ${colors.red}`,
-                backgroundColor: '#fef2f2',
-                color: colors.red,
+                border: '1px solid var(--error)',
+                backgroundColor: 'var(--error-soft)',
+                color: 'var(--error)',
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: locating ? 'not-allowed' : 'pointer',
@@ -465,12 +438,12 @@ export default function SOSPage() {
                 flexShrink: 0,
               }}
             >
-              {locating ? 'Locating...' : 'Use My Location'}
+              {locating ? t('common.locating') : t('sos.useMyLocation')}
             </button>
           </div>
 
-          <label htmlFor="destination" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: colors.gray700 }}>
-            Destination Hospital
+          <label htmlFor="destination" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+            {t('sos.destinationHospital')}
           </label>
           <input
             id="destination"
@@ -478,12 +451,14 @@ export default function SOSPage() {
             type="text"
             value={form.destination}
             onChange={handleChange}
-            placeholder="Preferred hospital"
+            placeholder={t('sos.destinationPlaceholder')}
             style={{
               width: '100%',
               padding: '12px 14px',
               borderRadius: 8,
-              border: `1px solid ${colors.gray300}`,
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface-card)',
+              color: 'var(--text-body)',
               fontSize: 15,
               marginBottom: 28,
               outline: 'none',
@@ -497,8 +472,8 @@ export default function SOSPage() {
             style={{
               width: '100%',
               padding: '14px 0',
-              backgroundColor: submitting ? colors.gray300 : colors.red,
-              color: colors.white,
+              backgroundColor: submitting ? 'var(--border)' : 'var(--error)',
+              color: '#ffffff',
               border: 'none',
               borderRadius: 8,
               fontSize: 17,
@@ -519,12 +494,12 @@ export default function SOSPage() {
                 }}
               />
             )}
-            {submitting ? 'Sending SOS...' : 'Send Emergency SOS'}
+            {submitting ? t('common.sending') : t('sos.sendSos')}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', fontSize: 13, color: colors.gray500, marginTop: 16 }}>
-          For immediate life-threatening emergencies, also call <strong>111</strong>
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 16 }}>
+          {t('sos.forEmergenciesCall').replace('{phone}', '111')}
         </p>
       </div>
     </div>

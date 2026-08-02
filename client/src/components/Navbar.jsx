@@ -2,36 +2,46 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { SUPABASE_URL, LANDING_MODE } from '../config';
+import { useI18n } from '../i18n/I18nContext';
+import LanguageSelector from './LanguageSelector';
+import AccessibilityButton from './AccessibilityButton';
 
 const NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/appointments', label: 'Appointments' },
-  { to: '/consultations', label: 'Consultations' },
-  { to: '/ambulance', label: 'Ambulance' },
-  { to: '/repeat-prescription', label: 'Prescriptions' },
-  { to: '/forms', label: 'Forms' },
-  { to: '/fees', label: 'Billing' },
-  { to: '/faqs', label: 'Support' },
+  { to: '/dashboard', labelKey: 'nav.dashboard' },
+  { to: '/appointments', labelKey: 'nav.myAppointments' },
+  { to: '/consultations', labelKey: 'nav.consultations' },
+  { to: '/ambulance', labelKey: 'nav.ambulanceRequests' },
+  { to: '/repeat-prescription', labelKey: 'nav.prescriptions' },
+  { to: '/forms', labelKey: 'nav.medicalForms' },
+  { to: '/fees', labelKey: 'nav.quickFees' },
+  { to: '/faqs', labelKey: 'nav.helpCenter' },
 ];
 
 const UNAUTH_NAV = [
-  { to: '/', label: 'Home' },
-  { to: '/services', label: 'Services' },
-  { to: '/find-doctor', label: 'Find a Doctor' },
-  { to: '/about-us', label: 'About Us' },
+  { to: '/', labelKey: 'nav.home' },
+  { to: '/services', labelKey: 'nav.services' },
+  { to: '/find-doctor', labelKey: 'nav.findDoctor' },
+  { to: '/about-us', labelKey: 'nav.aboutUs' },
+];
+
+const LANDING_NAV = [
+  { key: 'home', section: 'home', labelKey: 'nav.home' },
+  { key: 'services', section: 'services', labelKey: 'nav.services' },
+  { to: '/find-doctor', labelKey: 'nav.findDoctor' },
+  { key: 'about', section: 'about', labelKey: 'nav.aboutUs' },
 ];
 
 const ROLE_NAV = {
   user: NAV_ITEMS,
   admin: [
-    { to: '/admin/dashboard', label: 'Dashboard' },
-    { to: '/admin/emergency', label: 'Emergency' },
+    { to: '/admin/dashboard', labelKey: 'nav.dashboard' },
+    { to: '/admin/emergency', labelKey: 'nav.emergencySos' },
   ],
-  doctor: [{ to: '/doctor/dashboard', label: 'Dashboard' }],
-  driver: [{ to: '/driver/dashboard', label: 'Dashboard' }],
+  doctor: [{ to: '/doctor/dashboard', labelKey: 'nav.dashboard' }],
+  driver: [{ to: '/driver/dashboard', labelKey: 'nav.dashboard' }],
   super_admin: [
-    { to: '/super-admin/dashboard', label: 'Dashboard' },
-    { to: '/super-admin/emergency', label: 'Emergency' },
+    { to: '/super-admin/dashboard', labelKey: 'nav.dashboard' },
+    { to: '/super-admin/emergency', labelKey: 'nav.emergencySos' },
   ],
 };
 
@@ -43,12 +53,12 @@ const ROLE_COLORS = {
   user: { bg: '#d1fae5', text: '#065f46' },
 };
 
-const ROLE_LABELS = {
-  super_admin: 'Super Admin',
-  admin: 'Admin',
-  doctor: 'Doctor',
-  driver: 'Driver',
-  user: 'Patient',
+const ROLE_LABEL_KEYS = {
+  super_admin: 'nav.roleSuperAdmin',
+  admin: 'nav.roleAdmin',
+  doctor: 'nav.roleDoctor',
+  driver: 'nav.roleDriver',
+  user: 'nav.roleUser',
 };
 
 const DropdownIcon = ({ d }) => (
@@ -79,6 +89,7 @@ const ICONS = {
 
 const Navbar = () => {
   const { user, logout } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -200,41 +211,54 @@ const Navbar = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const navLinks = user ? (ROLE_NAV[user.role] || []) : UNAUTH_NAV;
+  const scrollToSection = useCallback((id) => {
+    setMobileOpen(false);
+    setDropdownOpen(false);
+    if (location.pathname !== '/') {
+      navigate('/', { state: { scrollTo: id } });
+      return;
+    }
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [location.pathname, navigate]);
+
+  const navLinks = user ? (ROLE_NAV[user.role] || []) : LANDING_MODE ? LANDING_NAV : UNAUTH_NAV;
   const roleColor = user ? ROLE_COLORS[user.role] || ROLE_COLORS.user : null;
 
-  const navIconMap = {
-    '/dashboard': ICONS.dashboard,
-    '/appointments': ICONS.calendar,
-    '/consultations': ICONS.chat,
-    '/ambulance': ICONS.ambulance,
-    '/repeat-prescription': ICONS.rx,
-    '/forms': ICONS.forms,
-    '/fees': ICONS.billing,
-    '/faqs': ICONS.support,
-    '/': ICONS.home,
-    '/services': ICONS.forms,
-    '/find-doctor': ICONS.user,
-    '/about-us': ICONS.help,
-  };
-
   const accountLinks = user ? [
-    { to: '/dashboard', label: 'Dashboard', icon: ICONS.dashboard },
-    { to: '/appointments', label: 'My Appointments', icon: ICONS.calendar },
-    { to: '/consultations', label: 'Consultations', icon: ICONS.chat },
-    { to: '/ambulance', label: 'Ambulance Requests', icon: ICONS.ambulance },
-    { to: '/repeat-prescription', label: 'Prescriptions', icon: ICONS.rx },
-    { to: '/forms', label: 'Medical Forms', icon: ICONS.forms },
-    { to: '/settings', label: 'Profile Settings', icon: ICONS.settings },
+    { to: '/dashboard', labelKey: 'nav.dashboard', icon: ICONS.dashboard },
+    { to: '/appointments', labelKey: 'nav.myAppointments', icon: ICONS.calendar },
+    { to: '/consultations', labelKey: 'nav.consultations', icon: ICONS.chat },
+    { to: '/ambulance', labelKey: 'nav.ambulanceRequests', icon: ICONS.ambulance },
+    { to: '/repeat-prescription', labelKey: 'nav.prescriptions', icon: ICONS.rx },
+    { to: '/forms', labelKey: 'nav.medicalForms', icon: ICONS.forms },
+    { to: '/settings', labelKey: 'nav.profileSettings', icon: ICONS.settings },
   ] : [];
 
+  const guestAccountLinks = [
+    { labelKey: 'nav.dashboard', icon: ICONS.dashboard },
+    { labelKey: 'nav.myAppointments', icon: ICONS.calendar },
+    { labelKey: 'nav.consultations', icon: ICONS.chat },
+    { labelKey: 'nav.ambulanceRequests', icon: ICONS.ambulance },
+    { labelKey: 'nav.prescriptions', icon: ICONS.rx },
+    { labelKey: 'nav.medicalForms', icon: ICONS.forms },
+    { labelKey: 'nav.profileSettings', icon: ICONS.settings },
+  ];
+
+  const isLinkActive = (link) => {
+    if (link.section) return location.pathname === '/';
+    return location.pathname === link.to;
+  };
+
   return (
-    <nav className="navbar-new" role="navigation" aria-label="Main navigation">
+    <nav className="navbar-new" role="navigation" aria-label={t('nav.menuNavigation')}>
       {/* ═══ Utility Bar ═══ */}
       <div className="utility-bar">
         <div className="utility-bar-inner">
           <div className="utility-bar-left">
-            <Link to="/" className="utility-bar-logo" aria-label="Rodab Medical - Home">
+            <Link to="/" className="utility-bar-logo" aria-label={`${t('nav.brand')} - ${t('nav.home')}`}>
               <img
                 src={`${SUPABASE_URL}/storage/v1/object/public/images/logo-footer.png`}
                 alt=""
@@ -242,44 +266,39 @@ const Navbar = () => {
                 height="30"
               />
               <div className="utility-bar-logo-text">
-                <span className="brand-name">Rodab Medical</span>
-                <span className="brand-sub">Healthcare Services</span>
+                <span className="brand-name">{t('nav.brand')}</span>
+                <span className="brand-sub">{t('nav.brandSub')}</span>
               </div>
             </Link>
           </div>
 
           <div className="utility-bar-right">
             {/* Language Selector */}
-            <button className="lang-selector" aria-label="Select language" aria-haspopup="true" aria-expanded="false" title="Language">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="2" y1="12" x2="22" y2="12" />
-                <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-              </svg>
-              English
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
-            </button>
+            <LanguageSelector />
 
             <div className="utility-divider" />
 
+            {/* Accessibility */}
+            <AccessibilityButton />
+
             {/* Notifications */}
-            <button className="utility-item" aria-label="Notifications" title="Notifications">
+            <button className="utility-item" aria-label={t('nav.notifications')} title={t('nav.notifications')}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d={ICONS.bell} />
               </svg>
             </button>
 
             {/* Help */}
-            <Link to="/faqs" className="utility-item" title="Help Center">
+            <Link to="/faqs" className="utility-item" title={t('nav.helpCenter')}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d={ICONS.help} />
               </svg>
-              Help
+              {t('nav.help')}
             </Link>
 
             {/* Settings */}
             {user && (
-              <Link to="/settings" className="utility-item" title="Settings" aria-label="Settings">
+              <Link to="/settings" className="utility-item" title={t('nav.settings')} aria-label={t('nav.settings')}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d={ICONS.settings} />
                 </svg>
@@ -300,7 +319,7 @@ const Navbar = () => {
                   className="utility-profile-trigger"
                   aria-haspopup="true"
                   aria-expanded={dropdownOpen}
-                  aria-label="User menu"
+                  aria-label={t('nav.userMenu')}
                   onClick={handleTriggerClick}
                   onKeyDown={(e) => { if (e.key === 'Escape') setDropdownOpen(false); }}
                 >
@@ -310,7 +329,7 @@ const Navbar = () => {
                   >
                     {getInitials(user.full_name)}
                   </div>
-                  <span className="utility-profile-name">{user.full_name || 'Patient'}</span>
+                  <span className="utility-profile-name">{user.full_name || t('nav.roleUser')}</span>
                   <svg className={`utility-profile-chevron ${dropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
@@ -320,7 +339,7 @@ const Navbar = () => {
                   <div
                     className="premium-dropdown"
                     role="menu"
-                    aria-label="User navigation"
+                    aria-label={t('nav.userMenu')}
                     onMouseEnter={handleDropdownEnter}
                     onMouseLeave={handleDropdownLeave}
                     onKeyDown={handleDropdownKeyDown}
@@ -334,13 +353,13 @@ const Navbar = () => {
                         {getInitials(user.full_name)}
                       </div>
                       <div className="info">
-                        <div className="name">{user.full_name || 'Patient'}</div>
+                        <div className="name">{user.full_name || t('nav.roleUser')}</div>
                         <div className="email">{user.email}</div>
                         <span
                           className="role-badge"
                           style={roleColor ? { backgroundColor: roleColor.bg, color: roleColor.text } : {}}
                         >
-                          {ROLE_LABELS[user.role] || 'User'}
+                          {t(ROLE_LABEL_KEYS[user.role] || 'nav.roleUser')}
                         </span>
                       </div>
                     </div>
@@ -348,7 +367,7 @@ const Navbar = () => {
                     <div className="premium-dropdown-divider" />
 
                     {/* My Account */}
-                    <div className="premium-dropdown-section-label">My Account</div>
+                    <div className="premium-dropdown-section-label">{t('nav.myAccount')}</div>
                     {accountLinks.map((link) => (
                       <Link
                         key={link.to}
@@ -360,7 +379,7 @@ const Navbar = () => {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d={link.icon} />
                         </svg>
-                        {link.label}
+                        {t(link.labelKey)}
                       </Link>
                     ))}
 
@@ -376,16 +395,16 @@ const Navbar = () => {
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d={ICONS.signout} />
                       </svg>
-                      Sign Out
+                      {t('nav.signOut')}
                     </button>
 
                     <div className="premium-dropdown-divider" />
 
                     {/* Footer */}
                     <div className="premium-dropdown-footer">
-                      <Link to="/faqs" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>Help Center</Link>
-                      <Link to="/privacy-policy" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>Privacy Policy</Link>
-                      <Link to="/policies" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>Terms</Link>
+                      <Link to="/faqs" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>{t('nav.helpCenter')}</Link>
+                      <Link to="/privacy-policy" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>{t('nav.privacyPolicy')}</Link>
+                      <Link to="/policies" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>{t('nav.terms')}</Link>
                     </div>
                   </div>
                 )}
@@ -401,7 +420,7 @@ const Navbar = () => {
                   className="utility-profile-trigger"
                   aria-haspopup="true"
                   aria-expanded={dropdownOpen}
-                  aria-label="Sign in menu"
+                  aria-label={t('nav.signInMenu')}
                   onClick={handleTriggerClick}
                   onKeyDown={(e) => { if (e.key === 'Escape') setDropdownOpen(false); }}
                 >
@@ -409,7 +428,7 @@ const Navbar = () => {
                     <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
-                  <span className="utility-profile-name">Sign In</span>
+                  <span className="utility-profile-name">{t('nav.signIn')}</span>
                   <svg className={`utility-profile-chevron ${dropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                     <polyline points="6 9 12 15 18 9" />
                   </svg>
@@ -419,7 +438,7 @@ const Navbar = () => {
                   <div
                     className="premium-dropdown"
                     role="menu"
-                    aria-label="Sign in options"
+                    aria-label={t('nav.signInMenu')}
                     onMouseEnter={handleDropdownEnter}
                     onMouseLeave={handleDropdownLeave}
                     onKeyDown={handleDropdownKeyDown}
@@ -432,7 +451,7 @@ const Navbar = () => {
                         role="menuitem"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        Sign In
+                        {t('nav.signIn')}
                       </Link>
                       <Link
                         to="/signup"
@@ -440,37 +459,37 @@ const Navbar = () => {
                         role="menuitem"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        Create Account
+                        {t('nav.createAccount')}
                       </Link>
                     </div>
 
                     {/* Social Login */}
                     <div className="premium-dropdown-social">
-                      <div className="premium-dropdown-social-label">Continue With</div>
+                      <div className="premium-dropdown-social-label">{t('nav.continueWith')}</div>
                       <div className="premium-dropdown-social-row">
-                        <button className="premium-dropdown-social-btn" type="button" aria-label="Continue with Google">
+                        <button className="premium-dropdown-social-btn" type="button" aria-label={`${t('nav.continueWith')} Google`}>
                           <svg width="16" height="16" viewBox="0 0 24 24">
                             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                           </svg>
-                          Google
+                          {t('nav.google')}
                         </button>
-                        <button className="premium-dropdown-social-btn" type="button" aria-label="Continue with Microsoft">
+                        <button className="premium-dropdown-social-btn" type="button" aria-label={`${t('nav.continueWith')} Microsoft`}>
                           <svg width="16" height="16" viewBox="0 0 24 24">
                             <path d="M11.4 24H0V12.6h11.4V24z" fill="#F25022" />
                             <path d="M24 24H12.6V12.6H24V24z" fill="#00A4EF" />
                             <path d="M11.4 11.4H0V0h11.4v11.4z" fill="#7FBA00" />
                             <path d="M24 11.4H12.6V0H24v11.4z" fill="#FFB900" />
                           </svg>
-                          Microsoft
+                          {t('nav.microsoft')}
                         </button>
-                        <button className="premium-dropdown-social-btn" type="button" aria-label="Continue with Apple">
+                        <button className="premium-dropdown-social-btn" type="button" aria-label={`${t('nav.continueWith')} Apple`}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="#000">
                             <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                           </svg>
-                          Apple
+                          {t('nav.apple')}
                         </button>
                       </div>
                     </div>
@@ -478,18 +497,10 @@ const Navbar = () => {
                     <div className="premium-dropdown-divider" />
 
                     {/* My Account (links to login) */}
-                    <div className="premium-dropdown-section-label">My Account</div>
-                    {[
-                      { label: 'Dashboard', icon: ICONS.dashboard },
-                      { label: 'My Appointments', icon: ICONS.calendar },
-                      { label: 'Consultations', icon: ICONS.chat },
-                      { label: 'Ambulance Requests', icon: ICONS.ambulance },
-                      { label: 'Prescriptions', icon: ICONS.rx },
-                      { label: 'Medical Forms', icon: ICONS.forms },
-                      { label: 'Profile Settings', icon: ICONS.settings },
-                    ].map((item) => (
+                    <div className="premium-dropdown-section-label">{t('nav.myAccount')}</div>
+                    {guestAccountLinks.map((item) => (
                       <Link
-                        key={item.label}
+                        key={item.labelKey}
                         to="/login"
                         className="premium-dropdown-link"
                         role="menuitem"
@@ -498,7 +509,7 @@ const Navbar = () => {
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d={item.icon} />
                         </svg>
-                        {item.label}
+                        {t(item.labelKey)}
                       </Link>
                     ))}
 
@@ -506,9 +517,9 @@ const Navbar = () => {
 
                     {/* Footer */}
                     <div className="premium-dropdown-footer">
-                      <Link to="/faqs" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>Help Center</Link>
-                      <Link to="/privacy-policy" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>Privacy Policy</Link>
-                      <Link to="/policies" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>Terms &amp; Conditions</Link>
+                      <Link to="/faqs" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>{t('nav.helpCenter')}</Link>
+                      <Link to="/privacy-policy" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>{t('nav.privacyPolicy')}</Link>
+                      <Link to="/policies" className="premium-dropdown-footer-link" onClick={() => setDropdownOpen(false)}>{t('nav.termsAndConditions')}</Link>
                     </div>
                   </div>
                 )}
@@ -519,7 +530,7 @@ const Navbar = () => {
             <button
               className={`utility-hamburger ${mobileOpen ? 'active' : ''}`}
               onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+              aria-label={mobileOpen ? t('nav.closeMenu') : t('nav.openMenu')}
               aria-expanded={mobileOpen}
             >
               <span />
@@ -535,20 +546,32 @@ const Navbar = () => {
         <div className="main-nav-inner">
           <div className="main-nav-links" role="menubar">
             {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`main-nav-link ${location.pathname === link.to ? 'active' : ''}`}
-                role="menuitem"
-                aria-current={location.pathname === link.to ? 'page' : undefined}
-              >
-                {link.label}
-              </Link>
+              link.section ? (
+                <button
+                  key={link.key}
+                  type="button"
+                  className={`main-nav-link ${isLinkActive(link) ? 'active' : ''}`}
+                  role="menuitem"
+                  onClick={() => scrollToSection(link.section)}
+                >
+                  {t(link.labelKey)}
+                </button>
+              ) : (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`main-nav-link ${location.pathname === link.to ? 'active' : ''}`}
+                  role="menuitem"
+                  aria-current={location.pathname === link.to ? 'page' : undefined}
+                >
+                  {t(link.labelKey)}
+                </Link>
+              )
             ))}
           </div>
 
           {user && user.role === 'user' && (
-            <Link to="/ambulance" className="main-nav-sos" aria-label="Emergency SOS">
+            <Link to="/ambulance" className="main-nav-sos" aria-label={t('nav.emergencySos')}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                 <line x1="12" y1="9" x2="12" y2="13" />
@@ -564,7 +587,7 @@ const Navbar = () => {
       {mobileOpen && (
         <>
           <div className="mobile-slideout-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
-          <div className="mobile-slideout" role="dialog" aria-label="Navigation menu" ref={mobileSlideoutRef} tabIndex="-1">
+          <div className="mobile-slideout" role="dialog" aria-label={t('nav.menuNavigation')} ref={mobileSlideoutRef} tabIndex="-1">
             {user && (
               <div style={{ padding: 12, marginBottom: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
@@ -575,7 +598,7 @@ const Navbar = () => {
                     {getInitials(user.full_name)}
                   </div>
                   <div>
-                    <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>{user.full_name || 'Patient'}</div>
+                    <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>{user.full_name || t('nav.roleUser')}</div>
                     <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{user.email}</div>
                   </div>
                 </div>
@@ -584,55 +607,69 @@ const Navbar = () => {
                   fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5,
                   backgroundColor: roleColor?.bg, color: roleColor?.text,
                 }}>
-                  {ROLE_LABELS[user.role]}
+                  {t(ROLE_LABEL_KEYS[user.role] || 'nav.roleUser')}
                 </span>
               </div>
             )}
 
             {!user && !LANDING_MODE && (
               <>
-                <div className="mobile-slideout-section-title">Account</div>
-                <Link to="/login" className="mobile-slideout-btn mobile-slideout-btn-primary" onClick={() => setMobileOpen(false)}>Sign In</Link>
+                <div className="mobile-slideout-section-title">{t('nav.menuAccount')}</div>
+                <Link to="/login" className="mobile-slideout-btn mobile-slideout-btn-primary" onClick={() => setMobileOpen(false)}>{t('nav.signIn')}</Link>
                 <div style={{ height: 8 }} />
-                <Link to="/signup" className="mobile-slideout-btn mobile-slideout-btn-outline" onClick={() => setMobileOpen(false)}>Create Account</Link>
+                <Link to="/signup" className="mobile-slideout-btn mobile-slideout-btn-outline" onClick={() => setMobileOpen(false)}>{t('nav.createAccount')}</Link>
               </>
             )}
 
-            <div className="mobile-slideout-section-title">Navigation</div>
+            <LanguageSelector variant="mobile" onNavigate={() => setMobileOpen(false)} />
+            <AccessibilityButton variant="mobile" />
+
+            <div className="mobile-slideout-section-title">{t('nav.menuNavigation')}</div>
             {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={`mobile-slideout-link ${location.pathname === link.to ? 'active' : ''}`}
-                onClick={() => setMobileOpen(false)}
-              >
-                {link.label}
-              </Link>
+              link.section ? (
+                <button
+                  key={link.key}
+                  type="button"
+                  className={`mobile-slideout-link ${isLinkActive(link) ? 'active' : ''}`}
+                  onClick={() => scrollToSection(link.section)}
+                >
+                  {t(link.labelKey)}
+                </button>
+              ) : (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`mobile-slideout-link ${location.pathname === link.to ? 'active' : ''}`}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {t(link.labelKey)}
+                </Link>
+              )
             ))}
 
             {!user && (
               <>
-                <div className="mobile-slideout-section-title">More</div>
-                <Link to="/policies" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>Policies</Link>
-                <Link to="/faqs" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>FAQs</Link>
-                <Link to="/privacy-policy" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>Privacy Policy</Link>
+                <div className="mobile-slideout-section-title">{t('nav.menuMore')}</div>
+                <Link to="/policies" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>{t('nav.quickPolicies')}</Link>
+                <Link to="/faqs" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>{t('nav.quickFaqs')}</Link>
+                <Link to="/privacy-policy" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>{t('nav.quickPrivacy')}</Link>
               </>
             )}
 
             {user && user.role === 'user' && (
               <>
-                <div className="mobile-slideout-section-title">Quick Access</div>
-                <Link to="/repeat-prescription" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>Repeat Prescription</Link>
-                <Link to="/illness-certificate" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>Illness Certificate</Link>
-                <Link to="/fees" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>Fees</Link>
-                <Link to="/settings" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>Settings</Link>
+                <div className="mobile-slideout-section-title">{t('nav.menuQuickAccess')}</div>
+                <Link to="/repeat-prescription" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>{t('nav.quickRepeatPrescription')}</Link>
+                <Link to="/illness-certificate" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>{t('nav.quickIllnessCertificate')}</Link>
+                <Link to="/fees" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>{t('nav.quickFees')}</Link>
+                <Link to="/settings" className="mobile-slideout-link" onClick={() => setMobileOpen(false)}>{t('nav.quickSettings')}</Link>
               </>
             )}
 
             <div className="mobile-slideout-divider" />
 
             {user && (
-              <button className="mobile-slideout-btn mobile-slideout-btn-danger" onClick={handleLogout}>Sign Out</button>
+              <button className="mobile-slideout-btn mobile-slideout-btn-danger" onClick={handleLogout}>{t('nav.signOut')}</button>
             )}
           </div>
         </>

@@ -2,6 +2,7 @@
 import { getDoctors, getDoctorsDepartments, getDeptAvailability, createAppointment } from '../api'
 import SEO from '../components/SEO'
 import { useToast } from '../components/ToastContext'
+import { useI18n } from '../i18n/I18nContext'
 
 const timeSlots = []
 for (let h = 8; h < 17; h++) {
@@ -9,22 +10,8 @@ for (let h = 8; h < 17; h++) {
   timeSlots.push(`${String(h).padStart(2, '0')}:30`)
 }
 
-const colors = {
-  primary: '#1e40af',
-  red: '#dc2626',
-  gray50: '#f9fafb',
-  gray100: '#f3f4f6',
-  gray200: '#e5e7eb',
-  gray300: '#d1d5db',
-  gray500: '#6b7280',
-  gray600: '#4b5563',
-  gray700: '#374151',
-  gray900: '#111827',
-  white: '#ffffff',
-  green: '#16a34a',
-}
-
 export default function FindDoctorPage() {
+  const { t } = useI18n()
   const [doctors, setDoctors] = useState([])
   const [departments, setDepartments] = useState([])
   const [search, setSearch] = useState('')
@@ -158,20 +145,20 @@ export default function FindDoctorPage() {
 
   return (
     <div style={{ padding: '64px 24px', maxWidth: 1200, margin: '0 auto' }}>
-      <SEO title="Find a Doctor" description="Search and find experienced doctors and specialists at Rodab Medical. Book consultations online." url="/find-doctor" />
-      <h1 style={{ fontSize: 36, fontWeight: 800, color: colors.gray900, marginBottom: 8 }}>
-        Find a Doctor
+      <SEO title={t('findDoctor.seoTitle')} description={t('findDoctor.seoDescription')} url="/find-doctor" />
+      <h1 style={{ fontSize: 36, fontWeight: 800, color: 'var(--text-strong)', marginBottom: 8 }}>
+        {t('findDoctor.heading')}
       </h1>
-      <p style={{ fontSize: 16, color: colors.gray500, marginBottom: 32 }}>
-        Search our team of specialists and book an appointment
+      <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 32 }}>
+        {t('findDoctor.sub')}
       </p>
 
       {/* Search and Filter */}
       <div style={{ display: 'flex', gap: 16, marginBottom: 40, flexWrap: 'wrap' }}>
         <input
           type="text"
-          aria-label="Search by doctor name"
-          placeholder="Search by doctor name..."
+          aria-label={t('findDoctor.searchAria')}
+          placeholder={t('findDoctor.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           style={{
@@ -179,27 +166,30 @@ export default function FindDoctorPage() {
             minWidth: 240,
             padding: '12px 16px',
             borderRadius: 8,
-            border: `1px solid ${colors.gray300}`,
+            border: '1px solid var(--border)',
+            backgroundColor: 'var(--surface-card)',
+            color: 'var(--text-body)',
             fontSize: 15,
           }}
-          onFocus={(e) => (e.target.style.borderColor = colors.primary)}
-          onBlur={(e) => (e.target.style.borderColor = colors.gray300)}
+          onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+          onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
         />
         <select
-          aria-label="Filter by department"
+          aria-label={t('findDoctor.filterAria')}
           value={selectedDept}
           onChange={(e) => setSelectedDept(e.target.value)}
           style={{
             minWidth: 200,
             padding: '12px 16px',
             borderRadius: 8,
-            border: `1px solid ${colors.gray300}`,
+            border: '1px solid var(--border)',
             fontSize: 15,
-            backgroundColor: colors.white,
+            backgroundColor: 'var(--surface-card)',
+            color: 'var(--text-body)',
             cursor: 'pointer',
           }}
         >
-          <option value="">All Specialties</option>
+          <option value="">{t('findDoctor.allSpecialties')}</option>
           {departments.map((dept) => (
             <option key={dept.id || dept} value={dept.name || dept}>
               {dept.name || dept}
@@ -210,10 +200,12 @@ export default function FindDoctorPage() {
 
       {/* Doctors Grid */}
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: colors.gray500 }} role="status" aria-live="polite">Loading doctors...</div>
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }} role="status" aria-live="polite">
+          {t('common.loadingDoctors')}
+        </div>
       ) : filteredDoctors.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: 60, color: colors.gray500 }}>
-          No doctors found matching your criteria.
+        <div style={{ textAlign: 'center', padding: 60, color: 'var(--text-muted)' }}>
+          {t('findDoctor.noResults')}
         </div>
       ) : (
         <div className="grid-3-col" style={{ gap: 24 }}>
@@ -221,13 +213,13 @@ export default function FindDoctorPage() {
             <div
               key={doc.id}
               style={{
-                backgroundColor: colors.white,
+                backgroundColor: 'var(--surface-card)',
                 borderRadius: 12,
-                border: `1px solid ${colors.gray200}`,
+                border: '1px solid var(--border)',
                 padding: 24,
                 transition: 'box-shadow 0.2s',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)')}
+              onMouseEnter={(e) => (e.currentTarget.style.boxShadow = 'var(--shadow-md)')}
               onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'none')}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
@@ -236,8 +228,8 @@ export default function FindDoctorPage() {
                     width: 56,
                     height: 56,
                     borderRadius: '50%',
-                    backgroundColor: colors.primary,
-                    color: colors.white,
+                    backgroundColor: 'var(--primary)',
+                    color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -249,18 +241,18 @@ export default function FindDoctorPage() {
                   {(doc.full_name || doc.name || '?')[0]}
                 </div>
                 <div>
-                  <h3 style={{ fontSize: 17, fontWeight: 700, color: colors.gray900, margin: 0 }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', margin: 0 }}>
                     Dr. {doc.full_name || doc.name}
                   </h3>
-                  <p style={{ fontSize: 13, color: colors.gray500, margin: 0 }}>
-                    {doc.specialty || doc.department?.name || doc.department_name || 'General'}
+                  <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+                    {doc.specialty || doc.department?.name || doc.department_name || t('common.notAvailable')}
                   </p>
                 </div>
               </div>
               <div style={{ marginBottom: 12 }}>
-                <span style={{ fontSize: 13, color: colors.gray600 }}>Department: </span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: colors.gray700 }}>
-                  {doc.department?.name || doc.department_name || doc.department || 'N/A'}
+                <span style={{ fontSize: 13, color: 'var(--text-body)' }}>{t('findDoctor.department')}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-body)' }}>
+                  {doc.department?.name || doc.department_name || doc.department || t('common.notAvailable')}
                 </span>
               </div>
               <div style={{ marginBottom: 20 }}>
@@ -271,7 +263,7 @@ export default function FindDoctorPage() {
                     gap: 6,
                     fontSize: 13,
                     fontWeight: 500,
-                    color: doc.is_available !== false ? colors.green : colors.red,
+                    color: doc.is_available !== false ? 'var(--status-success)' : 'var(--error)',
                   }}
                 >
                   <span
@@ -279,11 +271,11 @@ export default function FindDoctorPage() {
                       width: 8,
                       height: 8,
                       borderRadius: '50%',
-                      backgroundColor: doc.is_available !== false ? colors.green : colors.red,
+                      backgroundColor: doc.is_available !== false ? 'var(--status-success)' : 'var(--error)',
                       display: 'inline-block',
                     }}
                   />
-                  {doc.is_available !== false ? 'Available' : 'Unavailable'}
+                  {doc.is_available !== false ? t('findDoctor.available') : t('findDoctor.unavailable')}
                 </span>
               </div>
               <button
@@ -292,8 +284,8 @@ export default function FindDoctorPage() {
                   width: '100%',
                   padding: '12px 0',
                   minHeight: 44,
-                  backgroundColor: colors.primary,
-                  color: colors.white,
+                  backgroundColor: 'var(--primary)',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: 8,
                   fontSize: 14,
@@ -301,7 +293,7 @@ export default function FindDoctorPage() {
                   cursor: 'pointer',
                 }}
               >
-                Book Appointment
+                {t('findDoctor.bookAppointment')}
               </button>
             </div>
           ))}
@@ -328,7 +320,7 @@ export default function FindDoctorPage() {
           <div
             ref={bookingModalRef}
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: 'var(--surface-card)',
               borderRadius: 16,
               padding: 36,
               width: 480,
@@ -340,29 +332,29 @@ export default function FindDoctorPage() {
             {bookingSuccess ? (
               <div style={{ textAlign: 'center', padding: '32px 0' }}>
                 <div style={{ fontSize: 48, marginBottom: 16 }}>&#10003;</div>
-                <h3 style={{ fontSize: 22, fontWeight: 700, color: colors.green, marginBottom: 8 }}>
-                  Appointment Booked!
+                <h3 style={{ fontSize: 22, fontWeight: 700, color: 'var(--status-success)', marginBottom: 8 }}>
+                  {t('findDoctor.bookedTitle')}
                 </h3>
-                <p style={{ color: colors.gray500 }}>You will receive a confirmation shortly.</p>
+                <p style={{ color: 'var(--text-muted)' }}>{t('findDoctor.bookedMsg')}</p>
               </div>
             ) : (
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                  <h2 id="booking-modal-title" style={{ fontSize: 22, fontWeight: 700, color: colors.gray900 }}>
-                    Book Dr. {bookingDoctor.full_name || bookingDoctor.name}
+                  <h2 id="booking-modal-title" style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-strong)' }}>
+                    {t('findDoctor.modalTitle').replace('{name}', bookingDoctor.full_name || bookingDoctor.name)}
                   </h2>
                   <button
-                    aria-label="Close dialog"
+                    aria-label={t('findDoctor.closeDialog')}
                     onClick={() => setBookingDoctor(null)}
-                    style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: colors.gray500 }}
+                    style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--text-muted)' }}
                   >
                     &times;
                   </button>
                 </div>
 
                 {/* Date Picker */}
-                <label htmlFor="booking-date" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: colors.gray700 }}>
-                  Select Date
+                <label htmlFor="booking-date" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+                  {t('findDoctor.selectDate')}
                 </label>
                 <input
                   id="booking-date"
@@ -374,15 +366,17 @@ export default function FindDoctorPage() {
                     width: '100%',
                     padding: '10px 14px',
                     borderRadius: 8,
-                    border: `1px solid ${colors.gray300}`,
+                    border: '1px solid var(--border)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-body)',
                     fontSize: 15,
                     marginBottom: 20,
                   }}
                 />
 
                 {/* Time Slot Grid */}
-                <label id="booking-time-slot-label" style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 600, color: colors.gray700 }}>
-                  Select Time
+                <label id="booking-time-slot-label" style={{ display: 'block', marginBottom: 8, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+                  {t('findDoctor.selectTime')}
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 20 }} role="group" aria-labelledby="booking-time-slot-label">
                   {timeSlots.map((slot) => {
@@ -397,17 +391,17 @@ export default function FindDoctorPage() {
                         style={{
                           padding: '8px 4px',
                           borderRadius: 6,
-                          border: `1px solid ${selectedSlot === slot ? colors.primary : colors.gray200}`,
+                          border: `1px solid ${selectedSlot === slot ? 'var(--primary)' : 'var(--border)'}`,
                           backgroundColor: isTaken
-                            ? colors.gray100
+                            ? 'var(--surface-container-low)'
                             : selectedSlot === slot
-                              ? colors.primary
-                              : colors.white,
+                              ? 'var(--primary)'
+                              : 'var(--surface-card)',
                           color: isTaken
-                            ? colors.gray300
+                            ? 'var(--text-muted)'
                             : selectedSlot === slot
-                              ? colors.white
-                              : colors.gray700,
+                              ? '#ffffff'
+                              : 'var(--text-body)',
                           fontSize: 13,
                           fontWeight: 500,
                           cursor: isTaken ? 'not-allowed' : 'pointer',
@@ -421,20 +415,22 @@ export default function FindDoctorPage() {
                 </div>
 
                 {/* Reason */}
-                <label htmlFor="booking-reason" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: colors.gray700 }}>
-                  Reason for Visit
+                <label htmlFor="booking-reason" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+                  {t('findDoctor.reason')}
                 </label>
                 <textarea
                   id="booking-reason"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Describe your symptoms or reason for appointment..."
+                  placeholder={t('findDoctor.reasonPlaceholder')}
                   rows={3}
                   style={{
                     width: '100%',
                     padding: '10px 14px',
                     borderRadius: 8,
-                    border: `1px solid ${colors.gray300}`,
+                    border: '1px solid var(--border)',
+                    backgroundColor: 'var(--surface-card)',
+                    color: 'var(--text-body)',
                     fontSize: 14,
                     resize: 'vertical',
                     marginBottom: 24,
@@ -448,8 +444,8 @@ export default function FindDoctorPage() {
                   style={{
                     width: '100%',
                     padding: '12px 0',
-                    backgroundColor: !bookingDate || !selectedSlot ? colors.gray300 : colors.primary,
-                    color: colors.white,
+                    backgroundColor: !bookingDate || !selectedSlot ? 'var(--border)' : 'var(--primary)',
+                    color: '#ffffff',
                     border: 'none',
                     borderRadius: 8,
                     fontSize: 16,
@@ -457,7 +453,7 @@ export default function FindDoctorPage() {
                     cursor: !bookingDate || !selectedSlot ? 'not-allowed' : 'pointer',
                   }}
                 >
-                  {bookingLoading ? 'Booking...' : 'Confirm Booking'}
+                  {bookingLoading ? t('common.booking') : t('findDoctor.confirmBooking')}
                 </button>
               </>
             )}
