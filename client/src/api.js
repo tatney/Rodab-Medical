@@ -1149,6 +1149,97 @@ export const getAnalytics = async (params) => {
   })
 }
 
+// ─── Form Templates & Submissions ─────────────────────────────────────────────
+
+export const getFormTemplates = async () => {
+  const { data, error } = await supabase
+    .from('form_templates')
+    .select('*')
+    .eq('is_active', true)
+    .order('title')
+  if (error) throw error
+  return ok({ forms: data || [] })
+}
+
+export const getFormTemplatesAdmin = async () => {
+  const { data, error } = await supabase
+    .from('form_templates')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ forms: data || [] })
+}
+
+export const createFormTemplate = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: result, error } = await supabase
+    .from('form_templates')
+    .insert({
+      title: data.title,
+      description: data.description || '',
+      icon: data.icon || '📋',
+      category: data.category || 'general',
+      form_code: data.form_code || '',
+      revision: data.revision || 'Rev. 1.0',
+      fields: data.fields || [],
+      header_extra: data.header_extra || {},
+      is_active: data.is_active !== false,
+      created_by: user?.id,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ form: result })
+}
+
+export const updateFormTemplate = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('form_templates')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ form: result })
+}
+
+export const deleteFormTemplate = async (id) => {
+  const { error } = await supabase.from('form_templates').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Form template deleted successfully' })
+}
+
+export const getMyFormSubmissions = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return ok({ submissions: [] })
+
+  const { data, error } = await supabase
+    .from('form_submissions')
+    .select('*, form_templates(*)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ submissions: data || [] })
+}
+
+export const createFormSubmission = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: result, error } = await supabase
+    .from('form_submissions')
+    .insert({
+      template_id: data.template_id,
+      user_id: user?.id || null,
+      data: data.data || {},
+      reference_no: data.reference_no || '',
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ submission: result })
+}
+
 // ─── Default export (for backward compat) ─────────────────────────────────────
 
 const api = {
@@ -1224,6 +1315,13 @@ const api = {
   createDoctorAccount,
   deleteUser,
   getAnalytics,
+  getFormTemplates,
+  getFormTemplatesAdmin,
+  createFormTemplate,
+  updateFormTemplate,
+  deleteFormTemplate,
+  getMyFormSubmissions,
+  createFormSubmission,
 }
 
 export default api

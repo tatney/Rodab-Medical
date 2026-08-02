@@ -1,126 +1,407 @@
-﻿import React, { useState } from 'react'
-import { sendContact } from '../api'
+﻿import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { getFormTemplates, createFormSubmission } from '../api'
+import { extractArray } from '../utils/api-helpers'
+import { downloadFormPdf } from '../utils/pdf'
+import { useAuth } from '../context/AuthContext'
 import colors from '../utils/colors'
 
-const formTypes = [
-  { id: 'referral', title: 'Referral Request', icon: '📋', desc: 'Request a specialist referral from your primary physician.' },
-  { id: 'records', title: 'Medical Records Request', icon: '📁', desc: 'Request copies of your medical records and test results.' },
-  { id: 'prescription', title: 'Prescription Refill', icon: '💊', desc: 'Request a refill for an existing prescription.' },
-  { id: 'feedback', title: 'Patient Feedback', icon: '⭐', desc: 'Share your experience and help us improve our services.' },
-]
+const inputStyle = {
+  width: '100%',
+  padding: '12px 14px',
+  borderRadius: 8,
+  border: `1px solid ${colors.gray300}`,
+  backgroundColor: colors.white,
+  color: colors.gray900,
+  fontSize: 15,
+  boxSizing: 'border-box',
+}
+
+const labelStyle = {
+  display: 'block',
+  marginBottom: 6,
+  fontSize: 14,
+  fontWeight: 600,
+  color: colors.gray700,
+}
+
+const errorTextStyle = { fontSize: 12, color: colors.red, marginTop: 4 }
+const inputErrorStyle = { borderColor: colors.red }
+
+function buildInitialValues(template, user) {
+  const map = {}
+  const aliases = {
+    full_name: 'full_name',
+    name: 'full_name',
+    patient_name: 'full_name',
+    email: 'email',
+    phone: 'phone',
+    contact_phone: 'phone',
+    date_of_birth: 'date_of_birth',
+    dob: 'date_of_birth',
+    gender: 'gender',
+    address: 'address',
+    home_address: 'address',
+  }
+  for (const f of Array.isArray(template?.fields) ? template.fields : []) {
+    const key = f.key
+    if (user && aliases[key]) {
+      const val = user[aliases[key]]
+      if (val) map[key] = val
+    } else if (f.type === 'checkbox') {
+      map[key] = false
+    } else {
+      map[key] = ''
+    }
+  }
+  return map
+}
+
+function renderField(field, value, onChange, errors) {
+  const id = `field-${field.key}`
+  const common = {
+    id,
+    name: field.key,
+    value: value ?? '',
+    onChange: (e) => onChange(field.key, field.type === 'checkbox' ? e.target.checked : e.target.value),
+  }
+  const err = errors[field.key]
+
+  switch (field.type) {
+    case 'textarea':
+      return (
+        <div>
+          <label htmlFor={id} style={labelStyle}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</label>
+          <textarea {...common} rows={4} placeholder={field.placeholder} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', ...(err ? inputErrorStyle : {}) }} />
+          {err && <p style={errorTextStyle}>{err}</p>}
+        </div>
+      )
+    case 'select':
+      return (
+        <div>
+          <label htmlFor={id} style={labelStyle}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</label>
+          <select {...common} style={{ ...inputStyle, cursor: 'pointer', ...(err ? inputErrorStyle : {}) }}>
+            <option value="">Select...</option>
+            {(field.options || []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
+          {err && <p style={errorTextStyle}>{err}</p>}
+        </div>
+      )
+    case 'radio':
+      return (
+        <div style={{ marginBottom: 12 }}>
+          <span style={{ ...labelStyle, marginBottom: 8 }}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+            {(field.options || []).map((opt) => (
+              <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: colors.gray700, cursor: 'pointer' }}>
+                <input type="radio" name={field.key} value={opt} checked={value === opt} onChange={() => onChange(field.key, opt)} style={{ width: 16, height: 16 }} />
+                {opt}
+              </label>
+            ))}
+          </div>
+          {err && <p style={errorTextStyle}>{err}</p>}
+        </div>
+      )
+    case 'checkbox':
+      return (
+        <div style={{ marginBottom: 4 }}>
+          <label htmlFor={id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: colors.gray700, cursor: 'pointer', lineHeight: 1.5 }}>
+            <input id={id} type="checkbox" checked={!!value} onChange={common.onChange} style={{ marginTop: 3, width: 18, height: 18 }} />
+            <span>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</span>
+          </label>
+          {err && <p style={errorTextStyle}>{err}</p>}
+        </div>
+      )
+    case 'signature':
+      return (
+        <div>
+          <label htmlFor={id} style={labelStyle}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</label>
+          <input
+            id={id}
+            name={field.key}
+            type="text"
+            value={value ?? ''}
+            onChange={(e) => onChange(field.key, e.target.value)}
+            placeholder={field.placeholder || 'Type full legal name to sign'}
+            style={{
+              width: '100%',
+              padding: '10px 4px 6px',
+              border: 'none',
+              borderBottom: `2px solid ${colors.gray400 || colors.gray300}`,
+              backgroundColor: 'transparent',
+              color: colors.gray900,
+              fontSize: 16,
+              fontFamily: 'cursive, "Brush Script MT", cursive',
+              boxSizing: 'border-box',
+              ...(err ? { borderBottomColor: colors.red } : {}),
+            }}
+          />
+          {err && <p style={errorTextStyle}>{err}</p>}
+        </div>
+      )
+    default:
+      return (
+        <div>
+          <label htmlFor={id} style={labelStyle}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</label>
+          <input
+            {...common}
+            type={field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : field.type === 'tel' ? 'tel' : field.type === 'date' ? 'date' : 'text'}
+            placeholder={field.placeholder}
+            style={{ ...inputStyle, ...(err ? inputErrorStyle : {}) }}
+          />
+          {err && <p style={errorTextStyle}>{err}</p>}
+        </div>
+      )
+  }
+}
 
 export default function FormsPage() {
-  const [selectedType, setSelectedType] = useState(null)
-  const [form, setForm] = useState({ fullName: '', email: '', phone: '', subject: '', message: '' })
-  const [submitting, setSubmitting] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState('')
+  const { user } = useAuth()
+  const [templates, setTemplates] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [values, setValues] = useState({})
   const [fieldErrors, setFieldErrors] = useState({})
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [saved, setSaved] = useState(null)
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-    if (fieldErrors[e.target.name]) setFieldErrors((prev) => ({ ...prev, [e.target.name]: '' }))
+  useEffect(() => {
+    async function load() {
+      try {
+        const res = await getFormTemplates()
+        setTemplates(extractArray(res.data, 'forms'))
+      } catch (err) {
+        console.error('Failed to load form templates:', err)
+        setError(err.message || 'Failed to load forms.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [])
+
+  const openForm = (tpl) => {
+    setSelected(tpl)
+    setValues(buildInitialValues(tpl, user))
+    setFieldErrors({})
+    setError('')
+    setSaved(null)
+  }
+
+  const handleChange = (key, val) => {
+    setValues((prev) => ({ ...prev, [key]: val }))
+    if (fieldErrors[key]) setFieldErrors((prev) => ({ ...prev, [key]: '' }))
   }
 
   const validate = () => {
     const errs = {}
-    if (!form.fullName.trim()) errs.fullName = 'Full name is required'
-    if (!form.email.trim()) errs.email = 'Email is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Enter a valid email'
-    if (!form.subject.trim()) errs.subject = 'Subject is required'
-    if (!form.message.trim()) errs.message = 'Message is required'
+    for (const f of selected.fields || []) {
+      const v = values[f.key]
+      if (f.required && (v === undefined || v === null || v === '' || v === false)) {
+        errs[f.key] = `${f.label} is required`
+      }
+    }
     return errs
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
+  const runValidation = () => {
     const errs = validate()
+    setFieldErrors(errs)
     if (Object.keys(errs).length > 0) {
-      setFieldErrors(errs)
-      setError('Please fix the errors below.')
-      return
+      setError('Please complete the required fields highlighted below.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return false
     }
-    setSubmitting(true)
-    try {
-      await sendContact({
-        type: selectedType,
-        full_name: form.fullName,
-        email: form.email,
-        phone: form.phone,
-        subject: form.subject,
-        message: form.message,
-      })
-      setSuccess(true)
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit form. Please try again.')
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleReset = () => {
-    setSelectedType(null)
-    setForm({ fullName: '', email: '', phone: '', subject: '', message: '' })
-    setSuccess(false)
     setError('')
+    return true
   }
 
-  const inputStyle = {
-    width: '100%',
-    padding: '12px 14px',
-    borderRadius: 8,
-    border: `1px solid ${colors.gray300}`,
-    fontSize: 15,
-    boxSizing: 'border-box',
+  const handleDownload = async (e) => {
+    e.preventDefault()
+    if (!runValidation()) return
+    try {
+      setBusy(true)
+      const referenceNo = downloadFormPdf(selected, values, {
+        patientName: values.full_name || values.patient_name || user?.full_name,
+      })
+      console.log('Form PDF downloaded:', referenceNo)
+    } catch (err) {
+      console.error('PDF generation failed:', err)
+      setError('Failed to generate the PDF. Please try again.')
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const labelStyle = {
-    display: 'block',
-    marginBottom: 6,
-    fontSize: 14,
-    fontWeight: 600,
-    color: colors.gray700,
+  const handleSaveAndDownload = async (e) => {
+    e.preventDefault()
+    if (!runValidation()) return
+    setBusy(true)
+    try {
+      const res = await createFormSubmission({
+        template_id: selected.id,
+        data: values,
+      })
+      const referenceNo = downloadFormPdf(selected, values, {
+        referenceNo: res.data?.submission?.reference_no,
+        patientName: values.full_name || values.patient_name || user?.full_name,
+      })
+      setSaved({ title: selected.title, referenceNo })
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (err) {
+      console.error('Failed to save submission:', err)
+      setError(err.message || 'Failed to save your submission. Please try again.')
+    } finally {
+      setBusy(false)
+    }
   }
 
-  const errorTextStyle = { fontSize: 12, color: colors.red, marginTop: 4 }
-  const inputErrorStyle = { borderColor: colors.red }
-  const renderFieldError = (field) => fieldErrors[field] ? <p style={errorTextStyle}>{fieldErrors[field]}</p> : null
+  const resetAll = () => {
+    setSelected(null)
+    setValues({})
+    setFieldErrors({})
+    setError('')
+    setSaved(null)
+  }
 
-  // Success state
-  if (success) {
+  /* ── Success state ── */
+  if (saved) {
     return (
-      <div style={{ padding: '64px 24px', maxWidth: 500, margin: '0 auto', textAlign: 'center' }}>
+      <div style={{ padding: '64px 24px', maxWidth: 520, margin: '0 auto', textAlign: 'center' }}>
         <div style={{ width: 72, height: 72, borderRadius: '50%', backgroundColor: '#dcfce7', color: colors.green, fontSize: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
           &#10003;
         </div>
-        <h2 style={{ fontSize: 24, fontWeight: 800, color: colors.gray900, marginBottom: 12 }}>Form Submitted!</h2>
-        <p style={{ fontSize: 16, color: colors.gray500, marginBottom: 24, lineHeight: 1.6 }}>
-          Your {formTypes.find((f) => f.id === selectedType)?.title || 'form'} has been submitted successfully. We will review it and get back to you soon.
+        <h2 style={{ fontSize: 24, fontWeight: 800, color: colors.gray900, marginBottom: 12 }}>Form Saved & Downloaded</h2>
+        <p style={{ fontSize: 16, color: colors.gray500, marginBottom: 8, lineHeight: 1.6 }}>
+          Your <strong>{saved.title}</strong> submission has been saved to your history and the completed PDF has been downloaded.
         </p>
-        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-          <button onClick={handleReset} style={{ padding: '12px 24px', backgroundColor: colors.primary, color: colors.white, border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
-            Submit Another Form
+        {saved.referenceNo && (
+          <p style={{ fontSize: 14, color: colors.gray500, marginBottom: 24 }}>
+            Reference No: <strong style={{ color: colors.gray900 }}>{saved.referenceNo}</strong>
+          </p>
+        )}
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <button onClick={resetAll} style={{ padding: '12px 24px', backgroundColor: colors.primary, color: colors.white, border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>
+            Fill Another Form
           </button>
-          <a href="/form-history" style={{ padding: '12px 24px', backgroundColor: colors.gray100, color: colors.gray700, border: `1px solid ${colors.gray300}`, borderRadius: 8, fontSize: 15, fontWeight: 600, textDecoration: 'none' }}>
+          <Link to="/form-history" style={{ padding: '12px 24px', backgroundColor: colors.gray100, color: colors.gray700, border: `1px solid ${colors.gray300}`, borderRadius: 8, fontSize: 15, fontWeight: 600, textDecoration: 'none' }}>
             View Form History
-          </a>
+          </Link>
         </div>
       </div>
     )
   }
 
-  // Form type selection
-  if (!selectedType) {
+  /* ── Form fill view ── */
+  if (selected) {
     return (
-      <div style={{ padding: '48px 24px', maxWidth: 900, margin: '0 auto' }}>
-        <h1 style={{ fontSize: 32, fontWeight: 800, color: colors.gray900, marginBottom: 8 }}>Medical Forms</h1>
-        <p style={{ fontSize: 16, color: colors.gray500, marginBottom: 40 }}>Select the type of form you'd like to submit</p>
+      <div style={{ padding: '48px 24px', maxWidth: 760, margin: '0 auto' }}>
+        <button onClick={resetAll} style={{ background: 'none', border: 'none', fontSize: 14, color: colors.primary, cursor: 'pointer', marginBottom: 16, fontWeight: 600 }}>
+          &larr; Back to all forms
+        </button>
+        <div style={{ backgroundColor: colors.white, borderRadius: 12, border: `1px solid ${colors.gray200}`, padding: 36 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+            <span style={{ fontSize: 32 }} aria-hidden="true">{selected.icon}</span>
+            <h2 style={{ fontSize: 22, fontWeight: 700, color: colors.gray900 }}>{selected.title}</h2>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: colors.gray500, marginBottom: 24 }}>
+            {selected.form_code && <span>Form Code: <strong>{selected.form_code}</strong></span>}
+            {selected.revision && <span>Revision: <strong>{selected.revision}</strong></span>}
+            {selected.category && <span>Category: <strong>{selected.category}</strong></span>}
+          </div>
+          {selected.description && (
+            <p style={{ fontSize: 14, color: colors.gray600, lineHeight: 1.6, marginBottom: 20 }}>{selected.description}</p>
+          )}
+
+          {error && (
+            <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: colors.red, fontSize: 14, marginBottom: 16 }}>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleDownload}>
+            <div className="grid-form-fields" style={{ gap: 16 }}>
+              {(selected.fields || []).map((field) => (
+                <div key={field.key} style={field.full ? { gridColumn: '1 / -1' } : {}}>
+                  {renderField(field, values[field.key], handleChange, fieldErrors)}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ height: 20 }} />
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              <button
+                type="submit"
+                disabled={busy}
+                style={{
+                  padding: '13px 28px',
+                  backgroundColor: busy ? colors.gray300 : colors.primary,
+                  color: colors.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: busy ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {busy ? 'Generating PDF...' : '⬇ Download Completed PDF'}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAndDownload}
+                disabled={busy}
+                style={{
+                  padding: '13px 28px',
+                  backgroundColor: colors.gray100,
+                  color: colors.gray700,
+                  border: `1px solid ${colors.gray300}`,
+                  borderRadius: 8,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: busy ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Save to History & Download
+              </button>
+            </div>
+            <p style={{ fontSize: 12, color: colors.gray500, marginTop: 12 }}>
+              The PDF is generated with your entered data — it will never be a blank form.
+            </p>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Form list view ── */
+  return (
+    <div style={{ padding: '48px 24px', maxWidth: 980, margin: '0 auto' }}>
+      <h1 style={{ fontSize: 32, fontWeight: 800, color: colors.gray900, marginBottom: 8 }}>Downloadable Medical Forms</h1>
+      <p style={{ fontSize: 16, color: colors.gray500, marginBottom: 8 }}>
+        Select a form, fill in your details (auto-filled from your profile where possible), and download a completed PDF.
+      </p>
+
+      {error && (
+        <div role="alert" style={{ padding: '12px 16px', borderRadius: 8, backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: colors.red, fontSize: 14, marginBottom: 20 }}>
+          {error}
+        </div>
+      )}
+
+      {loading ? (
+        <div role="status" aria-live="polite" style={{ textAlign: 'center', padding: 60, color: colors.gray500 }}>Loading forms...</div>
+      ) : templates.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: 60, color: colors.gray500 }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }} aria-hidden="true">&#128196;</div>
+          <p>No downloadable forms are available right now.</p>
+        </div>
+      ) : (
         <div className="grid-forms-select">
-          {formTypes.map((ft) => (
+          {templates.map((tpl) => (
             <button
-              key={ft.id}
-              onClick={() => setSelectedType(ft.id)}
+              key={tpl.id}
+              onClick={() => openForm(tpl)}
               style={{
                 backgroundColor: colors.white,
                 borderRadius: 12,
@@ -133,72 +414,24 @@ export default function FormsPage() {
               onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
               onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' }}
             >
-              <div style={{ fontSize: 36, marginBottom: 12 }} aria-hidden="true">{ft.icon}</div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: colors.gray900, marginBottom: 6 }}>{ft.title}</h3>
-              <p style={{ fontSize: 14, color: colors.gray500, lineHeight: 1.5 }}>{ft.desc}</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                <span style={{ fontSize: 36 }} aria-hidden="true">{tpl.icon}</span>
+                <div>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: colors.gray900, margin: 0 }}>{tpl.title}</h3>
+                  {tpl.form_code && <span style={{ fontSize: 12, color: colors.gray500 }}>{tpl.form_code}</span>}
+                </div>
+              </div>
+              <p style={{ fontSize: 14, color: colors.gray500, lineHeight: 1.5, marginBottom: 14 }}>{tpl.description}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: colors.gray500 }}>
+                  {(tpl.fields || []).length} fields · {tpl.category || 'general'}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: colors.primary }}>Fill &amp; Download →</span>
+              </div>
             </button>
           ))}
         </div>
-      </div>
-    )
-  }
-
-  const currentType = formTypes.find((f) => f.id === selectedType)
-
-  return (
-    <div style={{ padding: '48px 24px', maxWidth: 700, margin: '0 auto' }}>
-      <button onClick={handleReset} style={{ background: 'none', border: 'none', fontSize: 14, color: colors.primary, cursor: 'pointer', marginBottom: 16, fontWeight: 600 }}>
-        &larr; Back to form types
-      </button>
-      <div style={{ backgroundColor: colors.white, borderRadius: 12, border: `1px solid ${colors.gray200}`, padding: 36 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-          <span style={{ fontSize: 32 }} aria-hidden="true">{currentType?.icon}</span>
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: colors.gray900 }}>{currentType?.title}</h2>
-        </div>
-
-        {error && (
-          <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', fontSize: 14, marginBottom: 16 }}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="fullName" style={labelStyle}>Full Name</label>
-          <input id="fullName" name="fullName" type="text" value={form.fullName} onChange={handleChange} placeholder="Your full name" style={{ ...inputStyle, marginBottom: 4, ...(fieldErrors.fullName ? inputErrorStyle : {}) }} />
-          {renderFieldError('fullName')}
-          <div style={{ height: 12 }} />
-
-          <div className="grid-form-fields" style={{ gap: 12, marginBottom: 16 }}>
-            <div>
-              <label htmlFor="email" style={labelStyle}>Email</label>
-              <input id="email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="you@example.com" style={{ ...inputStyle, ...(fieldErrors.email ? inputErrorStyle : {}) }} />
-              {renderFieldError('email')}
-            </div>
-            <div>
-              <label htmlFor="phone" style={labelStyle}>Phone</label>
-              <input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="+961 XX XXX XXX" style={inputStyle} />
-            </div>
-          </div>
-
-          <label htmlFor="subject" style={labelStyle}>Subject</label>
-          <input id="subject" name="subject" type="text" value={form.subject} onChange={handleChange} placeholder="Brief subject line" style={{ ...inputStyle, marginBottom: 4, ...(fieldErrors.subject ? inputErrorStyle : {}) }} />
-          {renderFieldError('subject')}
-          <div style={{ height: 12 }} />
-
-          <label htmlFor="message" style={labelStyle}>Message</label>
-          <textarea id="message" name="message" value={form.message} onChange={handleChange} placeholder="Provide details..." rows={5} style={{ ...inputStyle, marginBottom: 4, resize: 'vertical', fontFamily: 'inherit', ...(fieldErrors.message ? inputErrorStyle : {}) }} />
-          {renderFieldError('message')}
-          <div style={{ height: 16 }} />
-
-          <button type="submit" disabled={submitting} style={{
-            padding: '13px 32px', backgroundColor: submitting ? colors.gray300 : colors.primary,
-            color: colors.white, border: 'none', borderRadius: 8, fontSize: 16, fontWeight: 600,
-            cursor: submitting ? 'not-allowed' : 'pointer',
-          }}>
-            {submitting ? 'Submitting...' : 'Submit Form'}
-          </button>
-        </form>
-      </div>
+      )}
     </div>
   )
 }

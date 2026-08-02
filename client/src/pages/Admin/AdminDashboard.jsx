@@ -17,6 +17,7 @@ import {
   getPrescriptionsAdmin, approvePrescription,
   getIllnessCertsAdmin, approveIllnessCert,
   getAppointments, getConsultations,
+  getFormTemplatesAdmin, createFormTemplate, updateFormTemplate, deleteFormTemplate,
 } from '../../api';
 import { useToast } from '../../components/ToastContext';
 /* Shared UI helpers */
@@ -60,6 +61,7 @@ const TABS = [
   { key: "drivers", label: "Drivers", icon: "🧑‍✈️" },
   { key: "emergency", label: "Emergency", icon: "🚨" },
   { key: "fees", label: "Fees", icon: "💰" },
+  { key: "forms", label: "Forms", icon: "📋" },
   { key: "notifications", label: "Notifications", icon: "🔔" },
   { key: "messages", label: "Messages", icon: "✉️" },
   { key: "prescriptions", label: "Prescriptions", icon: "💊" },
@@ -135,6 +137,12 @@ const AdminDashboard = () => {
   const [feeForm, setFeeForm] = useState({ name: "", description: "", amount: "", category: "consultation" });
   const [editingFee, setEditingFee] = useState(null);
   const [feeSubmitting, setFeeSubmitting] = useState(false);
+
+  /* Form Templates */
+  const [formTemplates, setFormTemplates] = useState([]);
+  const [formTemplateForm, setFormTemplateForm] = useState({ title: "", description: "", icon: "📄", category: "", form_code: "", revision: "1", fields: [] });
+  const [editingFormTemplate, setEditingFormTemplate] = useState(null);
+  const [formTemplateSubmitting, setFormTemplateSubmitting] = useState(false);
 
   /* Notifications */
   const [notifForm, setNotifForm] = useState({ title: "", message: "", targetUserId: "", type: "info" });
@@ -212,6 +220,10 @@ const AdminDashboard = () => {
     try { setFees(toArray(await getFeesAdmin())); } catch (err) { console.error("Fees error:", err?.message || err); }
   }, []);
 
+  const fetchFormTemplates = useCallback(async () => {
+    try { setFormTemplates(toArray(await getFormTemplatesAdmin())); } catch (err) { console.error("Form templates error:", err?.message || err); }
+  }, []);
+
   const fetchMessages = useCallback(async () => {
     try { setMessages(toArray(await getAdminMessages())); } catch (err) { console.error("Messages error:", err?.message || err); }
   }, []);
@@ -248,6 +260,7 @@ const AdminDashboard = () => {
   /* ── Lazy-load tab data ── */
   useEffect(() => {
     if (activeTab === "fees" && fees.length === 0) fetchFees();
+    if (activeTab === "forms" && formTemplates.length === 0) fetchFormTemplates();
     if (activeTab === "messages" && messages.length === 0) fetchMessages();
     if (activeTab === "prescriptions" && prescriptions.length === 0) fetchPrescriptions();
     if (activeTab === "certificates" && certificates.length === 0) fetchCertificates();
@@ -499,6 +512,96 @@ const AdminDashboard = () => {
     if (!window.confirm("Delete this fee entry?")) return;
     try { await deleteFee(id); fetchFees(); }
     catch (err) { toast.error("Failed to delete fee."); }
+  };
+
+  /* ═══════════════════════════════════════════
+     FORM TEMPLATE CRUD
+     ═══════════════════════════════════════════ */
+  const handleFormTemplateChange = makeHandler(setFormTemplateForm);
+
+  const resetFormTemplateForm = () => {
+    setFormTemplateForm({ title: "", description: "", icon: "📄", category: "", form_code: "", revision: "1", fields: [] });
+    setEditingFormTemplate(null);
+  };
+
+  const addFormField = () => {
+    setFormTemplateForm((prev) => ({ ...prev, fields: [...prev.fields, { key: "", label: "", type: "text", required: false, placeholder: "", full: false, options: "" }] }));
+  };
+
+  const updateFormField = (index, patch) => {
+    setFormTemplateForm((prev) => ({
+      ...prev,
+      fields: prev.fields.map((f, i) => (i === index ? { ...f, ...patch } : f)),
+    }));
+  };
+
+  const removeFormField = (index) => {
+    setFormTemplateForm((prev) => ({ ...prev, fields: prev.fields.filter((_, i) => i !== index) }));
+  };
+
+  const handleFormTemplateSubmit = async (e) => {
+    e.preventDefault();
+    const isEditing = !!editingFormTemplate;
+    const cleanFields = (formTemplateForm.fields || [])
+      .filter((f) => f.key && f.label)
+      .map((f) => ({
+        key: f.key.trim(),
+        label: f.label.trim(),
+        type: f.type,
+        required: !!f.required,
+        placeholder: f.placeholder || "",
+        full: !!f.full,
+        options: (f.type === "select" || f.type === "radio") && f.options ? f.options.split(",").map((o) => o.trim()).filter(Boolean) : [],
+      }));
+    if (cleanFields.length === 0) {
+      toast.error("Add at least one field with a key and label.");
+      return;
+    }
+    const payload = {
+      title: formTemplateForm.title,
+      description: formTemplateForm.description,
+      icon: formTemplateForm.icon || "📄",
+      category: formTemplateForm.category,
+      form_code: formTemplateForm.form_code,
+      revision: formTemplateForm.revision,
+      fields: cleanFields,
+    };
+    setFormTemplateSubmitting(true);
+    try {
+      if (isEditing) { await updateFormTemplate(editingFormTemplate.id || editingFormTemplate._id, payload); }
+      else { await createFormTemplate(payload); }
+      resetFormTemplateForm();
+      fetchFormTemplates();
+      toast.success(isEditing ? "Form updated successfully." : "Form created successfully.");
+    } catch (err) { toast.error(err?.response?.data?.message || err?.message || "Failed to save form."); }
+    finally { setFormTemplateSubmitting(false); }
+  };
+
+  const handleEditFormTemplate = (f) => {
+    setEditingFormTemplate(f);
+    setFormTemplateForm({
+      title: f.title || "",
+      description: f.description || "",
+      icon: f.icon || "📄",
+      category: f.category || "",
+      form_code: f.form_code || "",
+      revision: f.revision || "1",
+      fields: Array.isArray(f.fields) ? f.fields.map((field) => ({
+        key: field.key || "",
+        label: field.label || "",
+        type: field.type || "text",
+        required: !!field.required,
+        placeholder: field.placeholder || "",
+        full: !!field.full,
+        options: Array.isArray(field.options) ? field.options.join(", ") : field.options || "",
+      })) : [],
+    });
+  };
+
+  const handleDeleteFormTemplate = async (id) => {
+    if (!window.confirm("Delete this form template? This will also delete all related submissions.")) return;
+    try { await deleteFormTemplate(id); fetchFormTemplates(); toast.success("Form deleted."); }
+    catch (err) { toast.error(err?.message || "Failed to delete form."); }
   };
 
   /* ═══════════════════════════════════════════
@@ -1162,6 +1265,127 @@ const AdminDashboard = () => {
   );
 
   /* ═══════════════════════════════════════════
+     RENDER — FORM TEMPLATES
+     ═══════════════════════════════════════════ */
+  const renderForms = () => (
+    <div className="forms-section">
+      <h3>{editingFormTemplate ? `Edit Form: ${editingFormTemplate.title}` : "Create Form Template"}</h3>
+      <form className="create-form" onSubmit={handleFormTemplateSubmit}>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Title</label>
+            <input type="text" name="title" value={formTemplateForm.title} onChange={handleFormTemplateChange} required />
+          </div>
+          <div className="form-group">
+            <label>Icon (emoji)</label>
+            <input type="text" name="icon" value={formTemplateForm.icon} onChange={handleFormTemplateChange} maxLength={4} />
+          </div>
+        </div>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Form Code</label>
+            <input type="text" name="form_code" value={formTemplateForm.form_code} onChange={handleFormTemplateChange} placeholder="e.g. FM-007" />
+          </div>
+          <div className="form-group">
+            <label>Revision</label>
+            <input type="text" name="revision" value={formTemplateForm.revision} onChange={handleFormTemplateChange} placeholder="e.g. 1.0" />
+          </div>
+          <div className="form-group">
+            <label>Category</label>
+            <input type="text" name="category" value={formTemplateForm.category} onChange={handleFormTemplateChange} placeholder="e.g. Admission" />
+          </div>
+        </div>
+        <div className="form-group">
+          <label>Description</label>
+          <input type="text" name="description" value={formTemplateForm.description} onChange={handleFormTemplateChange} />
+        </div>
+
+        <h4 style={{ marginBottom: 8 }}>Form Fields ({formTemplateForm.fields.length})</h4>
+        {formTemplateForm.fields.length === 0 && <p className="muted">No fields yet. Add fields below.</p>}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
+          {formTemplateForm.fields.map((field, index) => (
+            <div key={index} style={{ border: '1px solid #e5e7eb', borderRadius: 8, padding: 12, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'flex-end', backgroundColor: '#fafafa' }}>
+              <div className="form-group" style={{ minWidth: 130 }}>
+                <label>Key</label>
+                <input type="text" value={field.key} onChange={(e) => updateFormField(index, { key: e.target.value })} placeholder="full_name" />
+              </div>
+              <div className="form-group" style={{ minWidth: 160 }}>
+                <label>Label</label>
+                <input type="text" value={field.label} onChange={(e) => updateFormField(index, { label: e.target.value })} placeholder="Full Name" />
+              </div>
+              <div className="form-group" style={{ minWidth: 110 }}>
+                <label>Type</label>
+                <select value={field.type} onChange={(e) => updateFormField(index, { type: e.target.value })}>
+                  <option value="text">Text</option>
+                  <option value="email">Email</option>
+                  <option value="tel">Phone</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                  <option value="textarea">Textarea</option>
+                  <option value="select">Select</option>
+                  <option value="radio">Radio</option>
+                  <option value="checkbox">Checkbox</option>
+                  <option value="signature">Signature</option>
+                </select>
+              </div>
+              {(field.type === "select" || field.type === "radio") && (
+                <div className="form-group" style={{ minWidth: 200 }}>
+                  <label>Options (comma-separated)</label>
+                  <input type="text" value={field.options} onChange={(e) => updateFormField(index, { options: e.target.value })} placeholder="Male, Female, Other" />
+                </div>
+              )}
+              <div className="form-group" style={{ minWidth: 140 }}>
+                <label>Placeholder</label>
+                <input type="text" value={field.placeholder} onChange={(e) => updateFormField(index, { placeholder: e.target.value })} />
+              </div>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer', paddingBottom: 10 }}>
+                <input type="checkbox" checked={!!field.required} onChange={(e) => updateFormField(index, { required: e.target.checked })} />
+                Required
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 13, cursor: 'pointer', paddingBottom: 10 }}>
+                <input type="checkbox" checked={!!field.full} onChange={(e) => updateFormField(index, { full: e.target.checked })} />
+                Full width
+              </label>
+              <button type="button" className="btn btn-danger btn-sm" onClick={() => removeFormField(index)} style={{ marginBottom: 10 }}>Remove</button>
+            </div>
+          ))}
+        </div>
+        <div className="form-actions">
+          <button type="button" className="btn btn-secondary" onClick={addFormField}>+ Add Field</button>
+          <button type="submit" className="btn btn-primary" disabled={formTemplateSubmitting}>
+            {formTemplateSubmitting ? "Saving..." : editingFormTemplate ? "Update Form" : "Create Form"}
+          </button>
+          {editingFormTemplate && (<button type="button" className="btn btn-secondary" onClick={resetFormTemplateForm}>Cancel</button>)}
+        </div>
+      </form>
+
+      <h3>All Form Templates ({formTemplates.length})</h3>
+      <div style={{ overflowX: 'auto' }}>
+        <table className="data-table" aria-label="Form Templates">
+          <thead><tr><th>Title</th><th>Code</th><th>Category</th><th>Fields</th><th>Active</th><th>Updated</th><th>Actions</th></tr></thead>
+          <tbody>
+            {formTemplates.map((f) => (
+              <tr key={f.id || f._id}>
+                <td>{f.icon || "📄"} {f.title}</td>
+                <td>{f.form_code || "—"}</td>
+                <td>{f.category || "—"}</td>
+                <td>{Array.isArray(f.fields) ? f.fields.length : 0}</td>
+                <td><span className={`badge ${f.is_active === false ? "badge-error" : "badge-success"}`}>{f.is_active === false ? "Inactive" : "Active"}</span></td>
+                <td>{f.updated_at ? new Date(f.updated_at).toLocaleDateString() : "—"}</td>
+                <td className="actions-cell">
+                  <button className="btn btn-edit btn-sm" onClick={() => handleEditFormTemplate(f)}>Edit</button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteFormTemplate(f.id || f._id)}>Delete</button>
+                </td>
+              </tr>
+            ))}
+            {formTemplates.length === 0 && <EmptyRow colSpan={7} msg="No form templates yet." />}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  /* ═══════════════════════════════════════════
      RENDER — NOTIFICATIONS
      ═══════════════════════════════════════════ */
   const renderNotifications = () => (
@@ -1367,6 +1591,7 @@ const AdminDashboard = () => {
       case "drivers": return renderDrivers();
       case "emergency": return renderEmergency();
       case "fees": return renderFees();
+      case "forms": return renderForms();
       case "notifications": return renderNotifications();
       case "messages": return renderMessages();
       case "prescriptions": return renderPrescriptions();
