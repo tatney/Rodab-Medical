@@ -47,7 +47,7 @@ export default function PoliciesPage() {
           {t('policies.footerNote')}
         </p>
         <p style={{ fontSize: 14, color: 'var(--text-muted)', margin: '4px 0 0' }}>
-          Phone: <strong><a href="tel:+9611234567" style={{ color: 'inherit' }}>+961 1 234 567</a></strong> &nbsp;|&nbsp; Email: <strong><a href="mailto:info@rodabmed.com" style={{ color: 'inherit' }}>info@rodabmed.com</a></strong>
+          Phone/WhatsApp: <strong><a href="tel:+256706560730" style={{ color: 'inherit' }}>+256 706 560 730</a></strong> &nbsp;|&nbsp; Email: <strong><a href="mailto:info@rodabmed.com" style={{ color: 'inherit' }}>info@rodabmed.com</a></strong>
         </p>
       </div>
     </main>

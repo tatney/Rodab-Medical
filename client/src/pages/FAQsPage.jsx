@@ -12,7 +12,7 @@ export default function FAQsPage() {
   }
 
   const contactLine = t('faqs.contactLine')
-    .replace('{phone}', '+961 1 234 567')
+    .replace('{phone}', '+256 706 560 730')
     .replace('{email}', 'info@rodabmed.com')
 
   return (

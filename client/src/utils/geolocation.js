@@ -49,7 +49,7 @@ export async function getSmartLocation() {
       const ip = await getIPLocation()
       return { ...ip, source: 'ip' }
     } catch {
-      return { lat: 33.8938, lng: 35.5018, source: 'default', city: 'Beirut' }
+      return { lat: 0.0561, lng: 32.4556, source: 'default', city: 'Entebbe' }
     }
   }
 }

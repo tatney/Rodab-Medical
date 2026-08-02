@@ -92,7 +92,7 @@ export default {
   footer: {
     brandSub: 'Healthcare Services',
     aboutText:
-      'Providing compassionate, world-class healthcare services in Dublin and surrounding areas. Your well-being is our priority.',
+      'Providing compassionate, world-class healthcare services in Entebbe, Uganda and surrounding areas. Your well-being is our priority.',
     quickLinks: 'Quick Links',
     home: 'Home',
     aboutUs: 'About Us',
@@ -114,8 +114,9 @@ export default {
     ambulanceServices: 'Ambulance Services',
     diagnostics: 'Diagnostics',
     contactHeading: 'Contact Us',
-    location: 'Dublin, Ireland',
+    address: 'P.O. Box 167187\nKajjansi, Entebbe\nNakawuka Rd, Uganda',
     phoneNumber: '+353 83 125 7105',
+    whatsappNumber: '+353 83 125 7105 / +256 706 560 730',
     emailAddress: 'info@rodabmedical.com',
     emergencyHours: '24/7 Emergency Services',
     copyright: 'Rodab Medical. All rights reserved.',
@@ -135,7 +136,7 @@ export default {
   home: {
     seoTitle: 'Home',
     seoDescription:
-      'Compassionate healthcare services in Dublin, Ireland. Emergency care, cardiology, neurology, orthopedics, and more. Open 24/7.',
+      'Compassionate healthcare services in Entebbe, Uganda. Emergency care, cardiology, neurology, orthopedics, and more. Open 24/7.',
     slides: [
       {
         title: 'Compassionate Healthcare',
@@ -306,7 +307,7 @@ export default {
   about: {
     seoTitle: 'About Us',
     seoDescription:
-      "Learn about Rodab Medical's mission, team, and commitment to providing compassionate healthcare in Dublin.",
+      "Learn about Rodab Medical's mission, team, and commitment to providing compassionate healthcare in Entebbe, Uganda.",
     heading: 'About Rodab Medical',
     heroText:
       'A leading healthcare institution dedicated to providing compassionate, world-class medical services to our community.',
@@ -438,7 +439,7 @@ export default {
       {
         title: '9. Contact Us',
         content:
-          'For questions about this privacy policy or to exercise your data rights, contact our Data Protection Officer at privacy@rodabmed.com. You may also write to: Data Protection Officer, Rodab Medical Hospital, Beirut, Lebanon.',
+          'For questions about this privacy policy or to exercise your data rights, contact our Data Protection Officer at privacy@rodabmed.com. You may also write to: Data Protection Officer, Rodab Medical Hospital, P.O. Box 167187, Kajjansi, Entebbe, Uganda.',
       },
     ],
   },
@@ -553,7 +554,7 @@ export default {
     patientName: 'Patient Name',
     patientNamePlaceholder: 'Full name of the patient',
     contactPhone: 'Contact Phone',
-    contactPhonePlaceholder: '+961 XX XXX XXX',
+    contactPhonePlaceholder: '+256 7XX XXX XXX',
     pickupLocation: 'Pickup Location',
     pickupPlaceholder: 'Address or landmark',
     useMyLocation: 'Use My Location',

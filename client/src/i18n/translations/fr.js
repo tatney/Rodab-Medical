@@ -92,7 +92,7 @@ export default {
   footer: {
     brandSub: 'Services de santé',
     aboutText:
-      'Des services de santé de classe mondiale, prodigués avec compassion à Dublin et dans les environs. Votre bien-être est notre priorité.',
+      'Des services de santé de classe mondiale, prodigués avec compassion à Entebbe, en Ouganda et dans les environs. Votre bien-être est notre priorité.',
     quickLinks: 'Liens rapides',
     home: 'Accueil',
     aboutUs: 'À propos',
@@ -114,8 +114,9 @@ export default {
     ambulanceServices: 'Services d’ambulance',
     diagnostics: 'Diagnostic',
     contactHeading: 'Contactez-nous',
-    location: 'Dublin, Irlande',
+    address: 'Boîte postale 167187\nKajjansi, Entebbe\nNakawuka Rd, Ouganda',
     phoneNumber: '+353 83 125 7105',
+    whatsappNumber: '+353 83 125 7105 / +256 706 560 730',
     emailAddress: 'info@rodabmedical.com',
     emergencyHours: 'Urgences 24h/24',
     copyright: 'Rodab Medical. Tous droits réservés.',
@@ -135,7 +136,7 @@ export default {
   home: {
     seoTitle: 'Accueil',
     seoDescription:
-      'Services de santé avec compassion à Dublin, en Irlande. Urgences, cardiologie, neurologie, orthopédie et plus encore. Ouvert 24h/24.',
+      'Services de santé avec compassion à Entebbe, en Ouganda. Urgences, cardiologie, neurologie, orthopédie et plus encore. Ouvert 24h/24.',
     slides: [
       {
         title: 'Des soins avec compassion',
@@ -306,7 +307,7 @@ export default {
   about: {
     seoTitle: 'À propos',
     seoDescription:
-      'Découvrez la mission de Rodab Medical, son équipe et son engagement à offrir des soins de santé compatissants à Dublin.',
+      'Découvrez la mission de Rodab Medical, son équipe et son engagement à offrir des soins de santé compatissants à Entebbe, en Ouganda.',
     heading: 'À propos de Rodab Medical',
     heroText:
       'Une institution de santé de premier plan dédiée à fournir des services médicaux compatissants et de classe mondiale à notre communauté.',
@@ -438,7 +439,7 @@ export default {
       {
         title: '9. Contactez-nous',
         content:
-          'Pour toute question sur cette politique ou pour exercer vos droits, contactez notre délégué à la protection des données à privacy@rodabmed.com. Vous pouvez également écrire à : Délégué à la protection des données, Hôpital Rodab Medical, Beyrouth, Liban.',
+          'Pour toute question sur cette politique ou pour exercer vos droits, contactez notre délégué à la protection des données à privacy@rodabmed.com. Vous pouvez également écrire à : Délégué à la protection des données, Hôpital Rodab Medical, Boîte postale 167187, Kajjansi, Entebbe, Ouganda.',
       },
     ],
   },
@@ -553,7 +554,7 @@ export default {
     patientName: 'Nom du patient',
     patientNamePlaceholder: 'Nom complet du patient',
     contactPhone: 'Téléphone de contact',
-    contactPhonePlaceholder: '+961 XX XXX XXX',
+    contactPhonePlaceholder: '+256 7XX XXX XXX',
     pickupLocation: 'Lieu de prise en charge',
     pickupPlaceholder: 'Adresse ou repère',
     useMyLocation: 'Utiliser ma position',

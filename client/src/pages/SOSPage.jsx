@@ -222,7 +222,7 @@ export default function SOSPage() {
               {t('sos.emergencyContacts')}
             </p>
             <p style={{ fontSize: 13, color: 'var(--text-body)' }}>
-              {t('sos.ambulance')} <strong>111</strong> &nbsp;|&nbsp; {t('sos.hospital')} <strong>+961 1 234 567</strong>
+              {t('sos.ambulance')} <strong>111</strong> &nbsp;|&nbsp; {t('sos.hospital')} <strong>+256 706 560 730</strong>
             </p>
           </div>
         </div>

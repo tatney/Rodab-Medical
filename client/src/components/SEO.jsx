@@ -3,15 +3,15 @@ import { Helmet } from 'react-helmet-async'
 
 const siteConfig = {
   name: 'Rodab Medical Hospital',
-  description: 'Compassionate healthcare services in Dublin, Ireland. Emergency care, cardiology, neurology, orthopedics, and more. Open 24/7.',
+  description: 'Compassionate healthcare services in Entebbe, Uganda. Emergency care, cardiology, neurology, orthopedics, and more. Open 24/7.',
   url: 'https://rodabmed.vercel.app',
   logo: 'https://cemaqackwtqkkqxlkttn.supabase.co/storage/v1/object/public/images/logo-footer.png',
   phone: '+353831257105',
   email: 'info@rodabmedical.com',
   address: {
-    street: 'Dublin',
-    city: 'Dublin',
-    country: 'Ireland',
+    street: 'Nakawuka Rd, Kajjansi',
+    city: 'Entebbe',
+    country: 'Uganda',
   },
 }
 
@@ -59,7 +59,7 @@ const defaultJsonLd = {
 }
 
 export default function SEO({ title, description, jsonLd, url }) {
-  const pageTitle = title ? `${title} | ${siteConfig.name}` : `${siteConfig.name} - Compassionate Healthcare in Dublin`
+  const pageTitle = title ? `${title} | ${siteConfig.name}` : `${siteConfig.name} - Compassionate Healthcare in Entebbe, Uganda`
   const pageDescription = description || siteConfig.description
   const pageUrl = url ? `${siteConfig.url}${url}` : siteConfig.url
   const structuredData = jsonLd || defaultJsonLd

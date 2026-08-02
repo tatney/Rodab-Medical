@@ -3,8 +3,8 @@ import autoTable from 'jspdf-autotable'
 
 const HOSPITAL = {
   name: 'Rodab Medical Hospital',
-  address: 'Main Street, Beirut, Lebanon',
-  phone: '+961 1 234 567',
+  address: 'P.O. Box 167187, Nakawuka Rd, Kajjansi, Entebbe, Uganda',
+  phone: '+353 83 125 7105 / +256 706 560 730',
   email: 'info@rodabmedical.com',
 }
 

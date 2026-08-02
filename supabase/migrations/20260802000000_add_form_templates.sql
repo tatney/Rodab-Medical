@@ -80,7 +80,7 @@ BEGIN
     {"key":"nationality","label":"Nationality","type":"text","required":false},
     {"key":"id_number","label":"National ID / Passport No.","type":"text","placeholder":"Government-issued ID number","required":false},
     {"key":"email","label":"Email","type":"email","required":true},
-    {"key":"phone","label":"Phone","type":"tel","placeholder":"+961 XX XXX XXX","required":true},
+    {"key":"phone","label":"Phone","type":"tel","placeholder":"+256 7XX XXX XXX","required":true},
     {"key":"home_address","label":"Home Address","type":"textarea","placeholder":"Street, city, postal code","required":false,"full":true},
     {"key":"emergency_contact_name","label":"Emergency Contact Name","type":"text","required":false},
     {"key":"emergency_contact_relation","label":"Relationship","type":"text","required":false},

@@ -402,7 +402,7 @@ export default function AmbulancePage() {
           <input id="ambulance-patient-name" name="patientName" type="text" required value={form.patientName} onChange={handleChange} placeholder="Full name" style={{ ...inputStyle, marginBottom: 16 }} />
 
           <label htmlFor="ambulance-contact-phone" style={labelStyle}>Contact Phone</label>
-          <input id="ambulance-contact-phone" name="contactPhone" type="tel" required value={form.contactPhone} onChange={handleChange} placeholder="+961 XX XXX XXX" style={{ ...inputStyle, marginBottom: 16 }} />
+          <input id="ambulance-contact-phone" name="contactPhone" type="tel" required value={form.contactPhone} onChange={handleChange} placeholder="+256 7XX XXX XXX" style={{ ...inputStyle, marginBottom: 16 }} />
 
           <label htmlFor="ambulance-location" style={labelStyle}>Location</label>
           <div className="location-row">
