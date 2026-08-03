@@ -148,3 +148,84 @@ export function downloadFormPdf(template, values = {}, options = {}) {
   doc.save(`${slugify(template.title)}-${referenceNo}.pdf`)
   return referenceNo
 }
+
+/**
+ * Generates and downloads a PDF summary of a patient's digital medical record.
+ * @param {object} patient     - profiles row (full_name, email, phone, date_of_birth, gender, medical_profile, onboarding_status)
+ * @param {object} fieldLabels - map of field key -> human-readable label
+ */
+export function downloadMedicalRecordPdf(patient = {}, fieldLabels = {}) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+  const pageWidth = doc.internal.pageSize.getWidth()
+  const pageHeight = doc.internal.pageSize.getHeight()
+  const margin = 15
+  const issued = todayString()
+
+  /* ── Header band ── */
+  doc.setFillColor(...NAVY)
+  doc.rect(0, 0, pageWidth, 26, 'F')
+
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(15)
+  doc.text(HOSPITAL.name, margin, 11)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.text(`${HOSPITAL.address}  |  ${HOSPITAL.phone}  |  ${HOSPITAL.email}`, margin, 18)
+
+  doc.setFontSize(8.5)
+  doc.text(`Issued: ${issued}`, pageWidth - margin, 11, { align: 'right' })
+  doc.text(`Onboarding: ${patient.onboarding_status || '—'}`, pageWidth - margin, 17, { align: 'right' })
+
+  /* ── Title ── */
+  doc.setTextColor(...TEXT_DARK)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(16)
+  doc.text(`Medical Record — ${patient.full_name || 'Patient'}`, margin, 38)
+
+  /* ── Patient meta ── */
+  autoTable(doc, {
+    startY: 44,
+    head: [['Patient', 'Email', 'Phone', 'Date of Birth', 'Gender']],
+    body: [[patient.full_name || '—', patient.email || '—', patient.phone || '—', patient.date_of_birth || '—', patient.gender || '—']],
+    theme: 'grid',
+    headStyles: { fillColor: NAVY, fontSize: 8.5 },
+    styles: { fontSize: 8.5, cellPadding: 2 },
+    margin: { left: margin, right: margin },
+  })
+
+  /* ── Record fields ── */
+  const mp = patient.medical_profile || {}
+  const body = Object.entries(mp).map(([key, value]) => {
+    const label = fieldLabels[key] || key
+    let display = String(value)
+    if (typeof value === 'boolean') display = value ? 'Yes' : 'No'
+    return [label, display]
+  })
+
+  autoTable(doc, {
+    startY: doc.lastAutoTable.finalY + 6,
+    head: [['Field', 'Value']],
+    body: body.length ? body : [['', 'No digital medical record on file.']],
+    theme: 'striped',
+    headStyles: { fillColor: NAVY, fontSize: 9 },
+    styles: { fontSize: 9, cellPadding: 3, overflow: 'linebreak', valign: 'top' },
+    columnStyles: { 0: { cellWidth: 72 }, 1: { cellWidth: 108 } },
+    margin: { left: margin, right: margin },
+  })
+
+  /* ── Footer on every page ── */
+  const total = doc.getNumberOfPages()
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7.5)
+    doc.setTextColor(130, 130, 130)
+    doc.text(`${HOSPITAL.name} — ${HOSPITAL.phone} — ${HOSPITAL.email}`, margin, pageHeight - 8)
+    doc.text(`Page ${i} of ${total}`, pageWidth - margin, pageHeight - 8, { align: 'right' })
+  }
+
+  doc.save(`${slugify(patient.full_name || 'medical-record')}-record.pdf`)
+  return true
+}

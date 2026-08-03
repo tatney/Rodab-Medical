@@ -17,7 +17,7 @@ function validatePassword(pw) {
 export default function SignupPage() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    fullName: '', email: '', password: '', confirmPassword: '',
+    fullName: '', email: '', phone: '', password: '', confirmPassword: '',
     age: '', gender: '', bloodGroup: '', chronicDisease: '',
   })
   const [error, setError] = useState('')
@@ -55,19 +55,28 @@ export default function SignupPage() {
         options: {
           data: {
             full_name: form.fullName,
-            phone: '',
+            phone: form.phone,
             role: 'user',
+            age: form.age,
+            gender: form.gender,
+            blood_group: form.bloodGroup,
+            chronic_disease: form.chronicDisease,
           },
         },
       })
       if (authError) throw authError
 
-      if (data.user && data.session) {
+      if (data.user) {
         await supabase.from('profiles').upsert({
           id: data.user.id,
           email: form.email,
           full_name: form.fullName,
+          phone: form.phone,
           role: 'user',
+          age: form.age ? Number(form.age) : null,
+          gender: form.gender || null,
+          blood_group: form.bloodGroup || null,
+          chronic_disease: form.chronicDisease || null,
         })
       }
 
@@ -123,6 +132,11 @@ export default function SignupPage() {
           <div className="form-group">
             <label className="form-label" htmlFor="email">Email</label>
             <input id="email" name="email" type="email" required value={form.email} onChange={handleChange} placeholder="you@example.com" className="form-input" />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label" htmlFor="phone">Phone</label>
+            <input id="phone" name="phone" type="tel" value={form.phone} onChange={handleChange} placeholder="+256 7XX XXX XXX" className="form-input" />
           </div>
 
           <div className="form-group">

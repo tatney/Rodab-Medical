@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   getAppointments,
@@ -13,6 +13,7 @@ import { getSmartLocation, reverseGeocode } from '../utils/geolocation';
 
 const UserDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [appointments, setAppointments] = useState([]);
   const [consultations, setConsultations] = useState([]);
@@ -32,6 +33,20 @@ const UserDashboard = () => {
   const [dispatching, setDispatching] = useState(false);
   const [dispatchResult, setDispatchResult] = useState(null);
   const [dispatchError, setDispatchError] = useState('');
+
+  // Auto-open the onboarding wizard for patients who haven't completed or
+  // skipped it yet. Once they finish (or skip), they won't be redirected again.
+  useEffect(() => {
+    if (
+      user &&
+      user.role === 'user' &&
+      user.onboarding_status &&
+      user.onboarding_status !== 'complete' &&
+      user.onboarding_status !== 'skipped'
+    ) {
+      navigate('/onboarding', { replace: true });
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     let cancelled = false;
@@ -163,6 +178,24 @@ const UserDashboard = () => {
         <h1 className="hero-greeting">{getGreeting()}, {user?.full_name?.split(' ')[0] || 'Patient'}</h1>
         <p className="hero-subtitle">Here's an overview of your healthcare dashboard. Stay on top of your appointments, consultations, and health records.</p>
       </section>
+
+      {/* Onboarding nudge (skipped users) */}
+      {user?.role === 'user' && user?.onboarding_status === 'skipped' && (
+        <section className="card" style={{ padding: '20px 24px', marginBottom: 24, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderLeft: '4px solid var(--primary)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <span style={{ fontSize: 28 }} aria-hidden="true">🩺</span>
+            <div>
+              <h3 style={{ margin: '0 0 4px', fontSize: 16 }}>Complete your medical profile</h3>
+              <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)' }}>
+                Fill it in once and every medical form will be auto-filled for you.
+              </p>
+            </div>
+          </div>
+          <Link to="/onboarding" className="btn btn-primary" style={{ padding: '10px 20px', fontSize: 14 }}>
+            Complete Now
+          </Link>
+        </section>
+      )}
 
       {/* Stats Row */}
       <section className="stats-row">

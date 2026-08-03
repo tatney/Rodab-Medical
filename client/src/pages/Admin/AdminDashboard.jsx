@@ -18,8 +18,10 @@ import {
   getIllnessCertsAdmin, approveIllnessCert,
   getAppointments, getConsultations,
   getFormTemplatesAdmin, createFormTemplate, updateFormTemplate, deleteFormTemplate,
+  getPatientsWithRecords,
 } from '../../api';
 import { useToast } from '../../components/ToastContext';
+import { downloadMedicalRecordPdf } from '../../utils/pdf';
 /* Shared UI helpers */
 const StatCard = ({ label, value, icon, color }) => (
   <div className="stat-card" style={{ borderLeft: `4px solid ${color || "#4f46e5"}` }}>
@@ -62,6 +64,7 @@ const TABS = [
   { key: "emergency", label: "Emergency", icon: "🚨" },
   { key: "fees", label: "Fees", icon: "💰" },
   { key: "forms", label: "Forms", icon: "📋" },
+  { key: "records", label: "Patients / Records", icon: "🩺" },
   { key: "notifications", label: "Notifications", icon: "🔔" },
   { key: "messages", label: "Messages", icon: "✉️" },
   { key: "prescriptions", label: "Prescriptions", icon: "💊" },
@@ -79,7 +82,7 @@ const AdminDashboard = () => {
   const sidebarTabMap = {
     dashboard: 'overview',
     appointments: 'appointments',
-    patients: 'overview',
+    patients: 'records',
     emergency: 'emergency',
     doctors: 'doctors',
     reports: 'overview',
@@ -143,6 +146,11 @@ const AdminDashboard = () => {
   const [formTemplateForm, setFormTemplateForm] = useState({ title: "", description: "", icon: "📄", category: "", form_code: "", revision: "1", fields: [] });
   const [editingFormTemplate, setEditingFormTemplate] = useState(null);
   const [formTemplateSubmitting, setFormTemplateSubmitting] = useState(false);
+
+  /* Patient Records */
+  const [patients, setPatients] = useState([]);
+  const [patientSearch, setPatientSearch] = useState("");
+  const [selectedPatient, setSelectedPatient] = useState(null);
 
   /* Notifications */
   const [notifForm, setNotifForm] = useState({ title: "", message: "", targetUserId: "", type: "info" });
@@ -224,6 +232,10 @@ const AdminDashboard = () => {
     try { setFormTemplates(toArray(await getFormTemplatesAdmin())); } catch (err) { console.error("Form templates error:", err?.message || err); }
   }, []);
 
+  const fetchPatients = useCallback(async () => {
+    try { setPatients(toArray(await getPatientsWithRecords())); } catch (err) { console.error("Patients error:", err?.message || err); }
+  }, []);
+
   const fetchMessages = useCallback(async () => {
     try { setMessages(toArray(await getAdminMessages())); } catch (err) { console.error("Messages error:", err?.message || err); }
   }, []);
@@ -261,13 +273,14 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (activeTab === "fees" && fees.length === 0) fetchFees();
     if (activeTab === "forms" && formTemplates.length === 0) fetchFormTemplates();
+    if (activeTab === "records" && patients.length === 0) { fetchPatients(); fetchFormTemplates(); }
     if (activeTab === "messages" && messages.length === 0) fetchMessages();
     if (activeTab === "prescriptions" && prescriptions.length === 0) fetchPrescriptions();
     if (activeTab === "certificates" && certificates.length === 0) fetchCertificates();
     if (activeTab === "appointments" && appointments.length === 0) fetchAppointments();
     if (activeTab === "consultations" && consultations.length === 0) fetchConsultations();
     if (activeTab === "availability" && availability.length === 0) fetchAvailability();
-  }, [activeTab, fees.length, messages.length, prescriptions.length, certificates.length, appointments.length, consultations.length, availability.length, fetchFees, fetchMessages, fetchPrescriptions, fetchCertificates, fetchAppointments, fetchConsultations, fetchAvailability]);
+  }, [activeTab, fees.length, messages.length, prescriptions.length, certificates.length, appointments.length, consultations.length, availability.length, patients.length, fetchFees, fetchMessages, fetchPrescriptions, fetchCertificates, fetchAppointments, fetchConsultations, fetchAvailability, fetchPatients, fetchFormTemplates]);
 
   /* ── Auto-refresh emergencies ── */
   useEffect(() => {
@@ -1386,6 +1399,130 @@ const AdminDashboard = () => {
   );
 
   /* ═══════════════════════════════════════════
+     RENDER — PATIENT RECORDS
+     ═══════════════════════════════════════════ */
+  const renderRecords = () => {
+    const statusInfo = (s) => {
+      switch (s) {
+        case "complete": return { label: "Complete", cls: "badge-success" };
+        case "skipped": return { label: "Skipped", cls: "badge-error" };
+        case "pending": case "in_progress": return { label: s === "pending" ? "Pending" : "In progress", cls: "badge-pending" };
+        default: return { label: s || "—", cls: "" };
+      }
+    };
+
+    const fieldLabels = {};
+    for (const tpl of formTemplates) {
+      for (const f of Array.isArray(tpl.fields) ? tpl.fields : []) {
+        if (f.key && !fieldLabels[f.key]) fieldLabels[f.key] = f.label || f.key;
+      }
+    }
+
+    const filtered = patients.filter((p) => {
+      const q = patientSearch.trim().toLowerCase();
+      if (!q) return true;
+      return [p.full_name, p.email, p.phone].some((v) => (v || "").toLowerCase().includes(q));
+    });
+
+    const recordRows = Object.entries(selectedPatient?.medical_profile || {});
+
+    return (
+      <div className="records-section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+          <h3>Patient Medical Records ({patients.length})</h3>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Search by name, email or phone..."
+            value={patientSearch}
+            onChange={(e) => setPatientSearch(e.target.value)}
+            style={{ maxWidth: 320 }}
+            aria-label="Search patients"
+          />
+        </div>
+
+        <div style={{ overflowX: 'auto' }}>
+          <table className="data-table" aria-label="Patient Records">
+            <thead><tr><th>Patient</th><th>Email</th><th>Phone</th><th>Onboarding</th><th>Completed</th><th>Actions</th></tr></thead>
+            <tbody>
+              {filtered.map((p) => {
+                const s = statusInfo(p.onboarding_status);
+                return (
+                  <tr key={p.id}>
+                    <td>{p.full_name || "—"}</td>
+                    <td>{p.email || "—"}</td>
+                    <td>{p.phone || "—"}</td>
+                    <td><span className={`badge ${s.cls}`}>{s.label}</span></td>
+                    <td>{p.onboarding_completed_at ? new Date(p.onboarding_completed_at).toLocaleDateString() : "—"}</td>
+                    <td className="actions-cell">
+                      <button className="btn btn-edit btn-sm" onClick={() => setSelectedPatient(p)}>View</button>
+                      <button className="btn btn-secondary btn-sm" onClick={() => { try { downloadMedicalRecordPdf(p, fieldLabels); } catch (err) { toast.error("Failed to generate PDF."); } }}>
+                        Export PDF
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && <EmptyRow colSpan={6} msg={patientSearch ? "No patients match your search." : "No patients found."} />}
+            </tbody>
+          </table>
+        </div>
+
+        {/* View record modal */}
+        {selectedPatient && (
+          <div
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 40, overflowY: 'auto' }}
+            onClick={() => setSelectedPatient(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Patient medical record"
+          >
+            <div
+              style={{ backgroundColor: '#fff', borderRadius: 14, maxWidth: 720, width: '100%', padding: 32 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 20 }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>{selectedPatient.full_name || "Patient"}</h3>
+                  <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
+                    {[selectedPatient.email, selectedPatient.phone].filter(Boolean).join(" · ") || "No contact info"}
+                  </p>
+                </div>
+                <button className="btn btn-secondary btn-sm" onClick={() => setSelectedPatient(null)}>Close</button>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 14, marginBottom: 20 }}>
+                <span><strong>DOB:</strong> {selectedPatient.date_of_birth || "—"}</span>
+                <span><strong>Gender:</strong> {selectedPatient.gender || "—"}</span>
+                <span><strong>Address:</strong> {selectedPatient.address || "—"}</span>
+                <span><strong>Onboarding:</strong> <span className={`badge ${statusInfo(selectedPatient.onboarding_status).cls}`}>{statusInfo(selectedPatient.onboarding_status).label}</span></span>
+              </div>
+
+              {recordRows.length === 0 ? (
+                <p style={{ fontSize: 14, color: '#64748b', textAlign: 'center', padding: 24 }}>
+                  No digital medical record on file. The patient has not completed onboarding yet.
+                </p>
+              ) : (
+                <table className="data-table" aria-label="Medical record details">
+                  <thead><tr><th>Field</th><th>Value</th></tr></thead>
+                  <tbody>
+                    {recordRows.map(([key, value]) => (
+                      <tr key={key}>
+                        <td>{fieldLabels[key] || key}</td>
+                        <td>{typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  /* ═══════════════════════════════════════════
      RENDER — NOTIFICATIONS
      ═══════════════════════════════════════════ */
   const renderNotifications = () => (
@@ -1592,6 +1729,7 @@ const AdminDashboard = () => {
       case "emergency": return renderEmergency();
       case "fees": return renderFees();
       case "forms": return renderForms();
+      case "records": return renderRecords();
       case "notifications": return renderNotifications();
       case "messages": return renderMessages();
       case "prescriptions": return renderPrescriptions();

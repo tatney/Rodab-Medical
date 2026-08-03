@@ -3,157 +3,10 @@ import { Link } from 'react-router-dom'
 import { getFormTemplates, createFormSubmission } from '../api'
 import { extractArray } from '../utils/api-helpers'
 import { downloadFormPdf } from '../utils/pdf'
+import { buildInitialValues, validateFields } from '../utils/form-utils'
+import { renderField } from '../utils/form-renderer'
 import { useAuth } from '../context/AuthContext'
 import colors from '../utils/colors'
-
-const inputStyle = {
-  width: '100%',
-  padding: '12px 14px',
-  borderRadius: 8,
-  border: `1px solid ${colors.gray300}`,
-  backgroundColor: colors.white,
-  color: colors.gray900,
-  fontSize: 15,
-  boxSizing: 'border-box',
-}
-
-const labelStyle = {
-  display: 'block',
-  marginBottom: 6,
-  fontSize: 14,
-  fontWeight: 600,
-  color: colors.gray700,
-}
-
-const errorTextStyle = { fontSize: 12, color: colors.red, marginTop: 4 }
-const inputErrorStyle = { borderColor: colors.red }
-
-function buildInitialValues(template, user) {
-  const map = {}
-  const aliases = {
-    full_name: 'full_name',
-    name: 'full_name',
-    patient_name: 'full_name',
-    email: 'email',
-    phone: 'phone',
-    contact_phone: 'phone',
-    date_of_birth: 'date_of_birth',
-    dob: 'date_of_birth',
-    gender: 'gender',
-    address: 'address',
-    home_address: 'address',
-  }
-  for (const f of Array.isArray(template?.fields) ? template.fields : []) {
-    const key = f.key
-    if (user && aliases[key]) {
-      const val = user[aliases[key]]
-      if (val) map[key] = val
-    } else if (f.type === 'checkbox') {
-      map[key] = false
-    } else {
-      map[key] = ''
-    }
-  }
-  return map
-}
-
-function renderField(field, value, onChange, errors) {
-  const id = `field-${field.key}`
-  const common = {
-    id,
-    name: field.key,
-    value: value ?? '',
-    onChange: (e) => onChange(field.key, field.type === 'checkbox' ? e.target.checked : e.target.value),
-  }
-  const err = errors[field.key]
-
-  switch (field.type) {
-    case 'textarea':
-      return (
-        <div>
-          <label htmlFor={id} style={labelStyle}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</label>
-          <textarea {...common} rows={4} placeholder={field.placeholder} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit', ...(err ? inputErrorStyle : {}) }} />
-          {err && <p style={errorTextStyle}>{err}</p>}
-        </div>
-      )
-    case 'select':
-      return (
-        <div>
-          <label htmlFor={id} style={labelStyle}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</label>
-          <select {...common} style={{ ...inputStyle, cursor: 'pointer', ...(err ? inputErrorStyle : {}) }}>
-            <option value="">Select...</option>
-            {(field.options || []).map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-          {err && <p style={errorTextStyle}>{err}</p>}
-        </div>
-      )
-    case 'radio':
-      return (
-        <div style={{ marginBottom: 12 }}>
-          <span style={{ ...labelStyle, marginBottom: 8 }}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</span>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
-            {(field.options || []).map((opt) => (
-              <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, color: colors.gray700, cursor: 'pointer' }}>
-                <input type="radio" name={field.key} value={opt} checked={value === opt} onChange={() => onChange(field.key, opt)} style={{ width: 16, height: 16 }} />
-                {opt}
-              </label>
-            ))}
-          </div>
-          {err && <p style={errorTextStyle}>{err}</p>}
-        </div>
-      )
-    case 'checkbox':
-      return (
-        <div style={{ marginBottom: 4 }}>
-          <label htmlFor={id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, fontSize: 14, color: colors.gray700, cursor: 'pointer', lineHeight: 1.5 }}>
-            <input id={id} type="checkbox" checked={!!value} onChange={common.onChange} style={{ marginTop: 3, width: 18, height: 18 }} />
-            <span>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</span>
-          </label>
-          {err && <p style={errorTextStyle}>{err}</p>}
-        </div>
-      )
-    case 'signature':
-      return (
-        <div>
-          <label htmlFor={id} style={labelStyle}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</label>
-          <input
-            id={id}
-            name={field.key}
-            type="text"
-            value={value ?? ''}
-            onChange={(e) => onChange(field.key, e.target.value)}
-            placeholder={field.placeholder || 'Type full legal name to sign'}
-            style={{
-              width: '100%',
-              padding: '10px 4px 6px',
-              border: 'none',
-              borderBottom: `2px solid ${colors.gray400 || colors.gray300}`,
-              backgroundColor: 'transparent',
-              color: colors.gray900,
-              fontSize: 16,
-              fontFamily: 'cursive, "Brush Script MT", cursive',
-              boxSizing: 'border-box',
-              ...(err ? { borderBottomColor: colors.red } : {}),
-            }}
-          />
-          {err && <p style={errorTextStyle}>{err}</p>}
-        </div>
-      )
-    default:
-      return (
-        <div>
-          <label htmlFor={id} style={labelStyle}>{field.label}{field.required && <span style={{ color: colors.red }}> *</span>}</label>
-          <input
-            {...common}
-            type={field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : field.type === 'tel' ? 'tel' : field.type === 'date' ? 'date' : 'text'}
-            placeholder={field.placeholder}
-            style={{ ...inputStyle, ...(err ? inputErrorStyle : {}) }}
-          />
-          {err && <p style={errorTextStyle}>{err}</p>}
-        </div>
-      )
-  }
-}
 
 export default function FormsPage() {
   const { user } = useAuth()
@@ -194,19 +47,8 @@ export default function FormsPage() {
     if (fieldErrors[key]) setFieldErrors((prev) => ({ ...prev, [key]: '' }))
   }
 
-  const validate = () => {
-    const errs = {}
-    for (const f of selected.fields || []) {
-      const v = values[f.key]
-      if (f.required && (v === undefined || v === null || v === '' || v === false)) {
-        errs[f.key] = `${f.label} is required`
-      }
-    }
-    return errs
-  }
-
   const runValidation = () => {
-    const errs = validate()
+    const errs = validateFields(selected?.fields, values)
     setFieldErrors(errs)
     if (Object.keys(errs).length > 0) {
       setError('Please complete the required fields highlighted below.')
@@ -295,6 +137,7 @@ export default function FormsPage() {
 
   /* ── Form fill view ── */
   if (selected) {
+    const hasPrefill = Object.values(values).some((v) => v !== undefined && v !== null && v !== '' && v !== false)
     return (
       <div style={{ padding: '48px 24px', maxWidth: 760, margin: '0 auto' }}>
         <button onClick={resetAll} style={{ background: 'none', border: 'none', fontSize: 14, color: colors.primary, cursor: 'pointer', marginBottom: 16, fontWeight: 600 }}>
@@ -312,6 +155,12 @@ export default function FormsPage() {
           </div>
           {selected.description && (
             <p style={{ fontSize: 14, color: colors.gray600, lineHeight: 1.6, marginBottom: 20 }}>{selected.description}</p>
+          )}
+
+          {hasPrefill && (
+            <div role="status" style={{ padding: '10px 14px', borderRadius: 8, backgroundColor: '#dbeafe', border: '1px solid #93c5fd', color: '#1e40af', fontSize: 14, marginBottom: 16 }}>
+              Prefilled from your medical record — review before downloading.
+            </div>
           )}
 
           {error && (
@@ -380,7 +229,7 @@ export default function FormsPage() {
     <div style={{ padding: '48px 24px', maxWidth: 980, margin: '0 auto' }}>
       <h1 style={{ fontSize: 32, fontWeight: 800, color: colors.gray900, marginBottom: 8 }}>Downloadable Medical Forms</h1>
       <p style={{ fontSize: 16, color: colors.gray500, marginBottom: 8 }}>
-        Select a form, fill in your details (auto-filled from your profile where possible), and download a completed PDF.
+        Select a form, fill in your details (auto-filled from your medical record where possible), and download a completed PDF.
       </p>
 
       {error && (

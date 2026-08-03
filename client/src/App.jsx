@@ -32,6 +32,7 @@ import AppointmentsPage from './pages/AppointmentsPage';
 import ConsultationsPage from './pages/ConsultationsPage';
 import FormsPage from './pages/FormsPage';
 import FormHistoryPage from './pages/FormHistoryPage';
+import OnboardingPage from './pages/OnboardingPage';
 import RepeatPrescriptionPage from './pages/RepeatPrescriptionPage';
 import IllnessCertificatePage from './pages/IllnessCertificatePage';
 import FeesPage from './pages/FeesPage';
@@ -127,6 +128,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <FormHistoryPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/onboarding"
+                  element={
+                    <ProtectedRoute>
+                      <OnboardingPage />
                     </ProtectedRoute>
                   }
                 />

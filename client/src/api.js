@@ -1233,11 +1233,60 @@ export const createFormSubmission = async (data) => {
       user_id: user?.id || null,
       data: data.data || {},
       reference_no: data.reference_no || '',
+      source: data.source || 'manual',
     })
     .select()
     .single()
   if (error) throw error
   return ok({ submission: result })
+}
+
+// Complete onboarding: persist the digital medical profile and save a
+// form_submission per completed onboarding form (source = 'onboarding').
+export const saveOnboarding = async ({ medical_profile, forms }) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      medical_profile: medical_profile || {},
+      onboarding_status: 'complete',
+      onboarding_completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', user.id)
+  if (profileError) throw profileError
+
+  const submissions = []
+  for (const f of forms || []) {
+    const { data: sub, error } = await supabase
+      .from('form_submissions')
+      .insert({
+        template_id: f.template_id,
+        user_id: user.id,
+        data: f.data || {},
+        reference_no: f.reference_no || '',
+        source: 'onboarding',
+      })
+      .select()
+      .single()
+    if (error) throw error
+    submissions.push(sub)
+  }
+
+  return ok({ message: 'Onboarding completed successfully', submissions })
+}
+
+// Patients + their digital medical records for the admin dashboard.
+export const getPatientsWithRecords = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, full_name, email, phone, address, gender, date_of_birth, onboarding_status, onboarding_completed_at, medical_profile, created_at, updated_at')
+    .eq('role', 'user')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ patients: data || [] })
 }
 
 // ─── Default export (for backward compat) ─────────────────────────────────────
@@ -1322,6 +1371,8 @@ const api = {
   deleteFormTemplate,
   getMyFormSubmissions,
   createFormSubmission,
+  saveOnboarding,
+  getPatientsWithRecords,
 }
 
 export default api

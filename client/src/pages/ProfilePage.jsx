@@ -1,6 +1,9 @@
 ﻿import React, { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { updateProfile } from '../api'
+import { updateProfile, getFormTemplates } from '../api'
+import { extractArray } from '../utils/api-helpers'
+import { buildInitialValues, validateFields, CORE_ALIASES } from '../utils/form-utils'
+import { renderField } from '../utils/form-renderer'
 
 const colors = {
   primary: '#1e40af',
@@ -18,12 +21,24 @@ const colors = {
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
+const MED_CODES = ['FM-001', 'FM-002', 'FM-007']
+
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  /* Medical profile (digital record that auto-fills the forms) */
+  const [medTemplates, setMedTemplates] = useState([])
+  const [medLoading, setMedLoading] = useState(true)
+  const [medEditing, setMedEditing] = useState(false)
+  const [medValues, setMedValues] = useState({})
+  const [medErrors, setMedErrors] = useState({})
+  const [medSaving, setMedSaving] = useState(false)
+  const [medSaved, setMedSaved] = useState(false)
+  const [medError, setMedError] = useState('')
 
   const [form, setForm] = useState({
     fullName: '',
@@ -58,6 +73,68 @@ export default function ProfilePage() {
       })
     }
   }, [user])
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await getFormTemplates()
+        const all = extractArray(res.data, 'forms')
+        const picked = MED_CODES.map((c) => all.find((t) => t.form_code === c)).filter(Boolean)
+        if (!cancelled) setMedTemplates(picked)
+      } catch (err) {
+        console.error('Failed to load medical profile forms:', err)
+      } finally {
+        if (!cancelled) setMedLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
+
+  useEffect(() => {
+    if (user && medTemplates.length > 0 && !medEditing) {
+      const v = {}
+      for (const tpl of medTemplates) Object.assign(v, buildInitialValues(tpl, user))
+      setMedValues(v)
+      setMedErrors({})
+    }
+  }, [user, medTemplates, medEditing])
+
+  const medFields = medTemplates.flatMap((tpl) =>
+    (tpl.fields || []).filter((f) => f.type !== 'checkbox' && !CORE_ALIASES[f.key])
+  )
+
+  const handleMedChange = (key, val) => {
+    setMedValues((prev) => ({ ...prev, [key]: val }))
+    if (medErrors[key]) setMedErrors((prev) => ({ ...prev, [key]: '' }))
+  }
+
+  const handleMedSave = async () => {
+    const errs = validateFields(medFields, medValues)
+    setMedErrors(errs)
+    if (Object.keys(errs).length > 0) {
+      setMedError('Please complete the required fields highlighted below.')
+      return
+    }
+    setMedSaving(true)
+    setMedError('')
+    try {
+      const merged = { ...(user.medical_profile || {}), ...medValues }
+      for (const k of Object.keys(merged)) {
+        if (merged[k] === '' || merged[k] === undefined || merged[k] === null) delete merged[k]
+      }
+      await updateProfile({ medical_profile: merged })
+      await refreshUser()
+      setMedSaved(true)
+      setMedEditing(false)
+      setTimeout(() => setMedSaved(false), 3000)
+    } catch (err) {
+      setMedError(err.response?.data?.message || 'Failed to update medical profile.')
+    } finally {
+      setMedSaving(false)
+    }
+  }
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -306,6 +383,65 @@ export default function ProfilePage() {
             <span style={valueStyle}>{form.nextOfKinRelation || '-'}</span>
           )}
         </div>
+      </div>
+
+      {/* Medical Profile Card */}
+      <div style={{ backgroundColor: colors.white, borderRadius: 12, border: `1px solid ${colors.gray200}`, padding: 32, marginTop: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.gray900 }}>Medical Profile</h2>
+            <p style={{ fontSize: 13, color: colors.gray500, margin: '4px 0 0' }}>
+              Auto-fills every downloadable form. Filled once during onboarding, editable anytime.
+            </p>
+          </div>
+          {!medEditing ? (
+            <button
+              onClick={() => setMedEditing(true)}
+              style={{ padding: '12px 20px', backgroundColor: colors.primary, color: colors.white, border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Edit Medical Profile
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => { setMedEditing(false); setMedError(''); }}
+                style={{ padding: '12px 16px', backgroundColor: colors.gray100, color: colors.gray700, border: `1px solid ${colors.gray300}`, borderRadius: 8, fontSize: 14, fontWeight: 500, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMedSave}
+                disabled={medSaving}
+                style={{ padding: '12px 20px', backgroundColor: medSaving ? colors.gray300 : colors.green, color: colors.white, border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: medSaving ? 'not-allowed' : 'pointer' }}
+              >
+                {medSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {medSaved && (
+          <div role="status" aria-live="polite" style={{ padding: '12px 16px', borderRadius: 8, backgroundColor: '#dcfce7', border: '1px solid #86efac', color: colors.green, fontSize: 14, marginBottom: 16 }}>
+            Medical profile updated successfully!
+          </div>
+        )}
+        {medError && (
+          <div role="alert" style={{ padding: '12px 16px', borderRadius: 8, backgroundColor: '#fef2f2', border: '1px solid #fecaca', color: colors.red, fontSize: 14, marginBottom: 16 }}>
+            {medError}
+          </div>
+        )}
+
+        {medLoading ? (
+          <p style={{ fontSize: 14, color: colors.gray500, padding: '20px 0' }}>Loading medical profile fields...</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, paddingTop: 8 }}>
+            {medFields.map((field) => (
+              <div key={field.key} style={field.full ? { gridColumn: '1 / -1' } : {}}>
+                {renderField(field, medValues[field.key], handleMedChange, medErrors)}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
