@@ -231,12 +231,12 @@ export default {
       heading: 'Downloadable Forms',
       sub: 'Download and complete these forms before your visit',
       items: [
-        { title: 'Patient Registration Form' },
-        { title: 'Medical History Questionnaire' },
-        { title: 'Insurance Information Form' },
-        { title: 'Consent to Treatment' },
-        { title: 'Referral Request Form' },
-        { title: 'Feedback Form' },
+        { title: 'Patient Registration Form', code: 'FM-001' },
+        { title: 'Medical History Questionnaire', code: 'FM-002' },
+        { title: 'Insurance Information Form', code: 'FM-007' },
+        { title: 'Consent to Treatment', code: 'FM-003' },
+        { title: 'Referral Request Form', code: 'FM-005' },
+        { title: 'Feedback Form', code: 'FM-006' },
       ],
     },
     more: {

@@ -12,8 +12,8 @@ const NAVY = [18, 23, 92]
 const TEXT_DARK = [17, 24, 39]
 const TEXT_GRAY = [75, 85, 99]
 
-function formatValue(field, value) {
-  if (value === undefined || value === null || value === '') return '—'
+function formatValue(field, value, emptyMarker) {
+  if (value === undefined || value === null || value === '') return emptyMarker
   if (field.type === 'checkbox') return value ? 'Yes' : 'No'
   return String(value)
 }
@@ -48,7 +48,7 @@ function slugify(text) {
  *
  * @param {object} template - form_templates row (with .fields, .title, ...)
  * @param {object} values   - key/value map for the template fields
- * @param {object} options  - { referenceNo, patientName }
+ * @param {object} options  - { referenceNo, patientName, blank }
  */
 export function downloadFormPdf(template, values = {}, options = {}) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
@@ -57,6 +57,7 @@ export function downloadFormPdf(template, values = {}, options = {}) {
   const margin = 15
   const referenceNo = options.referenceNo || makeReferenceNo()
   const issued = todayString()
+  const emptyMarker = options.blank ? '' : '—'
 
   /* ── Header band ── */
   doc.setFillColor(...NAVY)
@@ -109,7 +110,7 @@ export function downloadFormPdf(template, values = {}, options = {}) {
 
   /* ── Fields (label + user-entered value) ── */
   const fields = Array.isArray(template.fields) ? template.fields : []
-  const body = fields.map((f) => [f.label || f.key, formatValue(f, values[f.key])])
+  const body = fields.map((f) => [f.label || f.key, formatValue(f, values[f.key], emptyMarker)])
 
   autoTable(doc, {
     startY: doc.lastAutoTable.finalY + 6,

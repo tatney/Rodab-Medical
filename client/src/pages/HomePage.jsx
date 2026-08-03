@@ -3,6 +3,9 @@ import { Link, useLocation } from 'react-router-dom'
 import { SUPABASE_URL } from '../config'
 import SEO from '../components/SEO'
 import { useI18n } from '../i18n/I18nContext'
+import { getFormTemplates } from '../api'
+import { extractArray } from '../utils/api-helpers'
+import { downloadFormPdf } from '../utils/pdf'
 
 const B = `${SUPABASE_URL}/storage/v1/object/public/images`
 
@@ -50,7 +53,35 @@ export default function HomePage() {
   const [isPaused, setIsPaused] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [formsOpen, setFormsOpen] = useState(false)
+  const [formTemplates, setFormTemplates] = useState([])
+  const [downloadingTitle, setDownloadingTitle] = useState('')
+  const [formError, setFormError] = useState('')
   const moreRef = React.useRef(null)
+
+  const handleDownloadForm = async (form) => {
+    if (downloadingTitle) return
+    setDownloadingTitle(form.title)
+    setFormError('')
+    try {
+      let tpls = formTemplates
+      if (!tpls.length) {
+        const res = await getFormTemplates()
+        tpls = extractArray(res.data, 'forms')
+        setFormTemplates(tpls)
+      }
+      const template = tpls.find((t) => t.form_code === form.code)
+      if (!template) {
+        setFormError(`${form.title} is not available yet.`)
+        return
+      }
+      downloadFormPdf(template, {}, { blank: true })
+    } catch (err) {
+      console.error('Form PDF download failed:', err)
+      setFormError('Failed to generate the PDF. Please try again.')
+    } finally {
+      setDownloadingTitle('')
+    }
+  }
 
   useEffect(() => {
     if (location.state?.scrollTo) {
@@ -345,15 +376,18 @@ export default function HomePage() {
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, maxWidth: 800, margin: '0 auto' }}>
             {forms.items.map((form, index) => (
-              <a
+              <button
                 key={index}
-                href="#"
-                download
+                type="button"
+                onClick={() => handleDownloadForm(form)}
+                disabled={!!downloadingTitle}
+                aria-label={`Download ${form.title}`}
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                   padding: '16px 20px', borderRadius: 10, border: '1px solid var(--border)',
                   textDecoration: 'none', color: 'var(--text-strong)', backgroundColor: 'var(--surface-card)',
-                  transition: 'box-shadow 0.2s, transform 0.2s',
+                  cursor: downloadingTitle ? 'wait' : 'pointer', textAlign: 'left', width: '100%',
+                  fontFamily: 'inherit', fontSize: 'inherit', transition: 'box-shadow 0.2s, transform 0.2s',
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
                 onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' }}
@@ -365,12 +399,15 @@ export default function HomePage() {
                   </svg>
                   <span style={{ fontSize: 14, fontWeight: 500 }}>{form.title}</span>
                 </div>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#dc2626', backgroundColor: '#fef2f2', padding: '4px 10px', borderRadius: 6 }}>
-                  PDF
+                <span style={{ fontSize: 12, fontWeight: 600, color: '#dc2626', backgroundColor: '#fef2f2', padding: '4px 10px', borderRadius: 6, flexShrink: 0 }}>
+                  {downloadingTitle === form.title ? 'Downloading...' : 'PDF'}
                 </span>
-              </a>
+              </button>
             ))}
           </div>
+          {formError && (
+            <p role="alert" style={{ marginTop: 16, fontSize: 14, color: '#dc2626' }}>{formError}</p>
+          )}
         </div>
       </section>
 
@@ -409,17 +446,18 @@ export default function HomePage() {
               {formsOpen && (
                 <div style={{ position: 'absolute', left: '100%', top: 0, marginLeft: 4, backgroundColor: 'var(--surface-card)', borderRadius: 10, boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)', padding: 6, minWidth: 240, maxHeight: 320, overflowY: 'auto' }}>
                   {forms.items.map((f, index) => (
-                    <a
+                    <button
                       key={index}
-                      href="#"
-                      download
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderRadius: 6, textDecoration: 'none', color: 'var(--text-body)', fontSize: 13, transition: 'background 0.15s' }}
+                      type="button"
+                      onClick={() => handleDownloadForm(f)}
+                      disabled={!!downloadingTitle}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '8px 12px', borderRadius: 6, border: 'none', background: 'none', color: 'var(--text-body)', fontSize: 13, cursor: downloadingTitle ? 'wait' : 'pointer', textAlign: 'start', fontFamily: 'inherit', transition: 'background 0.15s' }}
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-container-low)')}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
                       <span>{f.title}</span>
-                      <span style={{ fontSize: 11, fontWeight: 600, color: '#dc2626' }}>PDF</span>
-                    </a>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#dc2626' }}>{downloadingTitle === f.title ? '...' : 'PDF'}</span>
+                    </button>
                   ))}
                   <div style={{ height: 1, backgroundColor: 'var(--border)', margin: '4px 0' }} />
                   <Link

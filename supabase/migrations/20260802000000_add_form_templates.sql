@@ -174,6 +174,25 @@ BEGIN
     {"key":"suggestions","label":"Suggestions for Improvement","type":"textarea","required":false,"full":true},
     {"key":"contact_me","label":"May we contact you about this submission?","type":"select","options":["Yes","No"],"required":false},
     {"key":"consent","label":"I consent to this submission being reviewed and processed by hospital staff.","type":"checkbox","required":true}
+  ]'),
+
+  -- 7. Insurance Information
+  ('Insurance Information Form', 'Capture patient insurance details including provider, policy and coverage information.', '🛡️', 'insurance', 'FM-007', 'Rev. 1.0', '[
+    {"key":"full_name","label":"Full Name","type":"text","required":true},
+    {"key":"date_of_birth","label":"Date of Birth","type":"date","required":true},
+    {"key":"insurance_provider","label":"Insurance Provider","type":"text","required":true},
+    {"key":"insurance_type","label":"Insurance Type","type":"select","options":["Private","Government","Employer-sponsored","Travel","Other"],"required":true},
+    {"key":"policy_number","label":"Policy / Member ID","type":"text","required":true},
+    {"key":"group_number","label":"Group Number","type":"text","required":false},
+    {"key":"policyholder_name","label":"Policyholder Name (if different from patient)","type":"text","required":false},
+    {"key":"relationship_to_policyholder","label":"Relationship to Policyholder","type":"select","options":["Self","Spouse","Parent","Child","Other"],"required":false},
+    {"key":"coverage_start_date","label":"Coverage Start Date","type":"date","required":false},
+    {"key":"coverage_end_date","label":"Coverage End Date","type":"date","required":false},
+    {"key":"co_pay_amount","label":"Co-Pay Amount","type":"number","placeholder":"e.g. 20","required":false},
+    {"key":"deductible_amount","label":"Annual Deductible","type":"number","placeholder":"e.g. 500","required":false},
+    {"key":"pre_authorization","label":"Pre-Authorization Required","type":"select","options":["Yes","No","N/A"],"required":false},
+    {"key":"insurance_phone","label":"Insurance Company Phone","type":"tel","required":false},
+    {"key":"consent","label":"I confirm that the insurance information provided is accurate and up to date.","type":"checkbox","required":true}
   ]');
 END
 $$;

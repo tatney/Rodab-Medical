@@ -231,12 +231,12 @@ export default {
       heading: 'Formulaires téléchargeables',
       sub: 'Téléchargez et remplissez ces formulaires avant votre visite',
       items: [
-        { title: 'Formulaire d’inscription du patient' },
-        { title: 'Questionnaire sur les antécédents médicaux' },
-        { title: 'Formulaire d’informations d’assurance' },
-        { title: 'Consentement au traitement' },
-        { title: 'Formulaire de demande de référence' },
-        { title: 'Formulaire de retour' },
+        { title: 'Formulaire d’inscription du patient', code: 'FM-001' },
+        { title: 'Questionnaire sur les antécédents médicaux', code: 'FM-002' },
+        { title: 'Formulaire d’informations d’assurance', code: 'FM-007' },
+        { title: 'Consentement au traitement', code: 'FM-003' },
+        { title: 'Formulaire de demande de référence', code: 'FM-005' },
+        { title: 'Formulaire de retour', code: 'FM-006' },
       ],
     },
     more: {
