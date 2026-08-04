@@ -2,6 +2,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { SUPABASE_URL } from '../config'
 import SEO from '../components/SEO'
+import EventLightbox from '../components/EventLightbox'
 import { useI18n } from '../i18n/I18nContext'
 import { getFormTemplates, getEvents } from '../api'
 import { extractArray } from '../utils/api-helpers'
@@ -58,6 +59,7 @@ export default function HomePage() {
   const [downloadingTitle, setDownloadingTitle] = useState('')
   const [formError, setFormError] = useState('')
   const [events, setEvents] = useState([])
+  const [lightbox, setLightbox] = useState(null)
   const moreRef = React.useRef(null)
 
   const handleDownloadForm = async (form) => {
@@ -371,24 +373,13 @@ export default function HomePage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 40 }}>
               {events.slice(0, 3).map((event) => {
                 const image = Array.isArray(event.images) && event.images.length ? event.images[0] : null
+                const caption = [event.title, event.description].filter(Boolean).join('\n')
                 return (
                   <Link
                     key={event.id}
                     to="/events"
                     style={{ textDecoration: 'none', color: 'inherit', display: 'block', backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', textAlign: 'start' }}
                   >
-                    {image ? (
-                      <img
-                        src={image}
-                        alt={event.title || 'Event'}
-                        loading="lazy"
-                        style={{ width: '100%', height: 'auto', objectFit: 'contain', display: 'block' }}
-                      />
-                    ) : (
-                      <div style={{ width: '100%', padding: 48, textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40 }}>
-                        🎉
-                      </div>
-                    )}
                     <div style={{ padding: 16 }}>
                       {event.title && <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 4 }}>{event.title}</h3>}
                       {event.created_at && (
@@ -397,6 +388,24 @@ export default function HomePage() {
                         </span>
                       )}
                     </div>
+                    {image ? (
+                      <div
+                        onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox({ image, caption }) }}
+                        style={{ cursor: 'zoom-in', overflow: 'hidden', borderTop: '1px solid var(--border)' }}
+                      >
+                        <img
+                          src={image}
+                          alt={event.title || 'Event'}
+                          loading="lazy"
+                          title="Double-click to enlarge"
+                          style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+                        />
+                      </div>
+                    ) : (
+                      <div style={{ width: '100%', height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40, borderTop: '1px solid var(--border)' }}>
+                        🎉
+                      </div>
+                    )}
                   </Link>
                 )
               })}
@@ -566,6 +575,7 @@ export default function HomePage() {
           </div>
         )}
       </div>
+      <EventLightbox image={lightbox?.image} caption={lightbox?.caption} onClose={() => setLightbox(null)} />
     </div>
   )
 }

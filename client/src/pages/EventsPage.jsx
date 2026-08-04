@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import SEO from '../components/SEO'
+import EventLightbox from '../components/EventLightbox'
 import { getEvents } from '../api'
 import { useI18n } from '../i18n/I18nContext'
 
@@ -15,6 +16,7 @@ export default function EventsPage() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [lightbox, setLightbox] = useState(null)
 
   useEffect(() => {
     let active = true
@@ -66,6 +68,7 @@ export default function EventsPage() {
 
           {!loading && !error && events.map((event) => {
             const images = Array.isArray(event.images) ? event.images : []
+            const caption = [event.title, event.description].filter(Boolean).join('\n')
             return (
               <article
                 key={event.id}
@@ -86,6 +89,12 @@ export default function EventsPage() {
                   {formatDate(event.created_at)}
                 </p>
 
+                {event.description && (
+                  <p style={{ fontSize: 16, color: 'var(--text-body)', lineHeight: 1.8, marginBottom: 16, whiteSpace: 'pre-wrap' }}>
+                    {event.description}
+                  </p>
+                )}
+
                 {images.length > 0 && (
                   <div
                     style={{
@@ -95,15 +104,20 @@ export default function EventsPage() {
                     }}
                   >
                     {images.map((src, idx) => (
-                      <div key={idx} style={{ borderRadius: 12, overflow: 'hidden', backgroundColor: 'var(--surface-card)' }}>
+                      <div
+                        key={idx}
+                        onDoubleClick={() => setLightbox({ image: src, caption })}
+                        style={{ borderRadius: 12, overflow: 'hidden', backgroundColor: 'var(--surface-card)', cursor: 'zoom-in' }}
+                      >
                         <img
                           src={src}
                           alt={`${event.title || 'Event'} image ${idx + 1}`}
                           loading="lazy"
+                          title="Double-click to enlarge"
                           style={{
                             width: '100%',
-                            height: 'auto',
-                            objectFit: 'contain',
+                            height: 220,
+                            objectFit: 'cover',
                             display: 'block',
                           }}
                         />
@@ -111,17 +125,12 @@ export default function EventsPage() {
                     ))}
                   </div>
                 )}
-
-                {event.description && (
-                  <p style={{ fontSize: 16, color: 'var(--text-body)', lineHeight: 1.8, marginTop: 16, whiteSpace: 'pre-wrap' }}>
-                    {event.description}
-                  </p>
-                )}
               </article>
             )
           })}
         </div>
       </section>
+      <EventLightbox image={lightbox?.image} caption={lightbox?.caption} onClose={() => setLightbox(null)} />
     </main>
   )
 }
