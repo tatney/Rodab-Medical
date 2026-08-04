@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { SUPABASE_URL } from '../config'
 import SEO from '../components/SEO'
 import EventLightbox from '../components/EventLightbox'
+import EventCarousel from '../components/EventCarousel'
 import { useI18n } from '../i18n/I18nContext'
 import { getFormTemplates, getEvents } from '../api'
 import { extractArray } from '../utils/api-helpers'
@@ -372,7 +373,8 @@ export default function HomePage() {
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 40 }}>
               {events.slice(0, 3).map((event) => {
-                const image = Array.isArray(event.images) && event.images.length ? event.images[0] : null
+                const images = Array.isArray(event.images) ? event.images : []
+                const image = images[0] || null
                 const caption = [event.title, event.description].filter(Boolean).join('\n')
                 return (
                   <Link
@@ -389,20 +391,13 @@ export default function HomePage() {
                       )}
                     </div>
                     {image ? (
-                      <div
-                        onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox({ image, caption }) }}
-                        style={{ margin: '0 16px 16px', borderRadius: 16, overflow: 'hidden', minHeight: 300, background: 'var(--border)', cursor: 'zoom-in' }}
-                      >
-                        <img
-                          src={image}
-                          alt={event.title || 'Event'}
-                          loading="lazy"
-                          title="Double-click to enlarge"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                        />
-                      </div>
+                      <EventCarousel
+                        images={images}
+                        caption={caption}
+                        onOpenLightbox={(url) => setLightbox({ image: url, caption })}
+                      />
                     ) : (
-                      <div style={{ margin: '0 16px 16px', borderRadius: 16, minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40 }}>
+                      <div style={{ margin: '0 16px 16px', borderRadius: 16, height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40 }}>
                         🎉
                       </div>
                     )}
