@@ -4,11 +4,59 @@ import { SUPABASE_URL } from '../config';
 import { useI18n } from '../i18n/I18nContext';
 
 const JUMP_LINKS = [
-  { id: 'home', labelKey: 'footer.jumpHome' },
-  { id: 'online-services', labelKey: 'footer.jumpOnlineServices' },
-  { id: 'services', labelKey: 'footer.jumpServices' },
-  { id: 'about', labelKey: 'footer.jumpAbout' },
-  { id: 'testimonials', labelKey: 'footer.jumpTestimonials' },
+  {
+    id: 'home',
+    labelKey: 'footer.jumpHome',
+    links: [
+      { to: '/', labelKey: 'nav.home' },
+      { to: '/about-us', labelKey: 'nav.aboutUs' },
+      { to: '/services', labelKey: 'nav.services' },
+      { to: '/find-doctor', labelKey: 'nav.findDoctor' },
+      { to: '/events', labelKey: 'nav.events' },
+    ],
+  },
+  {
+    id: 'online-services',
+    labelKey: 'footer.jumpOnlineServices',
+    links: [
+      { to: '/appointments', labelKey: 'footer.bookAppointment' },
+      { to: '/repeat-prescription', labelKey: 'nav.prescriptions' },
+      { to: '/consultations', labelKey: 'nav.consultations' },
+      { to: '/illness-certificate', labelKey: 'nav.quickIllnessCertificate' },
+      { to: '/fees', labelKey: 'nav.quickFees' },
+      { to: '/ambulance', labelKey: 'footer.ambulanceServices' },
+    ],
+  },
+  {
+    id: 'services',
+    labelKey: 'footer.jumpServices',
+    links: [
+      { to: '/services', labelKey: 'footer.emergencyCare' },
+      { to: '/services', labelKey: 'footer.generalMedicine' },
+      { to: '/services', labelKey: 'footer.cardiology' },
+      { to: '/services', labelKey: 'footer.orthopaedics' },
+      { to: '/ambulance', labelKey: 'footer.ambulanceServices' },
+      { to: '/services', labelKey: 'footer.diagnostics' },
+    ],
+  },
+  {
+    id: 'about',
+    labelKey: 'footer.jumpAbout',
+    links: [
+      { to: '/about-us', labelKey: 'nav.aboutUs' },
+      { to: '/privacy-policy', labelKey: 'nav.quickPrivacy' },
+      { to: '/policies', labelKey: 'nav.quickPolicies' },
+      { to: '/faqs', labelKey: 'nav.quickFaqs' },
+    ],
+  },
+  {
+    id: 'testimonials',
+    labelKey: 'footer.jumpTestimonials',
+    links: [
+      { section: 'testimonials', labelKey: 'footer.jumpTestimonials' },
+      { to: '/events', labelKey: 'nav.events' },
+    ],
+  },
   { id: 'contact', labelKey: 'footer.contactUs', contact: true },
 ];
 
@@ -102,27 +150,22 @@ const CONTACT_ITEMS = [
   },
 ];
 
-const Footer = () => {
-  const { t } = useI18n();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const currentYear = new Date().getFullYear();
-
-  const [contactOpen, setContactOpen] = useState(false);
-  const contactWrapperRef = useRef(null);
+const JumpDropdown = ({ id, label, jump, scrollToSection, t }) => {
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
-    if (!contactOpen) return;
+    if (!open) return;
 
     const handlePointerDown = (event) => {
-      if (contactWrapperRef.current && !contactWrapperRef.current.contains(event.target)) {
-        setContactOpen(false);
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setOpen(false);
       }
     };
     const handleKeyDown = (event) => {
-      if (event.key === 'Escape') setContactOpen(false);
+      if (event.key === 'Escape') setOpen(false);
     };
-    const handleScroll = () => setContactOpen(false);
+    const handleScroll = () => setOpen(false);
 
     document.addEventListener('mousedown', handlePointerDown);
     document.addEventListener('touchstart', handlePointerDown);
@@ -134,7 +177,81 @@ const Footer = () => {
       document.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('scroll', handleScroll, true);
     };
-  }, [contactOpen]);
+  }, [open]);
+
+  return (
+    <div ref={wrapperRef} style={styles.dropdownWrapper}>
+      <button
+        type="button"
+        onClick={() => setOpen((isOpen) => !isOpen)}
+        className="footer-jump-btn"
+        style={styles.jumpBtn}
+        aria-haspopup="true"
+        aria-expanded={open}
+        aria-controls={id}
+      >
+        {label}
+      </button>
+      {open && (
+        <div
+          id={id}
+          className="footer-dropdown"
+          role={jump.contact ? 'dialog' : 'list'}
+          aria-label={label}
+        >
+          {jump.contact
+            ? CONTACT_ITEMS.map((item) => (
+                <div key={item.key} className="footer-popover-item">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill={item.key === 'whatsapp' ? 'currentColor' : 'none'}
+                    stroke={item.key === 'whatsapp' ? 'none' : 'currentColor'}
+                    strokeWidth="2"
+                    className="footer-popover-icon"
+                    aria-hidden="true"
+                  >
+                    {item.icon}
+                  </svg>
+                  <span>{item.render(t)}</span>
+                </div>
+              ))
+            : jump.links.map((link, index) => (
+                <div key={`${link.to || link.section}-${index}`} className="footer-dropdown-item" role="listitem">
+                  {link.section ? (
+                    <button
+                      type="button"
+                      className="footer-dropdown-link footer-dropdown-btn"
+                      onClick={() => {
+                        setOpen(false);
+                        scrollToSection(link.section);
+                      }}
+                    >
+                      {t(link.labelKey)}
+                    </button>
+                  ) : (
+                    <Link
+                      to={link.to}
+                      className="footer-dropdown-link"
+                      onClick={() => setOpen(false)}
+                    >
+                      {t(link.labelKey)}
+                    </Link>
+                  )}
+                </div>
+              ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const Footer = () => {
+  const { t } = useI18n();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentYear = new Date().getFullYear();
 
   const scrollToSection = (id) => {
     if (location.pathname !== '/') {
@@ -164,65 +281,20 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Quick Jump - in-page section navigation */}
+        {/* Quick Jump - navigation dropdowns */}
         <div style={styles.jumpSection}>
           <h4 style={styles.heading}>{t('footer.quickJump')}</h4>
           <div style={styles.jumpRow}>
-            {JUMP_LINKS.map((jump) =>
-              jump.contact ? (
-                <div
-                  key={jump.id}
-                  ref={contactWrapperRef}
-                  style={styles.contactWrapper}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setContactOpen((open) => !open)}
-                    style={styles.jumpBtn}
-                    aria-haspopup="true"
-                    aria-expanded={contactOpen}
-                    aria-controls="footer-contact-popover"
-                  >
-                    {t(jump.labelKey)}
-                  </button>
-                  {contactOpen && (
-                    <div
-                      id="footer-contact-popover"
-                      className="footer-contact-popover"
-                      role="dialog"
-                      aria-label={t('footer.contactHeading')}
-                    >
-                      {CONTACT_ITEMS.map((item) => (
-                        <div key={item.key} className="footer-popover-item">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill={item.key === 'whatsapp' ? 'currentColor' : 'none'}
-                            stroke={item.key === 'whatsapp' ? 'none' : 'currentColor'}
-                            strokeWidth="2"
-                            className="footer-popover-icon"
-                            aria-hidden="true"
-                          >
-                            {item.icon}
-                          </svg>
-                          <span>{item.render(t)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <button
-                  key={jump.id}
-                  type="button"
-                  onClick={() => scrollToSection(jump.id)}
-                  style={styles.jumpBtn}
-                >
-                  {t(jump.labelKey)}
-                </button>
-              )
-            )}
+            {JUMP_LINKS.map((jump) => (
+              <JumpDropdown
+                key={jump.id}
+                id={`footer-dropdown-${jump.id}`}
+                label={t(jump.labelKey)}
+                jump={jump}
+                scrollToSection={scrollToSection}
+                t={t}
+              />
+            ))}
           </div>
         </div>
 
@@ -297,7 +369,7 @@ const styles = {
     flexWrap: 'wrap',
     gap: '10px',
   },
-  contactWrapper: {
+  dropdownWrapper: {
     position: 'relative',
   },
   jumpBtn: {

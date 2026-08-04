@@ -644,7 +644,18 @@ input, textarea, select {
   border-top: 1px solid rgba(255,255,255,0.1);
 }
 
-.footer-contact-popover {
+.footer-jump-btn:hover {
+  background-color: rgba(255,255,255,0.16);
+  border-color: rgba(255,255,255,0.35);
+  color: #ffffff;
+}
+
+.footer-jump-btn:focus-visible {
+  outline: 2px solid var(--secondary, #94a3b8);
+  outline-offset: 2px;
+}
+
+.footer-dropdown {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
@@ -659,8 +670,33 @@ input, textarea, select {
   z-index: 1200;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 6px;
   text-align: left;
+}
+
+.footer-dropdown-item {
+  list-style: none;
+}
+
+.footer-dropdown-link {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #cbd5e1;
+  text-decoration: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.footer-dropdown-link:hover {
+  background-color: rgba(255,255,255,0.08);
+  color: #ffffff;
 }
 
 .footer-popover-item {
@@ -690,7 +726,11 @@ input, textarea, select {
   color: white;
 }
 
-[dir='rtl'] .footer-contact-popover {
+[dir='rtl'] .footer-dropdown {
+  text-align: right;
+}
+
+[dir='rtl'] .footer-dropdown-link {
   text-align: right;
 }
 
@@ -3294,7 +3334,7 @@ input, textarea, select {
     gap: 8px;
   }
 
-  .footer-contact-popover {
+  .footer-dropdown {
     left: 50%;
     right: auto;
     transform: translateX(-50%);
