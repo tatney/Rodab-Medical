@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { SUPABASE_URL } from '../config'
 import SEO from '../components/SEO'
 import { useI18n } from '../i18n/I18nContext'
-import { getFormTemplates } from '../api'
+import { getFormTemplates, getEvents } from '../api'
 import { extractArray } from '../utils/api-helpers'
 import { downloadFormPdf } from '../utils/pdf'
 
@@ -48,6 +48,7 @@ export default function HomePage() {
   const testimonials = tr('home.testimonials')
   const forms = tr('home.forms')
   const more = tr('home.more')
+  const eventsHome = tr('home.events')
 
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
@@ -56,6 +57,7 @@ export default function HomePage() {
   const [formTemplates, setFormTemplates] = useState([])
   const [downloadingTitle, setDownloadingTitle] = useState('')
   const [formError, setFormError] = useState('')
+  const [events, setEvents] = useState([])
   const moreRef = React.useRef(null)
 
   const handleDownloadForm = async (form) => {
@@ -94,6 +96,19 @@ export default function HomePage() {
       return () => clearTimeout(timer)
     }
   }, [location.state])
+
+  useEffect(() => {
+    let active = true
+    ;(async () => {
+      try {
+        const res = await getEvents()
+        if (active) setEvents(res.data?.events || [])
+      } catch (err) {
+        console.error('Failed to load events:', err)
+      }
+    })()
+    return () => { active = false }
+  }, [])
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % slides.length)
@@ -337,6 +352,63 @@ export default function HomePage() {
           <div style={{ borderRadius: 16, overflow: 'hidden', minHeight: 300, background: 'var(--border)' }}>
             <img src={`${SUPABASE_URL}/storage/v1/object/public/images/Hero%20Image%204.jpeg`} alt="Rodab Medical Hospital" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
+        </div>
+      </section>
+
+      {/* ── Our Events (latest) ── */}
+      <section id="events" style={{ padding: '80px 24px', backgroundColor: 'var(--surface-soft)' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center' }}>
+          <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 800, color: 'var(--text-strong)', marginBottom: 8 }}>
+            {eventsHome.heading}
+          </h2>
+          <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 40 }}>
+            {eventsHome.sub}
+          </p>
+
+          {events.length === 0 ? (
+            <p style={{ fontSize: 16, color: 'var(--text-muted)' }}>{eventsHome.noEvents}</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 40 }}>
+              {events.slice(0, 3).map((event) => {
+                const image = Array.isArray(event.images) && event.images.length ? event.images[0] : null
+                return (
+                  <Link
+                    key={event.id}
+                    to="/events"
+                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', textAlign: 'start' }}
+                  >
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={event.title || 'Event'}
+                        loading="lazy"
+                        style={{ width: '100%', height: 'auto', objectFit: 'contain', display: 'block' }}
+                      />
+                    ) : (
+                      <div style={{ width: '100%', padding: 48, textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40 }}>
+                        🎉
+                      </div>
+                    )}
+                    <div style={{ padding: 16 }}>
+                      {event.title && <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 4 }}>{event.title}</h3>}
+                      {event.created_at && (
+                        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                          {new Date(event.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </span>
+                      )}
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+
+          <Link
+            to="/events"
+            style={{ display: 'inline-block', padding: '12px 28px', backgroundColor: 'var(--navy-deep)', color: '#fff', borderRadius: 8, fontSize: 15, fontWeight: 600, textDecoration: 'none' }}
+          >
+            {eventsHome.viewAll}
+          </Link>
         </div>
       </section>
 

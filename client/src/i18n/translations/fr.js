@@ -28,6 +28,7 @@ export default {
     services: 'Services',
     findDoctor: 'Trouver un médecin',
     aboutUs: 'À propos',
+    events: 'Événements',
     notifications: 'Notifications',
     help: 'Aide',
     helpCenter: "Centre d'aide",
@@ -99,6 +100,7 @@ export default {
     ourServices: 'Nos services',
     findADoctor: 'Trouver un médecin',
     bookAppointment: 'Prendre rendez-vous',
+    events: 'Événements',
     contactUs: 'Contactez-nous',
     quickJump: 'Aller à',
     jumpHome: 'Accueil',
@@ -246,6 +248,12 @@ export default {
       faqs: 'FAQ',
       privacyPolicy: 'Politique de confidentialité',
     },
+    events: {
+      heading: 'Nos événements',
+      sub: 'Des moments récents de notre communauté',
+      viewAll: 'Voir tous les événements →',
+      noEvents: 'Pas encore d’événements. Revenez bientôt !',
+    },
   },
 
   servicesPage: {
@@ -302,6 +310,15 @@ export default {
         features: ['Chirurgie générale', 'Mini-invasive', 'Laparoscopie'],
       },
     ],
+  },
+
+  events: {
+    seoTitle: 'Événements',
+    seoDescription: 'Restez informé des événements de Rodab Medical, des campagnes de santé et des activités communautaires.',
+    heading: 'Événements et campagnes de santé',
+    subtitle: 'Des moments et des jalons de notre communauté.',
+    loading: 'Chargement des événements…',
+    empty: 'Pas encore d’événements. Revenez bientôt !',
   },
 
   about: {

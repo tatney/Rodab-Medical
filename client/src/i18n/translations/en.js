@@ -28,6 +28,7 @@ export default {
     services: 'Services',
     findDoctor: 'Find a Doctor',
     aboutUs: 'About Us',
+    events: 'Events',
     notifications: 'Notifications',
     help: 'Help',
     helpCenter: 'Help Center',
@@ -99,6 +100,7 @@ export default {
     ourServices: 'Our Services',
     findADoctor: 'Find a Doctor',
     bookAppointment: 'Book Appointment',
+    events: 'Events',
     contactUs: 'Contact Us',
     quickJump: 'Jump to',
     jumpHome: 'Home',
@@ -246,6 +248,12 @@ export default {
       faqs: 'FAQs',
       privacyPolicy: 'Privacy Policy',
     },
+    events: {
+      heading: 'Our Events',
+      sub: 'Recent moments from our community',
+      viewAll: 'View all events →',
+      noEvents: 'No events yet. Check back soon!',
+    },
   },
 
   servicesPage: {
@@ -302,6 +310,15 @@ export default {
         features: ['General Surgery', 'Minimally Invasive', 'Laparoscopic'],
       },
     ],
+  },
+
+  events: {
+    seoTitle: 'Events',
+    seoDescription: "Stay up to date with Rodab Medical's events, health campaigns, and community activities.",
+    heading: 'Events & Health Campaigns',
+    subtitle: 'Moments and milestones from our community.',
+    loading: 'Loading events…',
+    empty: 'No events yet. Check back soon!',
   },
 
   about: {

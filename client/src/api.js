@@ -1289,6 +1289,86 @@ export const getPatientsWithRecords = async () => {
   return ok({ patients: data || [] })
 }
 
+// ─── Events (public announcements, up to 4 images + caption) ──────────────────
+
+export const getEvents = async () => {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ events: data || [] })
+}
+
+export const getEventsAdmin = async () => {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ events: data || [] })
+}
+
+export const createEvent = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: result, error } = await supabase
+    .from('events')
+    .insert({
+      title: data.title || '',
+      description: data.description || '',
+      images: data.images || [],
+      is_active: data.is_active !== false,
+      created_by: user?.id,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ event: result })
+}
+
+export const updateEvent = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('events')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ event: result })
+}
+
+export const deleteEvent = async (id) => {
+  const { error } = await supabase.from('events').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Event deleted successfully' })
+}
+
+// Upload an image to the public 'images' bucket for an event.
+export const uploadEventImage = async (file) => {
+  const ext = (file.name || 'jpg').split('.').pop().toLowerCase()
+  const path = `events/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage
+    .from('images')
+    .upload(path, file, { contentType: file.type || 'image/jpeg', cacheControl: '3600', upsert: false })
+  if (error) throw error
+  const { data } = supabase.storage.from('images').getPublicUrl(path)
+  return data.publicUrl
+}
+
+// Delete uploaded event images from storage (used on event delete / replace).
+export const deleteEventImages = async (urls = []) => {
+  const prefix = `${SUPABASE_URL}/storage/v1/object/public/images/`
+  const paths = urls
+    .filter((u) => typeof u === 'string' && u.startsWith(prefix))
+    .map((u) => decodeURIComponent(u.slice(prefix.length)))
+  if (!paths.length) return
+  const { error } = await supabase.storage.from('images').remove(paths)
+  if (error) throw error
+  return ok({ message: 'Event images deleted' })
+}
+
 // ─── Default export (for backward compat) ─────────────────────────────────────
 
 const api = {
@@ -1373,6 +1453,13 @@ const api = {
   createFormSubmission,
   saveOnboarding,
   getPatientsWithRecords,
+  getEvents,
+  getEventsAdmin,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  uploadEventImage,
+  deleteEventImages,
 }
 
 export default api

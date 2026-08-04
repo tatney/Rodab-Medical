@@ -14,6 +14,7 @@ const roleConfig = {
       { to: '/super-admin/users', label: 'Users', icon: 'users' },
       { to: '/super-admin/doctors', label: 'Doctors', icon: 'doctor' },
       { to: '/super-admin/emergency', label: 'Emergency', icon: 'emergency' },
+      { to: '/super-admin/events', label: 'Events', icon: 'events' },
       { to: '/super-admin/drivers', label: 'Drivers', icon: 'driver' },
       { to: '/super-admin/reports', label: 'Reports', icon: 'reports' },
       { to: '/super-admin/settings', label: 'Settings', icon: 'settings' },
@@ -125,6 +126,12 @@ const getIcon = (iconName, color) => {
         <polyline points="14 2 14 8 20 8" />
         <line x1="16" y1="13" x2="8" y2="13" />
         <line x1="16" y1="17" x2="8" y2="17" />
+      </svg>
+    ),
+    events: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M3 11l18-5v12L3 13v-2z" />
+        <path d="M11.6 16.8a3 3 0 11-5.8-1.6" />
       </svg>
     ),
     reports: (

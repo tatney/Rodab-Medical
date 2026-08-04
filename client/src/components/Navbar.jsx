@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { to: '/ambulance', labelKey: 'nav.ambulanceRequests' },
   { to: '/repeat-prescription', labelKey: 'nav.prescriptions' },
   { to: '/forms', labelKey: 'nav.medicalForms' },
+  { to: '/events', labelKey: 'nav.events' },
   { to: '/fees', labelKey: 'nav.quickFees' },
   { to: '/faqs', labelKey: 'nav.helpCenter' },
 ];
@@ -22,6 +23,7 @@ const UNAUTH_NAV = [
   { to: '/services', labelKey: 'nav.services' },
   { to: '/find-doctor', labelKey: 'nav.findDoctor' },
   { to: '/about-us', labelKey: 'nav.aboutUs' },
+  { to: '/events', labelKey: 'nav.events' },
 ];
 
 const LANDING_NAV = [
@@ -29,6 +31,7 @@ const LANDING_NAV = [
   { key: 'services', section: 'services', labelKey: 'nav.services' },
   { to: '/find-doctor', labelKey: 'nav.findDoctor' },
   { key: 'about', section: 'about', labelKey: 'nav.aboutUs' },
+  { to: '/events', labelKey: 'nav.events' },
 ];
 
 const ROLE_NAV = {

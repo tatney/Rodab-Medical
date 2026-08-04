@@ -22,6 +22,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SOSPage from './pages/SOSPage';
 import FAQsPage from './pages/FAQsPage';
+import EventsPage from './pages/EventsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -71,6 +72,7 @@ function App() {
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/policies" element={<PoliciesPage />} />
                 <Route path="/sos" element={<SOSPage />} />
+                <Route path="/events" element={<EventsPage />} />
                 <Route path="/track/:id" element={<TrackPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>
@@ -85,6 +87,7 @@ function App() {
                 <Route path="/sos" element={<SOSPage />} />
                 <Route path="/faqs" element={<FAQsPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                <Route path="/events" element={<EventsPage />} />
 
                 {/* ── Protected Routes (authenticated users) ─────────── */}
                 <Route

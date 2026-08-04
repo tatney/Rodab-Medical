@@ -17,6 +17,7 @@ const QUICK_LINKS = [
   { to: '/services', labelKey: 'footer.ourServices' },
   { to: '/find-doctor', labelKey: 'footer.findADoctor' },
   { to: '/appointments', labelKey: 'footer.bookAppointment' },
+  { to: '/events', labelKey: 'footer.events' },
   { to: '/faqs', labelKey: 'footer.contactUs' },
 ];
 

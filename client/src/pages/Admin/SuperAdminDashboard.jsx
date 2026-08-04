@@ -14,6 +14,12 @@ import {
   updateHospital,
   deleteHospital,
   getActiveEmergencies,
+  getEventsAdmin,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  uploadEventImage,
+  deleteEventImages,
 } from '../../api';
 /* ──────────────────────────────────────────────
    Helper: Stat Card
@@ -58,6 +64,7 @@ const TABS = [
   { key: "admins", label: "Admins", icon: "👤" },
   { key: "hospitals", label: "Hospitals", icon: "🏥" },
   { key: "emergency", label: "Emergency", icon: "🚨" },
+  { key: "events", label: "Events", icon: "🎉" },
   { key: "logs", label: "Logs", icon: "📋" },
 ];
 
@@ -69,6 +76,7 @@ const SuperAdminDashboard = () => {
     users: 'admins',
     doctors: 'overview',
     emergency: 'emergency',
+    events: 'events',
     drivers: 'overview',
     reports: 'overview',
     settings: 'overview',
@@ -110,6 +118,18 @@ const SuperAdminDashboard = () => {
 
   /* ── Emergency ── */
   const [emergencies, setEmergencies] = useState([]);
+
+  /* ── Events ── */
+  const [events, setEvents] = useState([]);
+  const [eventForm, setEventForm] = useState({
+    title: "",
+    description: "",
+    is_active: true,
+    images: [],
+  });
+  const [eventFiles, setEventFiles] = useState([]);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [eventSubmitting, setEventSubmitting] = useState(false);
 
   /* ── Logs ── */
   const [logs, setLogs] = useState({ users: [], appointments: [], emergencies: [] });
@@ -154,14 +174,23 @@ const SuperAdminDashboard = () => {
     }
   }, []);
 
+  const fetchEvents = useCallback(async () => {
+    try {
+      const { data } = await getEventsAdmin();
+      setEvents(data?.events || []);
+    } catch (err) {
+      console.error("Failed to fetch events", err);
+    }
+  }, []);
+
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true);
-      await Promise.all([fetchAnalytics(), fetchAdmins(), fetchHospitals(), fetchEmergencies()]);
+      await Promise.all([fetchAnalytics(), fetchAdmins(), fetchHospitals(), fetchEmergencies(), fetchEvents()]);
       setLoading(false);
     };
     loadAll();
-  }, [fetchAnalytics, fetchAdmins, fetchHospitals, fetchEmergencies]);
+  }, [fetchAnalytics, fetchAdmins, fetchHospitals, fetchEmergencies, fetchEvents]);
 
   /* Auto-refresh emergency data every 15 s */
   useEffect(() => {
@@ -286,6 +315,98 @@ const SuperAdminDashboard = () => {
       fetchAnalytics();
     } catch (err) {
       toast.error("Failed to delete hospital.");
+    }
+  };
+
+  /* ═══════════════════════════════════════════
+     EVENTS CRUD
+     ═══════════════════════════════════════════ */
+  const handleEventChange = (e) => {
+    setEventForm({ ...eventForm, [e.target.name]: e.target.value });
+  };
+
+  const resetEventForm = () => {
+    setEventForm({ title: "", description: "", is_active: true, images: [] });
+    setEventFiles([]);
+    setEditingEvent(null);
+  };
+
+  const handleEventFilesChange = (e) => {
+    const selected = Array.from(e.target.files || []);
+    const room = 4 - eventForm.images.length;
+    setEventFiles((prev) => [...prev, ...selected].slice(0, Math.max(0, room)));
+    e.target.value = "";
+  };
+
+  const removePendingEventFile = (idx) => {
+    setEventFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const removeExistingEventImage = (url) => {
+    setEventForm({ ...eventForm, images: eventForm.images.filter((img) => img !== url) });
+  };
+
+  const handleEventSubmit = async (e) => {
+    e.preventDefault();
+    setEventSubmitting(true);
+    try {
+      const uploaded = [];
+      for (const file of eventFiles) {
+        uploaded.push(await uploadEventImage(file));
+      }
+      const images = [...eventForm.images, ...uploaded].slice(0, 4);
+      const payload = {
+        title: eventForm.title,
+        description: eventForm.description,
+        images,
+        is_active: eventForm.is_active,
+      };
+      if (editingEvent) {
+        await updateEvent(editingEvent.id, payload);
+        toast.success("Event updated successfully.");
+      } else {
+        await createEvent(payload);
+        toast.success("Event created successfully.");
+      }
+      resetEventForm();
+      fetchEvents();
+    } catch (err) {
+      toast.error(err?.message || "Failed to save event.");
+    } finally {
+      setEventSubmitting(false);
+    }
+  };
+
+  const handleEditEvent = (ev) => {
+    setEditingEvent(ev);
+    setEventForm({
+      title: ev.title || "",
+      description: ev.description || "",
+      is_active: ev.is_active !== false,
+      images: Array.isArray(ev.images) ? ev.images : [],
+    });
+    setEventFiles([]);
+  };
+
+  const handleToggleEventActive = async (ev) => {
+    try {
+      await updateEvent(ev.id, { is_active: ev.is_active === false });
+      fetchEvents();
+      toast.success(ev.is_active === false ? "Event published." : "Event hidden.");
+    } catch (err) {
+      toast.error("Failed to update event.");
+    }
+  };
+
+  const handleDeleteEvent = async (ev) => {
+    if (!window.confirm("Delete this event? Its uploaded images will also be removed.")) return;
+    try {
+      await deleteEventImages(ev.images);
+      await deleteEvent(ev.id);
+      fetchEvents();
+      toast.success("Event deleted.");
+    } catch (err) {
+      toast.error("Failed to delete event.");
     }
   };
 
@@ -915,6 +1036,154 @@ const SuperAdminDashboard = () => {
     </div>
   );
 
+  const renderEvents = () => (
+    <div className="events-section">
+      <h3>{editingEvent ? "Edit Event" : "Add Event"}</h3>
+      <form className="create-form" onSubmit={handleEventSubmit}>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Title</label>
+            <input
+              type="text"
+              name="title"
+              value={eventForm.title}
+              onChange={handleEventChange}
+              placeholder="e.g. Community Health Camp"
+            />
+          </div>
+          <div className="form-group">
+            <label>Status</label>
+            <select name="is_active" value={eventForm.is_active ? "true" : "false"} onChange={(e) => setEventForm({ ...eventForm, is_active: e.target.value === "true" })}>
+              <option value="true">Published</option>
+              <option value="false">Hidden</option>
+            </select>
+          </div>
+        </div>
+        <div className="form-group">
+          <label>Caption / Description</label>
+          <textarea
+            name="description"
+            value={eventForm.description}
+            onChange={handleEventChange}
+            rows={3}
+            placeholder="Short caption shown with the event images"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Images (up to 4, never cropped)</label>
+          <div className="event-image-grid" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+            {eventForm.images.map((url, i) => (
+              <div key={`existing-${i}`} style={{ position: "relative", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+                <img src={url} alt={`Existing ${i + 1}`} style={{ width: 96, height: 96, objectFit: "cover", display: "block" }} />
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  style={{ position: "absolute", top: 4, right: 4, padding: "2px 8px" }}
+                  onClick={() => removeExistingEventImage(url)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            {eventFiles.map((file, i) => (
+              <div key={`pending-${i}`} style={{ position: "relative", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+                <img src={URL.createObjectURL(file)} alt={`New ${i + 1}`} style={{ width: 96, height: 96, objectFit: "cover", display: "block" }} />
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  style={{ position: "absolute", top: 4, right: 4, padding: "2px 8px" }}
+                  onClick={() => removePendingEventFile(i)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            {eventForm.images.length + eventFiles.length < 4 && (
+              <label className="btn btn-secondary btn-sm" style={{ cursor: "pointer", alignSelf: "center", marginBottom: 0 }}>
+                + Add Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: "none" }}
+                  onChange={handleEventFilesChange}
+                />
+              </label>
+            )}
+          </div>
+          <small className="muted">Files are uploaded to the public “images” bucket.</small>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary" disabled={eventSubmitting}>
+            {eventSubmitting ? "Saving…" : editingEvent ? "Update Event" : "Add Event"}
+          </button>
+          {(editingEvent || eventFiles.length || eventForm.images.length) && (
+            <button type="button" className="btn btn-secondary" onClick={resetEventForm}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+
+      <h3>All Events</h3>
+      <div className="table-wrapper">
+        <table className="data-table" aria-label="Events">
+          <caption className="sr-only">All Events</caption>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Images</th>
+              <th>Created</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((ev) => (
+              <tr key={ev.id}>
+                <td>
+                  <strong>{ev.title || "—"}</strong>
+                  {ev.description && (
+                    <div className="muted" style={{ fontSize: 12, maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {ev.description}
+                    </div>
+                  )}
+                </td>
+                <td>{(Array.isArray(ev.images) ? ev.images.length : 0)} image(s)</td>
+                <td>{ev.created_at ? new Date(ev.created_at).toLocaleDateString() : "—"}</td>
+                <td>
+                  <span className={`badge ${ev.is_active === false ? "badge-cancelled" : "badge-active"}`}>
+                    {ev.is_active === false ? "Hidden" : "Published"}
+                  </span>
+                </td>
+                <td className="actions-cell">
+                  <button className="btn btn-edit btn-sm" onClick={() => handleEditEvent(ev)}>
+                    Edit
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => handleToggleEventActive(ev)}>
+                    {ev.is_active === false ? "Publish" : "Hide"}
+                  </button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteEvent(ev)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {events.length === 0 && (
+              <tr>
+                <td colSpan={5} className="muted text-center">
+                  No events yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   /* ═══════════════════════════════════════════
      TAB CONTENT DISPATCH
      ═══════════════════════════════════════════ */
@@ -928,6 +1197,8 @@ const SuperAdminDashboard = () => {
         return renderHospitals();
       case "emergency":
         return renderEmergency();
+      case "events":
+        return renderEvents();
       case "logs":
         return renderLogs();
       default:

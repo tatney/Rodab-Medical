@@ -28,6 +28,7 @@ export default {
     services: 'الخدمات',
     findDoctor: 'ابحث عن طبيب',
     aboutUs: 'من نحن',
+    events: 'الفعاليات',
     notifications: 'الإشعارات',
     help: 'المساعدة',
     helpCenter: 'مركز المساعدة',
@@ -99,6 +100,7 @@ export default {
     ourServices: 'خدماتنا',
     findADoctor: 'ابحث عن طبيب',
     bookAppointment: 'حجز موعد',
+    events: 'الفعاليات',
     contactUs: 'اتصل بنا',
     quickJump: 'انتقل إلى',
     jumpHome: 'الرئيسية',
@@ -242,6 +244,12 @@ export default {
       faqs: 'الأسئلة الشائعة',
       privacyPolicy: 'سياسة الخصوصية',
     },
+    events: {
+      heading: 'فعالياتنا',
+      sub: 'لحظات حديثة من مجتمعنا',
+      viewAll: 'عرض كل الفعاليات ←',
+      noEvents: 'لا توجد فعاليات بعد. تابعنا قريباً!',
+    },
   },
 
   servicesPage: {
@@ -298,6 +306,15 @@ export default {
         features: ['الجراحة العامة', 'الجراحة قليلة التدخل', 'المنظار'],
       },
     ],
+  },
+
+  events: {
+    seoTitle: 'الفعاليات',
+    seoDescription: 'ابقَ على اطلاع بفعاليات مستشفى روداب الطبية وحملاته الصحية وأنشطته المجتمعية.',
+    heading: 'الفعاليات والحملات الصحية',
+    subtitle: 'لحظات وإنجازات من مجتمعنا.',
+    loading: 'جارٍ تحميل الفعاليات…',
+    empty: 'لا توجد فعاليات بعد. تابعنا قريباً!',
   },
 
   about: {
