@@ -1043,8 +1043,8 @@ input, textarea, select {
 .sidebar {
   width: 260px;
   position: sticky;
-  top: var(--sticky-nav-height);
-  height: calc(100vh - var(--sticky-nav-height));
+  top: var(--sidebar-top-offset, var(--sticky-nav-height));
+  height: calc(100vh - var(--sidebar-top-offset, var(--sticky-nav-height)));
   background-color: var(--surface-card);
   border-right: 1px solid var(--outline-variant);
   display: flex;
@@ -4200,6 +4200,32 @@ input, textarea, select {
   padding: 32px 24px;
   max-width: 1200px;
   transition: margin-left 0.3s ease;
+}
+
+/* ================================================================
+   PATIENT LAYOUT (shared sidebar for patient pages)
+   ================================================================ */
+.patient-layout {
+  display: flex;
+  min-height: calc(100vh - 52px);
+  background-color: var(--surface);
+}
+
+.patient-layout-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.patient-layout-toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+@media (min-width: 901px) {
+  .main-nav.patient-hidden {
+    display: none;
+  }
 }
 
 @media (max-width: 900px) {

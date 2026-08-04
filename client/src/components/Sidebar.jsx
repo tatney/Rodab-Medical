@@ -3,21 +3,27 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getUnreadCount } from '../api';
 
-const roleConfig = {
+export const roleConfig = {
   super_admin: {
     color: '#0b2a57',
     colorLight: '#e8eef7',
     colorHover: '#091e3d',
     label: 'Super Admin',
+    alias: {
+      dashboard: 'overview',
+      users: 'admins',
+      doctors: 'overview',
+      drivers: 'overview',
+      reports: 'overview',
+      settings: 'overview',
+    },
     tabs: [
-      { to: '/super-admin/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/super-admin/users', label: 'Users', icon: 'users' },
-      { to: '/super-admin/doctors', label: 'Doctors', icon: 'doctor' },
-      { to: '/super-admin/emergency', label: 'Emergency', icon: 'emergency' },
-      { to: '/super-admin/events', label: 'Events', icon: 'events' },
-      { to: '/super-admin/drivers', label: 'Drivers', icon: 'driver' },
-      { to: '/super-admin/reports', label: 'Reports', icon: 'reports' },
-      { to: '/super-admin/settings', label: 'Settings', icon: 'settings' },
+      { key: 'overview', to: '/super-admin/overview', label: 'Overview', icon: 'dashboard' },
+      { key: 'admins', to: '/super-admin/admins', label: 'Admins', icon: 'users' },
+      { key: 'hospitals', to: '/super-admin/hospitals', label: 'Hospitals', icon: 'hospital' },
+      { key: 'emergency', to: '/super-admin/emergency', label: 'Emergency', icon: 'emergency', badge: true },
+      { key: 'events', to: '/super-admin/events', label: 'Events', icon: 'events' },
+      { key: 'logs', to: '/super-admin/logs', label: 'Logs', icon: 'logs' },
     ],
   },
   admin: {
@@ -25,14 +31,31 @@ const roleConfig = {
     colorLight: '#dbeafe',
     colorHover: '#1648b8',
     label: 'Admin',
+    alias: {
+      dashboard: 'overview',
+      patients: 'records',
+      reports: 'overview',
+      settings: 'overview',
+    },
     tabs: [
-      { to: '/admin/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/admin/appointments', label: 'Appointments', icon: 'appointments' },
-      { to: '/admin/patients', label: 'Patients', icon: 'users' },
-      { to: '/admin/emergency', label: 'Emergency', icon: 'emergency' },
-      { to: '/admin/doctors', label: 'Doctors', icon: 'doctor' },
-      { to: '/admin/reports', label: 'Reports', icon: 'reports' },
-      { to: '/admin/settings', label: 'Settings', icon: 'settings' },
+      { key: 'overview', to: '/admin/overview', label: 'Overview', icon: 'dashboard' },
+      { key: 'admins', to: '/admin/admins', label: 'Admins', icon: 'users' },
+      { key: 'departments', to: '/admin/departments', label: 'Departments', icon: 'departments' },
+      { key: 'doctors', to: '/admin/doctors', label: 'Doctors', icon: 'doctor' },
+      { key: 'availability', to: '/admin/availability', label: 'Availability', icon: 'availability' },
+      { key: 'hospitals', to: '/admin/hospitals', label: 'Hospitals', icon: 'hospital' },
+      { key: 'vehicles', to: '/admin/vehicles', label: 'Vehicles', icon: 'vehicles' },
+      { key: 'drivers', to: '/admin/drivers', label: 'Drivers', icon: 'driver' },
+      { key: 'emergency', to: '/admin/emergency', label: 'Emergency', icon: 'emergency', badge: true },
+      { key: 'fees', to: '/admin/fees', label: 'Fees', icon: 'fees' },
+      { key: 'forms', to: '/admin/forms', label: 'Forms', icon: 'forms' },
+      { key: 'records', to: '/admin/records', label: 'Patients / Records', icon: 'records' },
+      { key: 'notifications', to: '/admin/notifications', label: 'Notifications', icon: 'notifications' },
+      { key: 'messages', to: '/admin/messages', label: 'Messages', icon: 'messages' },
+      { key: 'prescriptions', to: '/admin/prescriptions', label: 'Prescriptions', icon: 'prescriptions' },
+      { key: 'certificates', to: '/admin/certificates', label: 'Certificates', icon: 'certificates' },
+      { key: 'appointments', to: '/admin/appointments', label: 'Appointments', icon: 'appointments' },
+      { key: 'consultations', to: '/admin/consultations', label: 'Consultations', icon: 'consultations' },
     ],
   },
   doctor: {
@@ -40,13 +63,17 @@ const roleConfig = {
     colorLight: '#ede9fe',
     colorHover: '#6d28d9',
     label: 'Doctor',
+    alias: {
+      schedule: 'availability',
+      prescriptions: 'dashboard',
+      reports: 'dashboard',
+    },
     tabs: [
-      { to: '/doctor/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/doctor/patients', label: 'My Patients', icon: 'users' },
-      { to: '/doctor/consultations', label: 'Consultations', icon: 'consultations' },
-      { to: '/doctor/schedule', label: 'Schedule', icon: 'schedule' },
-      { to: '/doctor/prescriptions', label: 'Prescriptions', icon: 'prescriptions' },
-      { to: '/doctor/reports', label: 'Reports', icon: 'reports' },
+      { key: 'dashboard', to: '/doctor/dashboard', label: 'Dashboard', icon: 'dashboard' },
+      { key: 'patients', to: '/doctor/patients', label: 'Patients', icon: 'users' },
+      { key: 'appointments', to: '/doctor/appointments', label: 'Appointments', icon: 'appointments' },
+      { key: 'availability', to: '/doctor/availability', label: 'Availability', icon: 'availability' },
+      { key: 'consultations', to: '/doctor/consultations', label: 'Consultations', icon: 'consultations' },
     ],
   },
   driver: {
@@ -54,14 +81,41 @@ const roleConfig = {
     colorLight: '#fef3c7',
     colorHover: '#b45309',
     label: 'Driver',
+    alias: {
+      dashboard: 'rides',
+      assignments: 'rides',
+      history: 'rides',
+      profile: 'rides',
+    },
     tabs: [
-      { to: '/driver/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/driver/assignments', label: 'Assignments', icon: 'appointments' },
-      { to: '/driver/history', label: 'History', icon: 'reports' },
-      { to: '/driver/profile', label: 'My Profile', icon: 'settings' },
+      { key: 'rides', to: '/driver/rides', label: 'Rides', icon: 'rides', badge: true },
+      { key: 'map', to: '/driver/map', label: 'Map', icon: 'map' },
+      { key: 'alerts', to: '/driver/alerts', label: 'Alerts', icon: 'alerts' },
+    ],
+  },
+  user: {
+    color: '#0f766e',
+    colorLight: '#ccfbf1',
+    colorHover: '#115e59',
+    label: 'Patient',
+    alias: {},
+    tabs: [
+      { key: 'dashboard', to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+      { key: 'appointments', to: '/appointments', label: 'Appointments', icon: 'appointments' },
+      { key: 'consultations', to: '/consultations', label: 'Consultations', icon: 'consultations' },
+      { key: 'ambulance', to: '/ambulance', label: 'Ambulance', icon: 'ambulance' },
+      { key: 'repeat-prescription', to: '/repeat-prescription', label: 'Repeat Prescription', icon: 'repeat-prescription' },
+      { key: 'illness-certificate', to: '/illness-certificate', label: 'Illness Certificate', icon: 'certificates' },
+      { key: 'forms', to: '/forms', label: 'Medical Forms', icon: 'forms' },
+      { key: 'form-history', to: '/form-history', label: 'Form History', icon: 'records' },
+      { key: 'fees', to: '/fees', label: 'Quick Fees', icon: 'fees' },
+      { key: 'profile', to: '/profile', label: 'My Profile', icon: 'profile' },
+      { key: 'settings', to: '/settings', label: 'Settings', icon: 'settings' },
     ],
   },
 };
+
+export const getRoleConfig = (role) => roleConfig[role] || roleConfig.user;
 
 const getIcon = (iconName, color) => {
   const iconMap = {
@@ -114,7 +168,7 @@ const getIcon = (iconName, color) => {
         <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
       </svg>
     ),
-    schedule: (
+    availability: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
@@ -134,6 +188,13 @@ const getIcon = (iconName, color) => {
         <path d="M11.6 16.8a3 3 0 11-5.8-1.6" />
       </svg>
     ),
+    logs: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    ),
     reports: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
         <line x1="18" y1="20" x2="18" y2="10" />
@@ -147,11 +208,114 @@ const getIcon = (iconName, color) => {
         <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
       </svg>
     ),
+    hospital: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <rect x="4" y="3" width="16" height="18" rx="1" />
+        <path d="M8 21v-6h8v6M12 6v6M9 9h6" />
+      </svg>
+    ),
+    departments: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <rect x="4" y="3" width="16" height="18" rx="1" />
+        <path d="M9 7h.01M12 7h.01M15 7h.01M9 11h.01M12 11h.01M15 11h.01M9 15h.01M12 15h.01M15 15h.01M8 21v-6h8v6" />
+      </svg>
+    ),
+    vehicles: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <rect x="1" y="3" width="15" height="13" />
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+        <circle cx="5.5" cy="18.5" r="2.5" />
+        <circle cx="18.5" cy="18.5" r="2.5" />
+      </svg>
+    ),
+    rides: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <rect x="1" y="3" width="15" height="13" />
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+        <circle cx="5.5" cy="18.5" r="2.5" />
+        <circle cx="18.5" cy="18.5" r="2.5" />
+      </svg>
+    ),
+    ambulance: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <rect x="1" y="3" width="15" height="13" />
+        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+        <circle cx="5.5" cy="18.5" r="2.5" />
+        <circle cx="18.5" cy="18.5" r="2.5" />
+      </svg>
+    ),
+    'repeat-prescription': (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+      </svg>
+    ),
+    fees: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <rect x="2" y="5" width="20" height="14" rx="2" />
+        <line x1="2" y1="10" x2="22" y2="10" />
+        <line x1="6" y1="15" x2="10" y2="15" />
+      </svg>
+    ),
+    forms: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
+        <rect x="8" y="2" width="8" height="4" rx="1" />
+        <line x1="8" y1="12" x2="16" y2="12" />
+        <line x1="8" y1="16" x2="13" y2="16" />
+      </svg>
+    ),
+    records: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+      </svg>
+    ),
+    notifications: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 01-3.46 0" />
+      </svg>
+    ),
+    messages: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+      </svg>
+    ),
+    certificates: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <circle cx="12" cy="8" r="6" />
+        <path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12" />
+      </svg>
+    ),
+    map: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+        <line x1="8" y1="2" x2="8" y2="18" />
+        <line x1="16" y1="6" x2="16" y2="22" />
+      </svg>
+    ),
+    alerts: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 01-3.46 0" />
+      </svg>
+    ),
+    profile: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+    ),
   };
   return iconMap[iconName] || iconMap.dashboard;
 };
 
-const Sidebar = ({ isOpen, onToggle }) => {
+const Sidebar = ({ isOpen, onToggle, topOffset }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -175,7 +339,8 @@ const Sidebar = ({ isOpen, onToggle }) => {
     return () => clearInterval(interval);
   }, []);
 
-  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
+  const currentSegment = location.pathname.split('/').filter(Boolean).pop() || '';
+  const currentKey = (config.alias && config.alias[currentSegment]) || currentSegment;
 
   const handleLogout = () => {
     logout();
@@ -204,6 +369,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         style={{
           backgroundColor: config.color,
           width: collapsed ? '72px' : '260px',
+          ...(topOffset != null ? { '--sidebar-top-offset': `${topOffset}px` } : {}),
         }}
       >
         {/* Nav Items */}
@@ -232,10 +398,10 @@ const Sidebar = ({ isOpen, onToggle }) => {
           </button>
 
           {config.tabs.map((tab) => {
-            const active = isActive(tab.to);
+            const active = tab.key === currentKey;
             return (
               <Link
-                key={tab.to}
+                key={tab.key}
                 to={tab.to}
                 aria-current={active ? 'page' : undefined}
                 style={{
@@ -251,7 +417,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 {!collapsed && (
                   <>
                     <span style={styles.navLabel}>{tab.label}</span>
-                    {((tab.label === 'Emergency' || tab.label === 'Assignments') && unreadCount > 0) && (
+                    {(tab.badge && unreadCount > 0) && (
                       <span style={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
                     )}
                   </>
@@ -291,6 +457,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '2px',
+    overflowY: 'auto',
   },
   collapseToggle: {
     display: 'flex',
@@ -303,6 +470,7 @@ const styles = {
     border: 'none',
     borderRadius: '8px',
     cursor: 'pointer',
+    flexShrink: 0,
   },
   navItem: {
     display: 'flex',
@@ -316,6 +484,7 @@ const styles = {
     fontWeight: '500',
     transition: 'background 0.2s',
     whiteSpace: 'nowrap',
+    flexShrink: 0,
   },
   navLabel: {
     flex: 1,
@@ -333,6 +502,7 @@ const styles = {
   sidebarBottom: {
     padding: '8px',
     borderTop: '1px solid rgba(255,255,255,0.1)',
+    flexShrink: 0,
   },
 };
 

@@ -12,6 +12,7 @@ import SOSButton from './components/SOSButton';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import CookieConsent from './components/CookieConsent';
+import PatientLayout from './components/PatientLayout';
 
 // Public Pages
 import HomePage from './pages/HomePage';
@@ -89,80 +90,99 @@ function App() {
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/events" element={<EventsPage />} />
 
-                {/* ── Protected Routes (authenticated users) ─────────── */}
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <UserDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/ambulance"
-                  element={<AmbulancePage />}
-                />
-                <Route
-                  path="/appointments"
-                  element={
-                    <ProtectedRoute>
-                      <AppointmentsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/consultations"
-                  element={
-                    <ProtectedRoute>
-                      <ConsultationsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/forms"
-                  element={
-                    <ProtectedRoute>
-                      <FormsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/form-history"
-                  element={
-                    <ProtectedRoute>
-                      <FormHistoryPage />
-                    </ProtectedRoute>
-                  }
-                />
+                {/* ── Patient Routes (shared sidebar layout) ─────────── */}
+                <Route element={<PatientLayout />}>
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <UserDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/ambulance"
+                    element={<AmbulancePage />}
+                  />
+                  <Route
+                    path="/appointments"
+                    element={
+                      <ProtectedRoute>
+                        <AppointmentsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/consultations"
+                    element={
+                      <ProtectedRoute>
+                        <ConsultationsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/forms"
+                    element={
+                      <ProtectedRoute>
+                        <FormsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/form-history"
+                    element={
+                      <ProtectedRoute>
+                        <FormHistoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/repeat-prescription"
+                    element={
+                      <ProtectedRoute>
+                        <RepeatPrescriptionPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/illness-certificate"
+                    element={
+                      <ProtectedRoute>
+                        <IllnessCertificatePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/fees"
+                    element={
+                      <ProtectedRoute>
+                        <FeesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <ProfilePage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <SettingsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Route>
+
                 <Route
                   path="/onboarding"
                   element={
                     <ProtectedRoute>
                       <OnboardingPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/repeat-prescription"
-                  element={
-                    <ProtectedRoute>
-                      <RepeatPrescriptionPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/illness-certificate"
-                  element={
-                    <ProtectedRoute>
-                      <IllnessCertificatePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/fees"
-                  element={
-                    <ProtectedRoute>
-                      <FeesPage />
                     </ProtectedRoute>
                   }
                 />
@@ -179,22 +199,6 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <AboutUsPage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <ProfilePage />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <SettingsPage />
                     </ProtectedRoute>
                   }
                 />

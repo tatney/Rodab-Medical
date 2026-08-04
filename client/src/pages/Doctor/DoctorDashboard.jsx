@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Sidebar from '../../components/Sidebar';
+import Sidebar, { roleConfig } from '../../components/Sidebar';
 import {
   getAppointments,
   getConsultations,
@@ -26,14 +26,6 @@ const statusStyles = {
   answered: { bg: '#dcfce7', color: '#166534', label: 'Answered' },
   closed: { bg: '#f3f4f6', color: '#6b7280', label: 'Closed' },
 };
-
-const tabs = [
-  { key: 'dashboard', label: 'Dashboard', icon: '📊' },
-  { key: 'patients', label: 'Patients', icon: '👥' },
-  { key: 'appointments', label: 'Appointments', icon: '📅' },
-  { key: 'availability', label: 'Availability', icon: '🕐' },
-  { key: 'consultations', label: 'Consultations', icon: '💬' },
-];
 
 const cardStyle = {
   backgroundColor: '#ffffff',
@@ -78,15 +70,8 @@ export default function DoctorDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { tab } = useParams();
-  const sidebarTabMap = {
-    dashboard: 'dashboard',
-    patients: 'patients',
-    consultations: 'consultations',
-    schedule: 'availability',
-    prescriptions: 'dashboard',
-    reports: 'dashboard',
-  };
-  const [activeTab, setActiveTab] = useState(sidebarTabMap[tab] || 'dashboard');
+  const validKeys = roleConfig.doctor.tabs.map((t) => t.key);
+  const activeTab = validKeys.includes(tab) ? tab : 'dashboard';
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const [loading, setLoading] = useState(true);
@@ -547,34 +532,6 @@ export default function DoctorDashboard() {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div role="tablist" style={{ display: 'flex', gap: 4, marginBottom: 28, overflowX: 'auto', paddingBottom: 4 }}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              role="tab"
-              id={`tab-${tab.key}`}
-              aria-selected={activeTab === tab.key}
-              aria-controls={`tabpanel-${tab.key}`}
-              onClick={() => setActiveTab(tab.key)}
-              style={{
-                padding: '10px 20px',
-                borderRadius: 8,
-                border: 'none',
-                backgroundColor: activeTab === tab.key ? '#7c3aed' : 'transparent',
-                color: activeTab === tab.key ? '#ffffff' : '#6b7280',
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s',
-              }}
-            >
-              {tab.icon} {tab.label}
-            </button>
-          ))}
         </div>
 
         {/* Error */}

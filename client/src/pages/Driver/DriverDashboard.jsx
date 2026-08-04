@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import Sidebar from '../../components/Sidebar';
+import Sidebar, { roleConfig } from '../../components/Sidebar';
 import Map from '../../components/Map';
 import {
   getDriverRides,
@@ -33,12 +33,6 @@ const rideStatusStyles = {
   cancelled: { bg: '#fee2e2', color: '#991b1b', label: 'Cancelled' },
 };
 
-const tabs = [
-  { key: 'rides', label: 'Rides', icon: '🚑' },
-  { key: 'map', label: 'Map', icon: '🗺' },
-  { key: 'alerts', label: 'Alerts', icon: '🔔' },
-];
-
 const cardStyle = {
   backgroundColor: '#ffffff',
   borderRadius: 12,
@@ -61,13 +55,8 @@ const btnStyle = (color, bg) => ({
 export default function DriverDashboard() {
   const { user } = useAuth();
   const { tab } = useParams();
-  const sidebarTabMap = {
-    dashboard: 'rides',
-    assignments: 'rides',
-    history: 'history',
-    profile: 'profile',
-  };
-  const [activeTab, setActiveTab] = useState(sidebarTabMap[tab] || 'rides');
+  const validKeys = roleConfig.driver.tabs.map((t) => t.key);
+  const activeTab = validKeys.includes(tab) ? tab : 'rides';
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -466,34 +455,6 @@ export default function DriverDashboard() {
               <span style={{ fontSize: 13, fontWeight: 600, color: '#991b1b' }}>{activeRides.length} Active Ride{activeRides.length > 1 ? 's' : ''}</span>
             </div>
           )}
-        </div>
-
-        {/* Tab Navigation */}
-        <div role="tablist" style={{ display: 'flex', gap: 4, marginBottom: 28, overflowX: 'auto', paddingBottom: 4 }}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              role="tab"
-              id={`tab-${tab.key}`}
-              aria-selected={activeTab === tab.key}
-              aria-controls={`tabpanel-${tab.key}`}
-              onClick={() => setActiveTab(tab.key)}
-              style={{
-                padding: '10px 20px',
-                borderRadius: 8,
-                border: 'none',
-                backgroundColor: activeTab === tab.key ? '#d97706' : 'transparent',
-                color: activeTab === tab.key ? '#ffffff' : '#6b7280',
-                fontSize: 14,
-                fontWeight: 600,
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                transition: 'all 0.2s',
-              }}
-            >
-              {tab.icon} {tab.label}
-            </button>
-          ))}
         </div>
 
         {/* Error */}

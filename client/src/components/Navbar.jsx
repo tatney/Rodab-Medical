@@ -48,6 +48,20 @@ const ROLE_NAV = {
   ],
 };
 
+const PATIENT_ROUTES = [
+  '/dashboard',
+  '/appointments',
+  '/consultations',
+  '/ambulance',
+  '/repeat-prescription',
+  '/illness-certificate',
+  '/forms',
+  '/form-history',
+  '/fees',
+  '/profile',
+  '/settings',
+];
+
 const ROLE_COLORS = {
   super_admin: { bg: '#fef3c7', text: '#92400e' },
   admin: { bg: '#dbeafe', text: '#1e40af' },
@@ -229,6 +243,11 @@ const Navbar = () => {
 
   const navLinks = user ? (ROLE_NAV[user.role] || []) : LANDING_MODE ? LANDING_NAV : UNAUTH_NAV;
   const roleColor = user ? ROLE_COLORS[user.role] || ROLE_COLORS.user : null;
+
+  const isPatientRoute =
+    !!user &&
+    user.role === 'user' &&
+    PATIENT_ROUTES.some((p) => location.pathname === p || location.pathname.startsWith(p + '/'));
 
   const accountLinks = user ? [
     { to: '/dashboard', labelKey: 'nav.dashboard', icon: ICONS.dashboard },
@@ -545,7 +564,7 @@ const Navbar = () => {
       </div>
 
       {/* ═══ Main Nav ═══ */}
-      <div className={`main-nav ${scrolled ? 'scrolled' : ''}`}>
+      <div className={`main-nav ${scrolled ? 'scrolled' : ''}${isPatientRoute ? ' patient-hidden' : ''}`}>
         <div className="main-nav-inner">
           <div className="main-nav-links" role="menubar">
             {navLinks.map((link) => (

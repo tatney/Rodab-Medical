@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import Sidebar from '../../components/Sidebar';
+import Sidebar, { roleConfig } from '../../components/Sidebar';
 import Map from '../../components/Map';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ToastContext';
@@ -59,31 +59,13 @@ const ProgressBar = ({ label, count, total, color }) => {
 /* ──────────────────────────────────────────────
    Main Component
    ────────────────────────────────────────────── */
-const TABS = [
-  { key: "overview", label: "Overview", icon: "📊" },
-  { key: "admins", label: "Admins", icon: "👤" },
-  { key: "hospitals", label: "Hospitals", icon: "🏥" },
-  { key: "emergency", label: "Emergency", icon: "🚨" },
-  { key: "events", label: "Events", icon: "🎉" },
-  { key: "logs", label: "Logs", icon: "📋" },
-];
-
 const SuperAdminDashboard = () => {
   const { user } = useAuth();
   const { tab } = useParams();
-  const sidebarTabMap = {
-    dashboard: 'overview',
-    users: 'admins',
-    doctors: 'overview',
-    emergency: 'emergency',
-    events: 'events',
-    drivers: 'overview',
-    reports: 'overview',
-    settings: 'overview',
-  };
+  const validKeys = roleConfig.super_admin.tabs.map((t) => t.key);
+  const activeTab = validKeys.includes(tab) ? tab : 'overview';
   const toast = useToast();
 
-  const [activeTab, setActiveTab] = useState(sidebarTabMap[tab] || 'overview');
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   /* ── Shared state ── */
@@ -1231,24 +1213,6 @@ const SuperAdminDashboard = () => {
             </span>
           </div>
         </header>
-
-        {/* ── Tabs ── */}
-        <nav className="tab-nav" role="tablist">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              role="tab"
-              id={`tab-${tab.key}`}
-              aria-selected={activeTab === tab.key}
-              aria-controls={`tabpanel-${tab.key}`}
-              className={`tab-btn ${activeTab === tab.key ? "active" : ""}`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              <span className="tab-icon" aria-hidden="true">{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
-        </nav>
 
         {/* ── Content ── */}
         <section className="tab-content" role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>

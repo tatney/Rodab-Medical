@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import Sidebar from '../../components/Sidebar';
+import Sidebar, { roleConfig } from '../../components/Sidebar';
 import Map from '../../components/Map';
 import NotificationBell from '../../components/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
@@ -52,43 +52,14 @@ const EmptyRow = ({ colSpan = 5, msg = "No records found." }) => (
   <tr><td colSpan={colSpan} className="muted text-center">{msg}</td></tr>
 );
 
-const TABS = [
-  { key: "overview", label: "Overview", icon: "📊" },
-  { key: "admins", label: "Admins", icon: "👤" },
-  { key: "departments", label: "Departments", icon: "🏢" },
-  { key: "doctors", label: "Doctors", icon: "🩺" },
-  { key: "availability", label: "Availability", icon: "📅" },
-  { key: "hospitals", label: "Hospitals", icon: "🏥" },
-  { key: "vehicles", label: "Vehicles", icon: "🚑" },
-  { key: "drivers", label: "Drivers", icon: "🧑‍✈️" },
-  { key: "emergency", label: "Emergency", icon: "🚨" },
-  { key: "fees", label: "Fees", icon: "💰" },
-  { key: "forms", label: "Forms", icon: "📋" },
-  { key: "records", label: "Patients / Records", icon: "🩺" },
-  { key: "notifications", label: "Notifications", icon: "🔔" },
-  { key: "messages", label: "Messages", icon: "✉️" },
-  { key: "prescriptions", label: "Prescriptions", icon: "💊" },
-  { key: "certificates", label: "Certificates", icon: "📄" },
-  { key: "appointments", label: "Appointments", icon: "📆" },
-  { key: "consultations", label: "Consultations", icon: "💬" },
-];
-
 /* ══════════════════════════════════════════════
    MAIN COMPONENT
    ══════════════════════════════════════════════ */
 const AdminDashboard = () => {
   const { user } = useAuth();
   const { tab } = useParams();
-  const sidebarTabMap = {
-    dashboard: 'overview',
-    appointments: 'appointments',
-    patients: 'records',
-    emergency: 'emergency',
-    doctors: 'doctors',
-    reports: 'overview',
-    settings: 'overview',
-  };
-  const [activeTab, setActiveTab] = useState(sidebarTabMap[tab] || 'overview');
+  const validKeys = roleConfig.admin.tabs.map((t) => t.key);
+  const activeTab = validKeys.includes(tab) ? tab : 'overview';
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -1757,14 +1728,6 @@ const AdminDashboard = () => {
             <span className="user-badge">👤 {user?.full_name || "Admin"}</span>
           </div>
         </header>
-        <nav className="tab-nav" role="tablist" style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
-          {TABS.map((tab) => (
-            <button key={tab.key} role="tab" id={`tab-${tab.key}`} aria-selected={activeTab === tab.key} aria-controls={`tabpanel-${tab.key}`} className={`tab-btn ${activeTab === tab.key ? "active" : ""}`} onClick={() => setActiveTab(tab.key)}>
-              <span className="tab-icon" aria-hidden="true">{tab.icon}</span>
-              <span className="tab-label">{tab.label}</span>
-            </button>
-          ))}
-        </nav>
         <section className="tab-content" role="tabpanel" id={`tabpanel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
           {loading ? (
             <div className="loading-spinner">
