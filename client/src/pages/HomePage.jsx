@@ -391,18 +391,18 @@ export default function HomePage() {
                     {image ? (
                       <div
                         onDoubleClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox({ image, caption }) }}
-                        style={{ cursor: 'zoom-in', overflow: 'hidden', borderTop: '1px solid var(--border)' }}
+                        style={{ margin: '0 16px 16px', borderRadius: 16, overflow: 'hidden', minHeight: 300, background: 'var(--border)', cursor: 'zoom-in' }}
                       >
                         <img
                           src={image}
                           alt={event.title || 'Event'}
                           loading="lazy"
                           title="Double-click to enlarge"
-                          style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block' }}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                         />
                       </div>
                     ) : (
-                      <div style={{ width: '100%', height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40, borderTop: '1px solid var(--border)' }}>
+                      <div style={{ margin: '0 16px 16px', borderRadius: 16, minHeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40 }}>
                         🎉
                       </div>
                     )}
