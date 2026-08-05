@@ -66,11 +66,13 @@ const UgandaMap = ({ height = '440px' }) => {
 
       const glowGroup = L.layerGroup().addTo(map)
 
-      CITIES.forEach((city) => {
+      CITIES.forEach((city, index) => {
         const pos = [city.lat, city.lng]
+        const bucket = index % 4
 
         L.circle(pos, {
           radius: city.r,
+          className: `uganda-heat-ring ring-${bucket}`,
           color: 'rgba(34,197,94,0.9)',
           weight: 2,
           fillColor: '#22c55e',
@@ -79,6 +81,7 @@ const UgandaMap = ({ height = '440px' }) => {
 
         L.circle(pos, {
           radius: city.r * 0.28,
+          className: `uganda-heat-core core-${bucket}`,
           color: 'rgba(34,197,94,0.4)',
           weight: 1,
           fillColor: '#4ade80',

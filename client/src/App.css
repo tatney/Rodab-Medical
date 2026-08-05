@@ -5020,6 +5020,59 @@ button.chip-active:hover {
   white-space: nowrap;
 }
 
+.uganda-heat-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: uganda-heat-pulse 3.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.55));
+}
+
+.uganda-heat-core {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: uganda-core-glow 1.8s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.9));
+}
+
+.ring-1,
+.core-1 { animation-delay: 0.4s; }
+
+.ring-2,
+.core-2 { animation-delay: 0.8s; }
+
+.ring-3,
+.core-3 { animation-delay: 1.2s; }
+
+@keyframes uganda-heat-pulse {
+  0%, 100% {
+    fill-opacity: 0.14;
+    stroke-opacity: 0.75;
+  }
+  50% {
+    fill-opacity: 0.42;
+    stroke-opacity: 0.4;
+  }
+}
+
+@keyframes uganda-core-glow {
+  0%, 100% {
+    fill-opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    fill-opacity: 1;
+    transform: scale(1.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uganda-heat-ring,
+  .uganda-heat-core {
+    animation: none;
+    filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.5));
+  }
+}
+
 .where-we-work-map-placeholder {
   position: absolute;
   inset: 0;
