@@ -681,11 +681,12 @@ input, textarea, select {
 .footer-dropdown-link {
   display: block;
   width: 100%;
-  padding: 7px 10px;
+  padding: 9px 12px;
   border-radius: 8px;
-  font-size: 13.5px;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.5;
-  color: #cbd5e1;
+  color: #f1f5f9;
   text-decoration: none;
   background: none;
   border: none;
@@ -695,7 +696,7 @@ input, textarea, select {
 }
 
 .footer-dropdown-link:hover {
-  background-color: rgba(255,255,255,0.08);
+  background-color: rgba(255,255,255,0.14);
   color: #ffffff;
 }
 
@@ -703,8 +704,8 @@ input, textarea, select {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13.5px;
-  color: #94a3b8;
+  font-size: 14px;
+  color: #e2e8f0;
 }
 
 .footer-popover-item span {
@@ -713,17 +714,19 @@ input, textarea, select {
 
 .footer-popover-icon {
   flex-shrink: 0;
-  opacity: 0.7;
+  opacity: 0.75;
 }
 
 .footer-popover-link {
-  color: #94a3b8;
+  color: #f1f5f9;
+  font-weight: 500;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .footer-popover-link:hover {
-  color: white;
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 [dir='rtl'] .footer-dropdown {
@@ -3335,9 +3338,15 @@ input, textarea, select {
   }
 
   .footer-dropdown {
+    position: fixed;
+    top: 50%;
     left: 50%;
-    right: auto;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
+    width: calc(100vw - 32px);
+    max-width: 340px;
+    max-height: min(78vh, 560px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .fd-grid {
