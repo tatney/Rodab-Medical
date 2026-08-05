@@ -300,14 +300,20 @@ export default function HomePage() {
           <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 800, color: 'var(--text-strong)', marginBottom: 48 }}>
             {features.heading}
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 32 }}>
-            {features.items.map((feat, index) => (
-              <div key={index} style={{ padding: 24 }}>
-                <div style={{ fontSize: 48, marginBottom: 16 }}>{FEATURE_ICONS[index]}</div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{feat.title}</h3>
-                <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{feat.desc}</p>
-              </div>
-            ))}
+          <div className="marquee">
+            <div className="marquee-track">
+              {[0, 1].map((copy) => (
+                <div key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
+                  {features.items.map((feat, index) => (
+                    <div key={index} className="marquee-card">
+                      <div style={{ fontSize: 48, marginBottom: 16 }}>{FEATURE_ICONS[index]}</div>
+                      <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{feat.title}</h3>
+                      <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{feat.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
