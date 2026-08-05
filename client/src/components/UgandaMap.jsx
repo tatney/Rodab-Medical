@@ -72,20 +72,27 @@ const UgandaMap = ({ height = '440px' }) => {
 
         L.circle(pos, {
           radius: city.r,
-          className: `uganda-heat-ring ring-${bucket}`,
-          color: 'rgba(34,197,94,0.9)',
-          weight: 2,
+          color: 'rgba(34,197,94,0.7)',
+          weight: 1.5,
           fillColor: '#22c55e',
-          fillOpacity: 0.18,
+          fillOpacity: 0.12,
         }).addTo(glowGroup)
 
         L.circle(pos, {
           radius: city.r * 0.28,
-          className: `uganda-heat-core core-${bucket}`,
-          color: 'rgba(34,197,94,0.4)',
+          color: 'rgba(34,197,94,0.3)',
           weight: 1,
           fillColor: '#4ade80',
-          fillOpacity: 0.85,
+          fillOpacity: 0.6,
+        }).addTo(glowGroup)
+
+        L.marker(pos, {
+          icon: L.divIcon({
+            className: 'uganda-heat-pin',
+            html: `<span class="uganda-heat-pulse pin-${bucket}"></span><span class="uganda-heat-dot pin-${bucket}"></span>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          }),
         }).addTo(glowGroup)
 
         L.marker(pos, {
