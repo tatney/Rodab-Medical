@@ -51,10 +51,14 @@ const UgandaMap = ({ height = '440px' }) => {
 
       map = L.map(el, {
         zoomControl: true,
-        scrollWheelZoom: false,
+        scrollWheelZoom: true,
+        touchZoom: true,
+        doubleClickZoom: true,
         attributionControl: true,
         minZoom: 5,
         maxZoom: 9,
+        maxBounds: UGANDA_BOUNDS,
+        maxBoundsViscosity: 1.0,
       })
       map.fitBounds(UGANDA_BOUNDS)
 
