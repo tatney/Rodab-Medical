@@ -118,17 +118,25 @@ export const updateProfile = async (updates) => {
 
 export const getDoctors = async (params) => {
   let query = supabase
-    .from('profiles')
-    .select('*, doctor!user_id(*)')
-    .eq('role', 'doctor')
+    .from('doctors')
+    .select('*, profiles(*)')
 
   if (params) {
-    if (params.department) query = query.eq('doctor.department_id', params.department)
+    if (params.department) query = query.eq('department_id', params.department)
   }
 
   const { data, error } = await query
   if (error) throw error
-  return ok({ doctors: data || [] })
+
+  const doctors = (data || []).map((doc) => ({
+    ...doc,
+    full_name: doc.profiles?.full_name || doc.name,
+    email: doc.profiles?.email || doc.email,
+    avatar_url: doc.profiles?.avatar_url || doc.avatar_url,
+    is_available: doc.is_available ?? doc.available,
+  }))
+
+  return ok({ doctors })
 }
 
 export const getDoctorsDepartments = async () => {
