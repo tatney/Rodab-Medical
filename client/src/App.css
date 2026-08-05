@@ -3548,6 +3548,11 @@ input, textarea, select {
   }
 
   .main-nav {
+    display: none;
+  }
+
+  .main-nav:has(.main-nav-sos) {
+    display: block;
     position: sticky;
     top: 52px;
   }
