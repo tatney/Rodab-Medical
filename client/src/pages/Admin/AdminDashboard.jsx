@@ -1427,7 +1427,7 @@ const AdminDashboard = () => {
                     <td>{p.onboarding_completed_at ? new Date(p.onboarding_completed_at).toLocaleDateString() : "—"}</td>
                     <td className="actions-cell">
                       <button className="btn btn-edit btn-sm" onClick={() => setSelectedPatient(p)}>View</button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => { try { downloadMedicalRecordPdf(p, fieldLabels); } catch (err) { toast.error("Failed to generate PDF."); } }}>
+                      <button className="btn btn-secondary btn-sm" onClick={() => { downloadMedicalRecordPdf(p, fieldLabels).catch(() => toast.error("Failed to generate PDF.")); }}>
                         Export PDF
                       </button>
                     </td>

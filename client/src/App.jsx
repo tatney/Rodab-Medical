@@ -1,4 +1,4 @@
-﻿import React from 'react';
+﻿import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { EmergencyProvider } from './context/EmergencyContext';
@@ -13,41 +13,42 @@ import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import CookieConsent from './components/CookieConsent';
 import PatientLayout from './components/PatientLayout';
+import PageLoader from './components/PageLoader';
+import HomePage from './pages/HomePage';
 
 // Public Pages
-import HomePage from './pages/HomePage';
-import ServicesPage from './pages/ServicesPage';
-import TrackPage from './pages/TrackPage';
-import FindDoctorPage from './pages/FindDoctorPage';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import SOSPage from './pages/SOSPage';
-import FAQsPage from './pages/FAQsPage';
-import EventsPage from './pages/EventsPage';
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
-import NotFoundPage from './pages/NotFoundPage';
+const ServicesPage = lazy(() => import('./pages/ServicesPage'));
+const TrackPage = lazy(() => import('./pages/TrackPage'));
+const FindDoctorPage = lazy(() => import('./pages/FindDoctorPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const SignupPage = lazy(() => import('./pages/SignupPage'));
+const SOSPage = lazy(() => import('./pages/SOSPage'));
+const FAQsPage = lazy(() => import('./pages/FAQsPage'));
+const EventsPage = lazy(() => import('./pages/EventsPage'));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Protected Pages
-import UserDashboard from './pages/UserDashboard';
-import AmbulancePage from './pages/AmbulancePage';
-import AppointmentsPage from './pages/AppointmentsPage';
-import ConsultationsPage from './pages/ConsultationsPage';
-import FormsPage from './pages/FormsPage';
-import FormHistoryPage from './pages/FormHistoryPage';
-import OnboardingPage from './pages/OnboardingPage';
-import RepeatPrescriptionPage from './pages/RepeatPrescriptionPage';
-import IllnessCertificatePage from './pages/IllnessCertificatePage';
-import FeesPage from './pages/FeesPage';
-import PoliciesPage from './pages/PoliciesPage';
-import AboutUsPage from './pages/AboutUsPage';
-import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
+const UserDashboard = lazy(() => import('./pages/UserDashboard'));
+const AmbulancePage = lazy(() => import('./pages/AmbulancePage'));
+const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage'));
+const ConsultationsPage = lazy(() => import('./pages/ConsultationsPage'));
+const FormsPage = lazy(() => import('./pages/FormsPage'));
+const FormHistoryPage = lazy(() => import('./pages/FormHistoryPage'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
+const RepeatPrescriptionPage = lazy(() => import('./pages/RepeatPrescriptionPage'));
+const IllnessCertificatePage = lazy(() => import('./pages/IllnessCertificatePage'));
+const FeesPage = lazy(() => import('./pages/FeesPage'));
+const PoliciesPage = lazy(() => import('./pages/PoliciesPage'));
+const AboutUsPage = lazy(() => import('./pages/AboutUsPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 
 // Role-Specific Dashboards
-import SuperAdminDashboard from './pages/Admin/SuperAdminDashboard';
-import AdminDashboard from './pages/Admin/AdminDashboard';
-import DoctorDashboard from './pages/Doctor/DoctorDashboard';
-import DriverDashboard from './pages/Driver/DriverDashboard';
+const SuperAdminDashboard = lazy(() => import('./pages/Admin/SuperAdminDashboard'));
+const AdminDashboard = lazy(() => import('./pages/Admin/AdminDashboard'));
+const DoctorDashboard = lazy(() => import('./pages/Doctor/DoctorDashboard'));
+const DriverDashboard = lazy(() => import('./pages/Driver/DriverDashboard'));
 
 import './App.css';
 
@@ -61,6 +62,7 @@ function App() {
         <EmergencyAlertOverlay />
 
         <main id="main-content" className="main-content">
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
 
@@ -286,6 +288,7 @@ function App() {
               </>
             )}
           </Routes>
+          </Suspense>
         </main>
 
         <SOSButton />

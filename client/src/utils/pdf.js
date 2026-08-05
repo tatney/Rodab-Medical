@@ -1,6 +1,3 @@
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
-
 const HOSPITAL = {
   name: 'Rodab Medical Hospital',
   address: 'P.O. Box 167187, Nakawuka Rd, Kajjansi, Entebbe, Uganda',
@@ -50,7 +47,8 @@ function slugify(text) {
  * @param {object} values   - key/value map for the template fields
  * @param {object} options  - { referenceNo, patientName, blank }
  */
-export function downloadFormPdf(template, values = {}, options = {}) {
+export async function downloadFormPdf(template, values = {}, options = {}) {
+  const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')])
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
@@ -154,7 +152,8 @@ export function downloadFormPdf(template, values = {}, options = {}) {
  * @param {object} patient     - profiles row (full_name, email, phone, date_of_birth, gender, medical_profile, onboarding_status)
  * @param {object} fieldLabels - map of field key -> human-readable label
  */
-export function downloadMedicalRecordPdf(patient = {}, fieldLabels = {}) {
+export async function downloadMedicalRecordPdf(patient = {}, fieldLabels = {}) {
+  const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')])
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()

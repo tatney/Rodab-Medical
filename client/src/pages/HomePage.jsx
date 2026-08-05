@@ -79,7 +79,10 @@ export default function HomePage() {
         setFormError(`${form.title} is not available yet.`)
         return
       }
-      downloadFormPdf(template, {}, { blank: true })
+      downloadFormPdf(template, {}, { blank: true }).catch((err) => {
+        console.error('Form PDF download failed:', err)
+        setFormError('Failed to generate the PDF. Please try again.')
+      })
     } catch (err) {
       console.error('Form PDF download failed:', err)
       setFormError('Failed to generate the PDF. Please try again.')
@@ -138,6 +141,8 @@ export default function HomePage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const nextSlideIdx = (currentSlide + 1) % slides.length
+
   return (
     <div>
       <SEO
@@ -162,7 +167,17 @@ export default function HomePage() {
               zIndex: index === currentSlide ? 1 : 0,
             }}
           >
-            <img src={SLIDE_IMAGES[index]} alt={slide.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {index === currentSlide || index === nextSlideIdx ? (
+              <img
+                src={SLIDE_IMAGES[index]}
+                alt={slide.title}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <div style={{ width: '100%', height: '100%', background: '#111827' }} />
+            )}
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', zIndex: 2 }}>
               <div style={{ maxWidth: 640, marginLeft: '8%', marginRight: '8%', color: '#fff', padding: '0 16px', textAlign: 'start' }}>
@@ -365,7 +380,7 @@ export default function HomePage() {
             </Link>
           </div>
           <div style={{ borderRadius: 16, overflow: 'hidden', minHeight: 300, background: 'var(--border)' }}>
-            <img src={`${SUPABASE_URL}/storage/v1/object/public/images/Hero%20Image%204.jpeg`} alt="Rodab Medical Hospital" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={`${SUPABASE_URL}/storage/v1/object/public/images/Hero%20Image%204.jpeg`} alt="Rodab Medical Hospital" loading="lazy" decoding="async" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
         </div>
       </section>

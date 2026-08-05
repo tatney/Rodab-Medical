@@ -42,6 +42,9 @@ export default function FormHistoryPage() {
       downloadFormPdf(template, sub.data || {}, {
         referenceNo: sub.reference_no,
         patientName: sub.data?.full_name || sub.data?.patient_name,
+      }).catch((err) => {
+        console.error('PDF download failed:', err)
+        setError('Failed to download the PDF. Please try again.')
       })
     } catch (err) {
       console.error('PDF download failed:', err)

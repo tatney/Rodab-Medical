@@ -64,7 +64,7 @@ export default function FormsPage() {
     if (!runValidation()) return
     try {
       setBusy(true)
-      const referenceNo = downloadFormPdf(selected, values, {
+      const referenceNo = await downloadFormPdf(selected, values, {
         patientName: values.full_name || values.patient_name || user?.full_name,
       })
       console.log('Form PDF downloaded:', referenceNo)
@@ -85,7 +85,7 @@ export default function FormsPage() {
         template_id: selected.id,
         data: values,
       })
-      const referenceNo = downloadFormPdf(selected, values, {
+      const referenceNo = await downloadFormPdf(selected, values, {
         referenceNo: res.data?.submission?.reference_no,
         patientName: values.full_name || values.patient_name || user?.full_name,
       })
