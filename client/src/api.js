@@ -1327,6 +1327,7 @@ export const createEvent = async (data) => {
       title: data.title || '',
       description: data.description || '',
       images: data.images || [],
+      category: data.category || '',
       is_active: data.is_active !== false,
       created_by: user?.id,
     })
@@ -1375,6 +1376,156 @@ export const deleteEventImages = async (urls = []) => {
   const { error } = await supabase.storage.from('images').remove(paths)
   if (error) throw error
   return ok({ message: 'Event images deleted' })
+}
+
+// ─── Programmes (behaves like events) ──────────────────────────────────────────
+
+export const getProgrammes = async () => {
+  const { data, error } = await supabase
+    .from('programmes')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ programmes: data || [] })
+}
+
+export const getProgrammesAdmin = async () => {
+  const { data, error } = await supabase
+    .from('programmes')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ programmes: data || [] })
+}
+
+export const createProgramme = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: result, error } = await supabase
+    .from('programmes')
+    .insert({
+      title: data.title || '',
+      description: data.description || '',
+      images: data.images || [],
+      category: data.category || '',
+      is_active: data.is_active !== false,
+      created_by: user?.id,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ programme: result })
+}
+
+export const updateProgramme = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('programmes')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ programme: result })
+}
+
+export const deleteProgramme = async (id) => {
+  const { error } = await supabase.from('programmes').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Programme deleted successfully' })
+}
+
+// Upload an image to the public 'images' bucket under a folder prefix.
+export const uploadImage = async (file, folder = 'programmes') => {
+  const ext = (file.name || 'jpg').split('.').pop().toLowerCase()
+  const path = `${folder}/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage
+    .from('images')
+    .upload(path, file, { contentType: file.type || 'image/jpeg', cacheControl: '3600', upsert: false })
+  if (error) throw error
+  const { data } = supabase.storage.from('images').getPublicUrl(path)
+  return data.publicUrl
+}
+
+export const uploadProgrammeImage = async (file) => uploadImage(file, 'programmes')
+
+// Delete uploaded programme images from storage.
+export const deleteProgrammeImages = async (urls = []) => {
+  const prefix = `${SUPABASE_URL}/storage/v1/object/public/images/`
+  const paths = urls
+    .filter((u) => typeof u === 'string' && u.startsWith(prefix))
+    .map((u) => decodeURIComponent(u.slice(prefix.length)))
+  if (!paths.length) return
+  const { error } = await supabase.storage.from('images').remove(paths)
+  if (error) throw error
+  return ok({ message: 'Programme images deleted' })
+}
+
+// ─── Partners (org name + logo) ─────────────────────────────────────────────────
+
+export const getPartners = async () => {
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ partners: data || [] })
+}
+
+export const getPartnersAdmin = async () => {
+  const { data, error } = await supabase
+    .from('partners')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return ok({ partners: data || [] })
+}
+
+export const createPartner = async (data) => {
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: result, error } = await supabase
+    .from('partners')
+    .insert({
+      name: data.name || '',
+      logo_url: data.logo_url || null,
+      is_active: data.is_active !== false,
+      created_by: user?.id,
+    })
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ partner: result })
+}
+
+export const updatePartner = async (id, data) => {
+  const { data: result, error } = await supabase
+    .from('partners')
+    .update({ ...data, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ partner: result })
+}
+
+export const deletePartner = async (id) => {
+  const { error } = await supabase.from('partners').delete().eq('id', id)
+  if (error) throw error
+  return ok({ message: 'Partner deleted successfully' })
+}
+
+export const uploadPartnerLogo = async (file) => uploadImage(file, 'partners')
+
+// Delete a partner logo from storage.
+export const deletePartnerLogo = async (url) => {
+  const prefix = `${SUPABASE_URL}/storage/v1/object/public/images/`
+  if (typeof url !== 'string' || !url.startsWith(prefix)) return
+  const path = decodeURIComponent(url.slice(prefix.length))
+  const { error } = await supabase.storage.from('images').remove([path])
+  if (error) throw error
+  return ok({ message: 'Partner logo deleted' })
 }
 
 // ─── Default export (for backward compat) ─────────────────────────────────────
@@ -1468,6 +1619,21 @@ const api = {
   deleteEvent,
   uploadEventImage,
   deleteEventImages,
+  getProgrammes,
+  getProgrammesAdmin,
+  createProgramme,
+  updateProgramme,
+  deleteProgramme,
+  uploadImage,
+  uploadProgrammeImage,
+  deleteProgrammeImages,
+  getPartners,
+  getPartnersAdmin,
+  createPartner,
+  updatePartner,
+  deletePartner,
+  uploadPartnerLogo,
+  deletePartnerLogo,
 }
 
 export default api

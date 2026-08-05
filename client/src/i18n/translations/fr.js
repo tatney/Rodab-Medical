@@ -28,7 +28,8 @@ export default {
     services: 'Services',
     findDoctor: 'Trouver un médecin',
     aboutUs: 'À propos',
-    events: 'Événements',
+    events: 'Actualités & Blog',
+    programmes: 'Programmes',
     notifications: 'Notifications',
     help: 'Aide',
     helpCenter: "Centre d'aide",
@@ -100,7 +101,8 @@ export default {
     ourServices: 'Nos services',
     findADoctor: 'Trouver un médecin',
     bookAppointment: 'Prendre rendez-vous',
-    events: 'Événements',
+    events: 'Actualités & Blog',
+    programmes: 'Programmes',
     contactUs: 'Contactez-nous',
     quickJump: 'Aller à',
     jumpHome: 'Accueil',
@@ -249,10 +251,28 @@ export default {
       privacyPolicy: 'Politique de confidentialité',
     },
     events: {
-      heading: 'Nos événements',
-      sub: 'Des moments récents de notre communauté',
-      viewAll: 'Voir tous les événements →',
-      noEvents: 'Pas encore d’événements. Revenez bientôt !',
+      heading: 'Actualités & Blog',
+      sub: 'Actualités santé, sensibilisation à la santé mentale et histoires de notre communauté',
+      viewAll: 'Voir toutes les actualités →',
+      noEvents: 'Pas encore d’actualités. Revenez bientôt !',
+      allCategories: 'Tout',
+    },
+    programmes: {
+      heading: 'Programmes',
+      sub: 'Programmes de soins continus et initiatives communautaires',
+      viewAll: 'Voir tous les programmes →',
+      noEvents: 'Pas encore de programmes. Revenez bientôt !',
+      allCategories: 'Tout',
+    },
+    partners: {
+      heading: 'Nos partenaires',
+      sub: 'Travailler ensemble pour de meilleurs soins de santé',
+    },
+    whereWeWork: {
+      heading: 'Où nous travaillons',
+      sub: 'Actifs dans toute l’Ouganda',
+      description:
+        'Rodab Medical opère dans toutes les grandes villes d’Ouganda. De Kampala à Jinja, Masaka, Mbarara et Fort Portal — et au-delà — nos hôpitaux, cliniques et équipes de soins offrent des soins de santé de classe mondiale aux communautés de tout le pays, garantissant à chaque Ougandais un accès à des soins médicaux compatissants et de qualité.',
     },
   },
 
@@ -313,12 +333,23 @@ export default {
   },
 
   events: {
-    seoTitle: 'Événements',
-    seoDescription: 'Restez informé des événements de Rodab Medical, des campagnes de santé et des activités communautaires.',
-    heading: 'Événements et campagnes de santé',
-    subtitle: 'Des moments et des jalons de notre communauté.',
-    loading: 'Chargement des événements…',
-    empty: 'Pas encore d’événements. Revenez bientôt !',
+    seoTitle: 'Actualités & Blog',
+    seoDescription: 'Restez informé des actualités de Rodab Medical, des campagnes de santé et des histoires communautaires.',
+    heading: 'Actualités & Blog',
+    subtitle: 'Actualités santé, sensibilisation à la santé mentale et histoires de notre communauté.',
+    loading: 'Chargement des actualités…',
+    empty: 'Pas encore d’actualités. Revenez bientôt !',
+    allCategories: 'Tout',
+  },
+
+  programmes: {
+    seoTitle: 'Programmes',
+    seoDescription: 'Découvrez les programmes de soins continus et les initiatives de santé communautaire de Rodab Medical.',
+    heading: 'Programmes',
+    subtitle: 'Programmes de soins continus et initiatives communautaires de Rodab Medical.',
+    loading: 'Chargement des programmes…',
+    empty: 'Pas encore de programmes. Revenez bientôt !',
+    allCategories: 'Tout',
   },
 
   about: {

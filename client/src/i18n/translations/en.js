@@ -28,7 +28,8 @@ export default {
     services: 'Services',
     findDoctor: 'Find a Doctor',
     aboutUs: 'About Us',
-    events: 'Events',
+    events: 'News & Blogs',
+    programmes: 'Programmes',
     notifications: 'Notifications',
     help: 'Help',
     helpCenter: 'Help Center',
@@ -100,7 +101,8 @@ export default {
     ourServices: 'Our Services',
     findADoctor: 'Find a Doctor',
     bookAppointment: 'Book Appointment',
-    events: 'Events',
+    events: 'News & Blogs',
+    programmes: 'Programmes',
     contactUs: 'Contact Us',
     quickJump: 'Jump to',
     jumpHome: 'Home',
@@ -249,10 +251,28 @@ export default {
       privacyPolicy: 'Privacy Policy',
     },
     events: {
-      heading: 'Our Events',
-      sub: 'Recent moments from our community',
-      viewAll: 'View all events →',
-      noEvents: 'No events yet. Check back soon!',
+      heading: 'News & Blogs',
+      sub: 'Health news, mental health awareness and stories from our community',
+      viewAll: 'View all news →',
+      noEvents: 'No news yet. Check back soon!',
+      allCategories: 'All',
+    },
+    programmes: {
+      heading: 'Programmes',
+      sub: 'Ongoing care programmes and community initiatives',
+      viewAll: 'View all programmes →',
+      noEvents: 'No programmes yet. Check back soon!',
+      allCategories: 'All',
+    },
+    partners: {
+      heading: 'Our Partners',
+      sub: 'Working together to deliver better healthcare',
+    },
+    whereWeWork: {
+      heading: 'Where We Work',
+      sub: 'Active Across Uganda',
+      description:
+        'Rodab Medical operates across all major cities in Uganda. From Kampala to Jinja, Masaka, Mbarara and Fort Portal — and beyond — our hospitals, clinics and care teams deliver world-class healthcare to communities throughout the country, ensuring every Ugandan has access to compassionate, quality medical care.',
     },
   },
 
@@ -313,12 +333,23 @@ export default {
   },
 
   events: {
-    seoTitle: 'Events',
-    seoDescription: "Stay up to date with Rodab Medical's events, health campaigns, and community activities.",
-    heading: 'Events & Health Campaigns',
-    subtitle: 'Moments and milestones from our community.',
-    loading: 'Loading events…',
-    empty: 'No events yet. Check back soon!',
+    seoTitle: 'News & Blogs',
+    seoDescription: "Stay up to date with Rodab Medical's news, health campaigns, and community stories.",
+    heading: 'News & Blogs',
+    subtitle: 'Health news, mental health awareness and stories from our community.',
+    loading: 'Loading news…',
+    empty: 'No news yet. Check back soon!',
+    allCategories: 'All',
+  },
+
+  programmes: {
+    seoTitle: 'Programmes',
+    seoDescription: "Explore Rodab Medical's ongoing care programmes and community health initiatives.",
+    heading: 'Programmes',
+    subtitle: 'Ongoing care programmes and community initiatives from Rodab Medical.',
+    loading: 'Loading programmes…',
+    empty: 'No programmes yet. Check back soon!',
+    allCategories: 'All',
   },
 
   about: {
