@@ -422,21 +422,27 @@ export default function HomePage() {
           <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 800, color: 'var(--text-strong)', marginBottom: 48 }}>
             {testimonials.heading}
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32 }}>
-            {testimonials.items.map((item, index) => (
-              <div
-                key={index}
-                style={{ backgroundColor: 'var(--surface-card)', padding: 32, borderRadius: 12, border: '1px solid var(--border)', textAlign: 'start' }}
-              >
-                <div style={{ fontSize: 20, color: '#f59e0b', marginBottom: 12 }}>
-                  <span aria-label={`${item.rating || 5} ${t('home.testimonials.rating')}`}>{'★'.repeat(item.rating || 5)}</span>
+          <div className="testimonial-marquee">
+            <div className="testimonial-marquee-track">
+              {[0, 1].map((copy) => (
+                <div key={copy} className="testimonial-marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
+                  {testimonials.items.map((item, index) => (
+                    <div
+                      key={index}
+                      className="testimonial-card"
+                    >
+                      <div style={{ fontSize: 20, color: '#f59e0b', marginBottom: 12 }}>
+                        <span aria-label={`${item.rating || 5} ${t('home.testimonials.rating')}`}>{'★'.repeat(item.rating || 5)}</span>
+                      </div>
+                      <p style={{ fontSize: 15, color: 'var(--text-body)', lineHeight: 1.7, marginBottom: 16 }}>
+                        "{item.text}"
+                      </p>
+                      <div style={{ fontWeight: 700, color: 'var(--text-strong)', fontSize: 15 }}>{item.name}</div>
+                    </div>
+                  ))}
                 </div>
-                <p style={{ fontSize: 15, color: 'var(--text-body)', lineHeight: 1.7, marginBottom: 16 }}>
-                  "{item.text}"
-                </p>
-                <div style={{ fontWeight: 700, color: 'var(--text-strong)', fontSize: 15 }}>{item.name}</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
