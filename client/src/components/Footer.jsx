@@ -338,7 +338,6 @@ const Footer = () => {
 
         {/* Quick Jump - navigation dropdowns */}
         <div style={styles.jumpSection}>
-          <h4 style={styles.heading}>{t('footer.quickJump')}</h4>
           <div style={styles.jumpRow}>
             {JUMP_LINKS.map((jump) => (
               <JumpDropdown
