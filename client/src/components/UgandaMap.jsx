@@ -15,6 +15,8 @@ const CITIES = [
   { name: 'Kabale', lat: -1.2465, lng: 29.989, r: 10000 },
 ]
 
+const MAIN_BRANCH = { name: 'Nakawuka', lat: 0.1907, lng: 32.4618, r: 18000 }
+
 const UGANDA_BOUNDS = [
   [-1.7, 29.3],
   [4.3, 35.3],
@@ -106,6 +108,47 @@ const UgandaMap = ({ height = '440px' }) => {
           }),
         }).addTo(glowGroup)
       })
+
+      const branchPos = [MAIN_BRANCH.lat, MAIN_BRANCH.lng]
+
+      L.circle(branchPos, {
+        radius: MAIN_BRANCH.r * 1.6,
+        color: 'transparent',
+        fillColor: '#f59e0b',
+        fillOpacity: 0.08,
+      }).addTo(glowGroup)
+
+      L.circle(branchPos, {
+        radius: MAIN_BRANCH.r,
+        color: 'rgba(251,191,36,0.75)',
+        weight: 2,
+        fillColor: '#f59e0b',
+        fillOpacity: 0.18,
+      }).addTo(glowGroup)
+
+      L.circle(branchPos, {
+        radius: MAIN_BRANCH.r * 0.45,
+        color: 'rgba(253,224,71,0.5)',
+        weight: 1.5,
+        fillColor: '#fbbf24',
+        fillOpacity: 0.4,
+      }).addTo(glowGroup)
+
+      L.marker(branchPos, {
+        icon: L.divIcon({
+          className: 'uganda-heat-pin',
+          html: `<span class="uganda-gold-pulse"></span><span class="uganda-gold-dot"></span>`,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        }),
+      }).addTo(glowGroup)
+
+      L.marker(branchPos, {
+        icon: L.divIcon({
+          className: 'uganda-city-label uganda-gold-label',
+          html: `<span class="uganda-gold-label-text">${MAIN_BRANCH.name}</span><span class="uganda-gold-label-sub">Main Branch</span>`,
+        }),
+      }).addTo(glowGroup)
 
       setReady(true)
     }

@@ -5062,6 +5062,51 @@ button.chip-active:hover {
 
 .pin-3 { animation-delay: 1.95s; }
 
+.uganda-gold-pulse {
+  position: absolute;
+  left: -32px;
+  top: -32px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(253, 224, 71, 0.95) 0%, rgba(245, 158, 11, 0.5) 45%, rgba(245, 158, 11, 0) 72%);
+  animation: uganda-heat-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  will-change: transform, opacity;
+}
+
+.uganda-gold-dot {
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fde047;
+  box-shadow: 0 0 16px 6px rgba(251, 191, 36, 0.95);
+  animation: uganda-dot-breathe 2.2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.uganda-gold-label .uganda-gold-label-text {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fcd34d;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+.uganda-gold-label .uganda-gold-label-sub {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #fde68a;
+  opacity: 0.95;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
 @keyframes uganda-heat-ping {
   0% {
     transform: scale(0.35);
@@ -5088,7 +5133,9 @@ button.chip-active:hover {
 
 @media (prefers-reduced-motion: reduce) {
   .uganda-heat-pulse,
-  .uganda-heat-dot {
+  .uganda-heat-dot,
+  .uganda-gold-pulse,
+  .uganda-gold-dot {
     animation: none;
   }
   .uganda-heat-pulse {
@@ -5096,6 +5143,12 @@ button.chip-active:hover {
   }
   .uganda-heat-dot {
     box-shadow: 0 0 10px 3px rgba(74, 222, 128, 0.7);
+  }
+  .uganda-gold-pulse {
+    background: radial-gradient(circle, rgba(253, 224, 71, 0.5) 0%, rgba(245, 158, 11, 0.25) 45%, rgba(245, 158, 11, 0) 72%);
+  }
+  .uganda-gold-dot {
+    box-shadow: 0 0 12px 4px rgba(251, 191, 36, 0.75);
   }
 }
 
