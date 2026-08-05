@@ -25,6 +25,7 @@ const SignupPage = lazy(() => import('./pages/SignupPage'));
 const SOSPage = lazy(() => import('./pages/SOSPage'));
 const FAQsPage = lazy(() => import('./pages/FAQsPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
+const ProgrammesPage = lazy(() => import('./pages/ProgrammesPage'));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
@@ -76,6 +77,7 @@ function App() {
                 <Route path="/policies" element={<PoliciesPage />} />
                 <Route path="/sos" element={<SOSPage />} />
                 <Route path="/events" element={<EventsPage />} />
+                <Route path="/programmes" element={<ProgrammesPage />} />
                 <Route path="/track/:id" element={<TrackPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>
@@ -91,6 +93,7 @@ function App() {
                 <Route path="/faqs" element={<FAQsPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/events" element={<EventsPage />} />
+                <Route path="/programmes" element={<ProgrammesPage />} />
 
                 {/* ── Patient Routes (shared sidebar layout) ─────────── */}
                 <Route element={<PatientLayout />}>

@@ -22,7 +22,9 @@ export const roleConfig = {
       { key: 'admins', to: '/super-admin/admins', label: 'Admins', icon: 'users' },
       { key: 'hospitals', to: '/super-admin/hospitals', label: 'Hospitals', icon: 'hospital' },
       { key: 'emergency', to: '/super-admin/emergency', label: 'Emergency', icon: 'emergency', badge: true },
-      { key: 'events', to: '/super-admin/events', label: 'Events', icon: 'events' },
+      { key: 'news', to: '/super-admin/news', label: 'News & Blogs', icon: 'news' },
+      { key: 'programmes', to: '/super-admin/programmes', label: 'Programmes', icon: 'programmes' },
+      { key: 'partners', to: '/super-admin/partners', label: 'Partners', icon: 'partners' },
       { key: 'logs', to: '/super-admin/logs', label: 'Logs', icon: 'logs' },
     ],
   },
@@ -186,6 +188,28 @@ const getIcon = (iconName, color) => {
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
         <path d="M3 11l18-5v12L3 13v-2z" />
         <path d="M11.6 16.8a3 3 0 11-5.8-1.6" />
+      </svg>
+    ),
+    news: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="16" y1="13" x2="8" y2="13" />
+        <line x1="16" y1="17" x2="8" y2="17" />
+        <polyline points="10 9 9 9 8 9" />
+      </svg>
+    ),
+    programmes: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 2v4M12 18v4M2 12h4M18 12h4M5 5l2.5 2.5M16.5 16.5L19 19M19 5l-2.5 2.5M7.5 16.5L5 19" />
+      </svg>
+    ),
+    partners: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" aria-hidden="true">
+        <circle cx="9" cy="8" r="3" />
+        <circle cx="17" cy="10" r="3" />
+        <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M12.5 15.2c.8-.2 1.6-.2 2.5-.2 3.3 0 6 2.7 6 6" />
       </svg>
     ),
     logs: (

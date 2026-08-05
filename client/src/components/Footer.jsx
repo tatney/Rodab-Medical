@@ -13,6 +13,7 @@ const JUMP_LINKS = [
       { to: '/services', labelKey: 'nav.services' },
       { to: '/find-doctor', labelKey: 'nav.findDoctor' },
       { to: '/events', labelKey: 'nav.events' },
+      { to: '/programmes', labelKey: 'nav.programmes' },
     ],
   },
   {

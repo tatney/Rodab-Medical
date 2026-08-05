@@ -20,6 +20,18 @@ import {
   deleteEvent,
   uploadEventImage,
   deleteEventImages,
+  getProgrammesAdmin,
+  createProgramme,
+  updateProgramme,
+  deleteProgramme,
+  uploadProgrammeImage,
+  deleteProgrammeImages,
+  getPartnersAdmin,
+  createPartner,
+  updatePartner,
+  deletePartner,
+  uploadPartnerLogo,
+  deletePartnerLogo,
 } from '../../api';
 /* ──────────────────────────────────────────────
    Helper: Stat Card
@@ -101,17 +113,42 @@ const SuperAdminDashboard = () => {
   /* ── Emergency ── */
   const [emergencies, setEmergencies] = useState([]);
 
-  /* ── Events ── */
+  /* ── Events / News & Blogs ── */
   const [events, setEvents] = useState([]);
   const [eventForm, setEventForm] = useState({
     title: "",
     description: "",
+    category: "",
     is_active: true,
     images: [],
   });
   const [eventFiles, setEventFiles] = useState([]);
   const [editingEvent, setEditingEvent] = useState(null);
   const [eventSubmitting, setEventSubmitting] = useState(false);
+
+  /* ── Programmes ── */
+  const [programmes, setProgrammes] = useState([]);
+  const [programmeForm, setProgrammeForm] = useState({
+    title: "",
+    description: "",
+    category: "",
+    is_active: true,
+    images: [],
+  });
+  const [programmeFiles, setProgrammeFiles] = useState([]);
+  const [editingProgramme, setEditingProgramme] = useState(null);
+  const [programmeSubmitting, setProgrammeSubmitting] = useState(false);
+
+  /* ── Partners ── */
+  const [partners, setPartners] = useState([]);
+  const [partnerForm, setPartnerForm] = useState({
+    name: "",
+    logo_url: "",
+    is_active: true,
+  });
+  const [partnerFile, setPartnerFile] = useState(null);
+  const [editingPartner, setEditingPartner] = useState(null);
+  const [partnerSubmitting, setPartnerSubmitting] = useState(false);
 
   /* ── Logs ── */
   const [logs, setLogs] = useState({ users: [], appointments: [], emergencies: [] });
@@ -165,14 +202,32 @@ const SuperAdminDashboard = () => {
     }
   }, []);
 
+  const fetchProgrammes = useCallback(async () => {
+    try {
+      const { data } = await getProgrammesAdmin();
+      setProgrammes(data?.programmes || []);
+    } catch (err) {
+      console.error("Failed to fetch programmes", err);
+    }
+  }, []);
+
+  const fetchPartners = useCallback(async () => {
+    try {
+      const { data } = await getPartnersAdmin();
+      setPartners(data?.partners || []);
+    } catch (err) {
+      console.error("Failed to fetch partners", err);
+    }
+  }, []);
+
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true);
-      await Promise.all([fetchAnalytics(), fetchAdmins(), fetchHospitals(), fetchEmergencies(), fetchEvents()]);
+      await Promise.all([fetchAnalytics(), fetchAdmins(), fetchHospitals(), fetchEmergencies(), fetchEvents(), fetchProgrammes(), fetchPartners()]);
       setLoading(false);
     };
     loadAll();
-  }, [fetchAnalytics, fetchAdmins, fetchHospitals, fetchEmergencies, fetchEvents]);
+  }, [fetchAnalytics, fetchAdmins, fetchHospitals, fetchEmergencies, fetchEvents, fetchProgrammes, fetchPartners]);
 
   /* Auto-refresh emergency data every 15 s */
   useEffect(() => {
@@ -308,7 +363,7 @@ const SuperAdminDashboard = () => {
   };
 
   const resetEventForm = () => {
-    setEventForm({ title: "", description: "", is_active: true, images: [] });
+    setEventForm({ title: "", description: "", category: "", is_active: true, images: [] });
     setEventFiles([]);
     setEditingEvent(null);
   };
@@ -340,6 +395,7 @@ const SuperAdminDashboard = () => {
       const payload = {
         title: eventForm.title,
         description: eventForm.description,
+        category: eventForm.category,
         images,
         is_active: eventForm.is_active,
       };
@@ -364,6 +420,7 @@ const SuperAdminDashboard = () => {
     setEventForm({
       title: ev.title || "",
       description: ev.description || "",
+      category: ev.category || "",
       is_active: ev.is_active !== false,
       images: Array.isArray(ev.images) ? ev.images : [],
     });
@@ -389,6 +446,180 @@ const SuperAdminDashboard = () => {
       toast.success("Event deleted.");
     } catch (err) {
       toast.error("Failed to delete event.");
+    }
+  };
+
+  /* ═══════════════════════════════════════════
+     PROGRAMMES CRUD
+     ═══════════════════════════════════════════ */
+  const handleProgrammeChange = (e) => {
+    setProgrammeForm({ ...programmeForm, [e.target.name]: e.target.value });
+  };
+
+  const resetProgrammeForm = () => {
+    setProgrammeForm({ title: "", description: "", category: "", is_active: true, images: [] });
+    setProgrammeFiles([]);
+    setEditingProgramme(null);
+  };
+
+  const handleProgrammeFilesChange = (e) => {
+    const selected = Array.from(e.target.files || []);
+    const room = 4 - programmeForm.images.length;
+    setProgrammeFiles((prev) => [...prev, ...selected].slice(0, Math.max(0, room)));
+    e.target.value = "";
+  };
+
+  const removePendingProgrammeFile = (idx) => {
+    setProgrammeFiles((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const removeExistingProgrammeImage = (url) => {
+    setProgrammeForm({ ...programmeForm, images: programmeForm.images.filter((img) => img !== url) });
+  };
+
+  const handleProgrammeSubmit = async (e) => {
+    e.preventDefault();
+    setProgrammeSubmitting(true);
+    try {
+      const uploaded = [];
+      for (const file of programmeFiles) {
+        uploaded.push(await uploadProgrammeImage(file));
+      }
+      const images = [...programmeForm.images, ...uploaded].slice(0, 4);
+      const payload = {
+        title: programmeForm.title,
+        description: programmeForm.description,
+        category: programmeForm.category,
+        images,
+        is_active: programmeForm.is_active,
+      };
+      if (editingProgramme) {
+        await updateProgramme(editingProgramme.id, payload);
+        toast.success("Programme updated successfully.");
+      } else {
+        await createProgramme(payload);
+        toast.success("Programme created successfully.");
+      }
+      resetProgrammeForm();
+      fetchProgrammes();
+    } catch (err) {
+      toast.error(err?.message || "Failed to save programme.");
+    } finally {
+      setProgrammeSubmitting(false);
+    }
+  };
+
+  const handleEditProgramme = (pg) => {
+    setEditingProgramme(pg);
+    setProgrammeForm({
+      title: pg.title || "",
+      description: pg.description || "",
+      category: pg.category || "",
+      is_active: pg.is_active !== false,
+      images: Array.isArray(pg.images) ? pg.images : [],
+    });
+    setProgrammeFiles([]);
+  };
+
+  const handleToggleProgrammeActive = async (pg) => {
+    try {
+      await updateProgramme(pg.id, { is_active: pg.is_active === false });
+      fetchProgrammes();
+      toast.success(pg.is_active === false ? "Programme published." : "Programme hidden.");
+    } catch (err) {
+      toast.error("Failed to update programme.");
+    }
+  };
+
+  const handleDeleteProgramme = async (pg) => {
+    if (!window.confirm("Delete this programme? Its uploaded images will also be removed.")) return;
+    try {
+      await deleteProgrammeImages(pg.images);
+      await deleteProgramme(pg.id);
+      fetchProgrammes();
+      toast.success("Programme deleted.");
+    } catch (err) {
+      toast.error("Failed to delete programme.");
+    }
+  };
+
+  /* ═══════════════════════════════════════════
+     PARTNERS CRUD
+     ═══════════════════════════════════════════ */
+  const handlePartnerChange = (e) => {
+    setPartnerForm({ ...partnerForm, [e.target.name]: e.target.value });
+  };
+
+  const resetPartnerForm = () => {
+    setPartnerForm({ name: "", logo_url: "", is_active: true });
+    setPartnerFile(null);
+    setEditingPartner(null);
+  };
+
+  const handlePartnerFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    setPartnerFile(file || null);
+    e.target.value = "";
+  };
+
+  const handlePartnerSubmit = async (e) => {
+    e.preventDefault();
+    setPartnerSubmitting(true);
+    try {
+      let logo_url = partnerForm.logo_url;
+      if (partnerFile) {
+        logo_url = await uploadPartnerLogo(partnerFile);
+      }
+      const payload = {
+        name: partnerForm.name,
+        logo_url: logo_url || null,
+        is_active: partnerForm.is_active,
+      };
+      if (editingPartner) {
+        await updatePartner(editingPartner.id, payload);
+        toast.success("Partner updated successfully.");
+      } else {
+        await createPartner(payload);
+        toast.success("Partner created successfully.");
+      }
+      resetPartnerForm();
+      fetchPartners();
+    } catch (err) {
+      toast.error(err?.message || "Failed to save partner.");
+    } finally {
+      setPartnerSubmitting(false);
+    }
+  };
+
+  const handleEditPartner = (pt) => {
+    setEditingPartner(pt);
+    setPartnerForm({
+      name: pt.name || "",
+      logo_url: pt.logo_url || "",
+      is_active: pt.is_active !== false,
+    });
+    setPartnerFile(null);
+  };
+
+  const handleTogglePartnerActive = async (pt) => {
+    try {
+      await updatePartner(pt.id, { is_active: pt.is_active === false });
+      fetchPartners();
+      toast.success(pt.is_active === false ? "Partner published." : "Partner hidden.");
+    } catch (err) {
+      toast.error("Failed to update partner.");
+    }
+  };
+
+  const handleDeletePartner = async (pt) => {
+    if (!window.confirm("Delete this partner? Its uploaded logo will also be removed.")) return;
+    try {
+      await deletePartnerLogo(pt.logo_url);
+      await deletePartner(pt.id);
+      fetchPartners();
+      toast.success("Partner deleted.");
+    } catch (err) {
+      toast.error("Failed to delete partner.");
     }
   };
 
@@ -1018,9 +1249,9 @@ const SuperAdminDashboard = () => {
     </div>
   );
 
-  const renderEvents = () => (
+  const renderNews = () => (
     <div className="events-section">
-      <h3>{editingEvent ? "Edit Event" : "Add Event"}</h3>
+      <h3>{editingEvent ? "Edit News / Blog Post" : "Add News / Blog Post"}</h3>
       <form className="create-form" onSubmit={handleEventSubmit}>
         <div className="form-row">
           <div className="form-group">
@@ -1031,6 +1262,16 @@ const SuperAdminDashboard = () => {
               value={eventForm.title}
               onChange={handleEventChange}
               placeholder="e.g. Community Health Camp"
+            />
+          </div>
+          <div className="form-group">
+            <label>Category</label>
+            <input
+              type="text"
+              name="category"
+              value={eventForm.category}
+              onChange={handleEventChange}
+              placeholder="e.g. Mental Health"
             />
           </div>
           <div className="form-group">
@@ -1099,7 +1340,7 @@ const SuperAdminDashboard = () => {
 
         <div className="form-actions">
           <button type="submit" className="btn btn-primary" disabled={eventSubmitting}>
-            {eventSubmitting ? "Saving…" : editingEvent ? "Update Event" : "Add Event"}
+            {eventSubmitting ? "Saving…" : editingEvent ? "Update Post" : "Add Post"}
           </button>
           {(editingEvent || eventFiles.length || eventForm.images.length) && (
             <button type="button" className="btn btn-secondary" onClick={resetEventForm}>
@@ -1109,13 +1350,14 @@ const SuperAdminDashboard = () => {
         </div>
       </form>
 
-      <h3>All Events</h3>
+      <h3>All News & Blog Posts</h3>
       <div className="table-wrapper">
-        <table className="data-table" aria-label="Events">
-          <caption className="sr-only">All Events</caption>
+        <table className="data-table" aria-label="News and blog posts">
+          <caption className="sr-only">All News & Blog Posts</caption>
           <thead>
             <tr>
               <th>Title</th>
+              <th>Category</th>
               <th>Images</th>
               <th>Created</th>
               <th>Status</th>
@@ -1133,6 +1375,7 @@ const SuperAdminDashboard = () => {
                     </div>
                   )}
                 </td>
+                <td>{ev.category ? <span className="badge badge-active">{ev.category}</span> : "—"}</td>
                 <td>{(Array.isArray(ev.images) ? ev.images.length : 0)} image(s)</td>
                 <td>{ev.created_at ? new Date(ev.created_at).toLocaleDateString() : "—"}</td>
                 <td>
@@ -1155,8 +1398,285 @@ const SuperAdminDashboard = () => {
             ))}
             {events.length === 0 && (
               <tr>
+                <td colSpan={6} className="muted text-center">
+                  No posts yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderProgrammes = () => (
+    <div className="events-section">
+      <h3>{editingProgramme ? "Edit Programme" : "Add Programme"}</h3>
+      <form className="create-form" onSubmit={handleProgrammeSubmit}>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Title</label>
+            <input
+              type="text"
+              name="title"
+              value={programmeForm.title}
+              onChange={handleProgrammeChange}
+              placeholder="e.g. Maternal Health Programme"
+            />
+          </div>
+          <div className="form-group">
+            <label>Category</label>
+            <input
+              type="text"
+              name="category"
+              value={programmeForm.category}
+              onChange={handleProgrammeChange}
+              placeholder="e.g. Maternal Health"
+            />
+          </div>
+          <div className="form-group">
+            <label>Status</label>
+            <select name="is_active" value={programmeForm.is_active ? "true" : "false"} onChange={(e) => setProgrammeForm({ ...programmeForm, is_active: e.target.value === "true" })}>
+              <option value="true">Published</option>
+              <option value="false">Hidden</option>
+            </select>
+          </div>
+        </div>
+        <div className="form-group">
+          <label>Description</label>
+          <textarea
+            name="description"
+            value={programmeForm.description}
+            onChange={handleProgrammeChange}
+            rows={3}
+            placeholder="Short description shown with the programme"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Images (up to 4, never cropped)</label>
+          <div className="event-image-grid" style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+            {programmeForm.images.map((url, i) => (
+              <div key={`existing-${i}`} style={{ position: "relative", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+                <img src={url} alt={`Existing ${i + 1}`} style={{ width: 96, height: 96, objectFit: "cover", display: "block" }} />
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  style={{ position: "absolute", top: 4, right: 4, padding: "2px 8px" }}
+                  onClick={() => removeExistingProgrammeImage(url)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            {programmeFiles.map((file, i) => (
+              <div key={`pending-${i}`} style={{ position: "relative", border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+                <img src={URL.createObjectURL(file)} alt={`New ${i + 1}`} style={{ width: 96, height: 96, objectFit: "cover", display: "block" }} />
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  style={{ position: "absolute", top: 4, right: 4, padding: "2px 8px" }}
+                  onClick={() => removePendingProgrammeFile(i)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            {programmeForm.images.length + programmeFiles.length < 4 && (
+              <label className="btn btn-secondary btn-sm" style={{ cursor: "pointer", alignSelf: "center", marginBottom: 0 }}>
+                + Add Image
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  style={{ display: "none" }}
+                  onChange={handleProgrammeFilesChange}
+                />
+              </label>
+            )}
+          </div>
+          <small className="muted">Files are uploaded to the public “images” bucket.</small>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary" disabled={programmeSubmitting}>
+            {programmeSubmitting ? "Saving…" : editingProgramme ? "Update Programme" : "Add Programme"}
+          </button>
+          {(editingProgramme || programmeFiles.length || programmeForm.images.length) && (
+            <button type="button" className="btn btn-secondary" onClick={resetProgrammeForm}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+
+      <h3>All Programmes</h3>
+      <div className="table-wrapper">
+        <table className="data-table" aria-label="Programmes">
+          <caption className="sr-only">All Programmes</caption>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Images</th>
+              <th>Created</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {programmes.map((pg) => (
+              <tr key={pg.id}>
+                <td>
+                  <strong>{pg.title || "—"}</strong>
+                  {pg.description && (
+                    <div className="muted" style={{ fontSize: 12, maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {pg.description}
+                    </div>
+                  )}
+                </td>
+                <td>{pg.category ? <span className="badge badge-active">{pg.category}</span> : "—"}</td>
+                <td>{(Array.isArray(pg.images) ? pg.images.length : 0)} image(s)</td>
+                <td>{pg.created_at ? new Date(pg.created_at).toLocaleDateString() : "—"}</td>
+                <td>
+                  <span className={`badge ${pg.is_active === false ? "badge-cancelled" : "badge-active"}`}>
+                    {pg.is_active === false ? "Hidden" : "Published"}
+                  </span>
+                </td>
+                <td className="actions-cell">
+                  <button className="btn btn-edit btn-sm" onClick={() => handleEditProgramme(pg)}>
+                    Edit
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => handleToggleProgrammeActive(pg)}>
+                    {pg.is_active === false ? "Publish" : "Hide"}
+                  </button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteProgramme(pg)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {programmes.length === 0 && (
+              <tr>
+                <td colSpan={6} className="muted text-center">
+                  No programmes yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
+  const renderPartners = () => (
+    <div className="events-section">
+      <h3>{editingPartner ? "Edit Partner" : "Add Partner"}</h3>
+      <form className="create-form" onSubmit={handlePartnerSubmit}>
+        <div className="form-row">
+          <div className="form-group">
+            <label>Organisation Name</label>
+            <input
+              type="text"
+              name="name"
+              value={partnerForm.name}
+              onChange={handlePartnerChange}
+              placeholder="e.g. Uganda Red Cross"
+            />
+          </div>
+          <div className="form-group">
+            <label>Status</label>
+            <select name="is_active" value={partnerForm.is_active ? "true" : "false"} onChange={(e) => setPartnerForm({ ...partnerForm, is_active: e.target.value === "true" })}>
+              <option value="true">Published</option>
+              <option value="false">Hidden</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label>Logo</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            {(partnerFile || partnerForm.logo_url) && (
+              <img
+                src={partnerFile ? URL.createObjectURL(partnerFile) : partnerForm.logo_url}
+                alt="Partner logo preview"
+                style={{ width: 72, height: 72, objectFit: "contain", border: "1px solid var(--border)", borderRadius: 8, background: "#fff" }}
+              />
+            )}
+            <label className="btn btn-secondary btn-sm" style={{ cursor: "pointer", marginBottom: 0 }}>
+              {partnerForm.logo_url || partnerFile ? "Replace Logo" : "+ Upload Logo"}
+              <input type="file" accept="image/*" style={{ display: "none" }} onChange={handlePartnerFileChange} />
+            </label>
+            {(partnerForm.logo_url || partnerFile) && (
+              <button type="button" className="btn btn-danger btn-sm" onClick={() => { setPartnerFile(null); setPartnerForm({ ...partnerForm, logo_url: "" }); }}>
+                Remove Logo
+              </button>
+            )}
+          </div>
+          <small className="muted">Logo is uploaded to the public “images” bucket.</small>
+        </div>
+
+        <div className="form-actions">
+          <button type="submit" className="btn btn-primary" disabled={partnerSubmitting}>
+            {partnerSubmitting ? "Saving…" : editingPartner ? "Update Partner" : "Add Partner"}
+          </button>
+          {(editingPartner || partnerFile || partnerForm.logo_url || partnerForm.name) && (
+            <button type="button" className="btn btn-secondary" onClick={resetPartnerForm}>
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+
+      <h3>All Partners</h3>
+      <div className="table-wrapper">
+        <table className="data-table" aria-label="Partners">
+          <caption className="sr-only">All Partners</caption>
+          <thead>
+            <tr>
+              <th>Logo</th>
+              <th>Name</th>
+              <th>Created</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {partners.map((pt) => (
+              <tr key={pt.id}>
+                <td>
+                  {pt.logo_url ? (
+                    <img src={pt.logo_url} alt={pt.name || "Partner logo"} style={{ width: 48, height: 48, objectFit: "contain", borderRadius: 6, background: "#fff", border: "1px solid var(--border)" }} />
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td>
+                  <strong>{pt.name || "—"}</strong>
+                </td>
+                <td>{pt.created_at ? new Date(pt.created_at).toLocaleDateString() : "—"}</td>
+                <td>
+                  <span className={`badge ${pt.is_active === false ? "badge-cancelled" : "badge-active"}`}>
+                    {pt.is_active === false ? "Hidden" : "Published"}
+                  </span>
+                </td>
+                <td className="actions-cell">
+                  <button className="btn btn-edit btn-sm" onClick={() => handleEditPartner(pt)}>
+                    Edit
+                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => handleTogglePartnerActive(pt)}>
+                    {pt.is_active === false ? "Publish" : "Hide"}
+                  </button>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDeletePartner(pt)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {partners.length === 0 && (
+              <tr>
                 <td colSpan={5} className="muted text-center">
-                  No events yet.
+                  No partners yet.
                 </td>
               </tr>
             )}
@@ -1179,8 +1699,12 @@ const SuperAdminDashboard = () => {
         return renderHospitals();
       case "emergency":
         return renderEmergency();
-      case "events":
-        return renderEvents();
+      case "news":
+        return renderNews();
+      case "programmes":
+        return renderProgrammes();
+      case "partners":
+        return renderPartners();
       case "logs":
         return renderLogs();
       default:

@@ -4,6 +4,9 @@ import { SUPABASE_URL } from '../config'
 import SEO from '../components/SEO'
 import EventLightbox from '../components/EventLightbox'
 import EventCarousel from '../components/EventCarousel'
+import ProgrammesSection from '../components/ProgrammesSection'
+import PartnersSection from '../components/PartnersSection'
+import WhereWeWorkSection from '../components/WhereWeWorkSection'
 import { useI18n } from '../i18n/I18nContext'
 import { getFormTemplates, getEvents } from '../api'
 import { extractArray } from '../utils/api-helpers'
@@ -60,8 +63,12 @@ export default function HomePage() {
   const [downloadingTitle, setDownloadingTitle] = useState('')
   const [formError, setFormError] = useState('')
   const [events, setEvents] = useState([])
+  const [newsCategory, setNewsCategory] = useState('')
   const [lightbox, setLightbox] = useState(null)
   const moreRef = React.useRef(null)
+
+  const categories = ['', ...Array.from(new Set(events.map((e) => (e.category || '').trim()).filter(Boolean)))]
+  const filteredEvents = newsCategory ? events.filter((e) => (e.category || '').trim() === newsCategory) : events
 
   const handleDownloadForm = async (form) => {
     if (downloadingTitle) return
@@ -385,53 +392,71 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Our Events (latest) ── */}
+      {/* ── Our Events / News & Blogs (latest) ── */}
       <section id="events" style={{ padding: '80px 24px', backgroundColor: 'var(--surface-soft)' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto', textAlign: 'center' }}>
           <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 800, color: 'var(--text-strong)', marginBottom: 8 }}>
             {eventsHome.heading}
           </h2>
-          <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 40 }}>
+          <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 24 }}>
             {eventsHome.sub}
           </p>
 
           {events.length === 0 ? (
-            <p style={{ fontSize: 16, color: 'var(--text-muted)' }}>{eventsHome.noEvents}</p>
+            <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 40 }}>{eventsHome.noEvents}</p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 40 }}>
-              {events.slice(0, 3).map((event) => {
-                const images = Array.isArray(event.images) ? event.images : []
-                const image = images[0] || null
-                const caption = [event.title, event.description].filter(Boolean).join('\n')
-                return (
-                  <Link
-                    key={event.id}
-                    to="/events"
-                    style={{ textDecoration: 'none', color: 'inherit', display: 'block', backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', textAlign: 'start' }}
+            <>
+              <div role="group" aria-label="Filter by category" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 40 }}>
+                {categories.map((c) => (
+                  <button
+                    key={c || 'all'}
+                    type="button"
+                    onClick={() => setNewsCategory(c)}
+                    aria-pressed={newsCategory === c}
+                    className={newsCategory === c ? 'chip chip-active' : 'chip'}
                   >
-                    <div style={{ padding: 16 }}>
-                      {event.title && <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 4 }}>{event.title}</h3>}
-                      {event.created_at && (
-                        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                          {new Date(event.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })}
-                        </span>
-                      )}
-                    </div>
-                    {image ? (
-                      <EventCarousel
-                        images={images}
-                        caption={caption}
-                        onOpenLightbox={(url) => setLightbox({ image: url, caption })}
-                      />
-                    ) : (
-                      <div style={{ margin: '0 16px 16px', borderRadius: 16, height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40 }}>
-                        🎉
+                    {c || eventsHome.allCategories}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 40 }}>
+                {filteredEvents.slice(0, 3).map((event) => {
+                  const images = Array.isArray(event.images) ? event.images : []
+                  const image = images[0] || null
+                  const caption = [event.title, event.description].filter(Boolean).join('\n')
+                  return (
+                    <Link
+                      key={event.id}
+                      to="/events"
+                      style={{ textDecoration: 'none', color: 'inherit', display: 'block', backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden', textAlign: 'start' }}
+                    >
+                      <div style={{ padding: 16 }}>
+                        {event.category && (
+                          <span className="chip chip-active" style={{ marginBottom: 8, display: 'inline-block' }}>{event.category}</span>
+                        )}
+                        {event.title && <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 4 }}>{event.title}</h3>}
+                        {event.created_at && (
+                          <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+                            {new Date(event.created_at).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })}
+                          </span>
+                        )}
                       </div>
-                    )}
-                  </Link>
-                )
-              })}
-            </div>
+                      {image ? (
+                        <EventCarousel
+                          images={images}
+                          caption={caption}
+                          onOpenLightbox={(url) => setLightbox({ image: url, caption })}
+                        />
+                      ) : (
+                        <div style={{ margin: '0 16px 16px', borderRadius: 16, height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', backgroundColor: 'var(--surface-container-low)', color: 'var(--text-muted)', fontSize: 40 }}>
+                          🎉
+                        </div>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </>
           )}
 
           <Link
@@ -442,6 +467,9 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* ── Programmes ── */}
+      <ProgrammesSection />
 
       {/* ── Testimonials ── */}
       <section id="testimonials" style={{ padding: '80px 24px', backgroundColor: 'var(--surface-soft)' }}>
@@ -473,6 +501,12 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ── Our Partners ── */}
+      <PartnersSection />
+
+      {/* ── Where We Work ── */}
+      <WhereWeWorkSection />
 
       {/* ── Downloadable Forms ── */}
       <section id="forms" style={{ padding: '80px 24px', backgroundColor: 'var(--surface-card)' }}>

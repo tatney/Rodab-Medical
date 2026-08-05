@@ -1101,6 +1101,31 @@ input, textarea, select {
   color: var(--error);
 }
 
+button.chip {
+  border: 1px solid var(--border);
+  background-color: var(--surface-card);
+  color: var(--text-body);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+button.chip:hover {
+  background-color: var(--surface-container-low);
+  border-color: var(--primary);
+}
+
+button.chip-active,
+.chip-active {
+  background-color: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+button.chip-active:hover {
+  background-color: var(--primary-light);
+}
+
 /* ================================================================
    BADGES
    ================================================================ */
@@ -4877,4 +4902,129 @@ input, textarea, select {
   .utility-bar-right .a11y-wrap {
     display: none;
   }
+}
+
+/* ================================================================
+   PARTNER MARQUEE TILES
+   ================================================================ */
+.partner-tile {
+  flex: 0 0 auto;
+  width: 200px;
+  max-width: 46vw;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
+}
+
+.partner-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background-color: var(--surface-container-low);
+}
+
+.partner-fallback {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.partner-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.35;
+  text-align: start;
+}
+
+@media (max-width: 480px) {
+  .partner-tile {
+    width: 170px;
+    padding: 12px 14px;
+  }
+  .partner-logo,
+  .partner-fallback {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ================================================================
+   WHERE WE WORK (dark section + Leaflet overrides)
+   ================================================================ */
+.where-we-work {
+  padding: 80px 24px;
+  background-color: #0b1220;
+  background-image: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(34, 197, 94, 0.12), transparent 70%);
+}
+
+.where-we-work-map {
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.where-we-work-map .leaflet-container {
+  background-color: #0b1220;
+}
+
+.where-we-work-map .leaflet-control-zoom a {
+  color: #94a3b8;
+}
+
+.where-we-work-map .leaflet-bar a {
+  background-color: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.3);
+}
+
+.where-we-work-map .leaflet-control-zoom a:hover {
+  background-color: #1e293b;
+  color: #4ade80;
+}
+
+.where-we-work-map .leaflet-control-attribution {
+  background-color: rgba(15, 23, 42, 0.7);
+  color: #64748b;
+}
+
+.where-we-work-map .leaflet-control-attribution a {
+  color: #94a3b8;
+}
+
+.uganda-city-label {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+}
+
+.uganda-city-label span {
+  color: rgba(226, 232, 240, 0.9);
+  font-size: 11px;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
+.where-we-work-map-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0b1220;
 }
