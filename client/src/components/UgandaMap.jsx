@@ -146,7 +146,7 @@ const UgandaMap = ({ height = '440px' }) => {
       L.marker(branchPos, {
         icon: L.divIcon({
           className: 'uganda-city-label uganda-gold-label',
-          html: `<span class="uganda-gold-label-text">${MAIN_BRANCH.name}</span><span class="uganda-gold-label-sub">Main Branch</span>`,
+          html: `<span class="uganda-gold-label-text">${MAIN_BRANCH.name}</span>`,
         }),
       }).addTo(glowGroup)
 

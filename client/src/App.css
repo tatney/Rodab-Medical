@@ -5096,17 +5096,6 @@ button.chip-active:hover {
   text-shadow: 0 0 8px rgba(251, 191, 36, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9);
 }
 
-.uganda-gold-label .uganda-gold-label-sub {
-  display: block;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #fde68a;
-  opacity: 0.95;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-}
-
 @keyframes uganda-heat-ping {
   0% {
     transform: scale(0.35);
