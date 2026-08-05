@@ -150,9 +150,35 @@ const CONTACT_ITEMS = [
   },
 ];
 
+const PANEL_GAP = 8;
+const PANEL_WIDTH = 320;
+
+const computePanelPosition = (button) => {
+  if (!button) return null;
+  const rect = button.getBoundingClientRect();
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const width = Math.min(PANEL_WIDTH, vw - 32);
+
+  let left = rect.left + rect.width / 2 - width / 2;
+  left = Math.max(16, Math.min(left, vw - width - 16));
+
+  let top = rect.bottom + PANEL_GAP;
+  let maxHeight = vh - top - 16;
+  if (maxHeight < 180) {
+    top = Math.max(16, rect.top - 180 - PANEL_GAP);
+    maxHeight = Math.min(560, rect.top - PANEL_GAP - 16);
+  }
+  maxHeight = Math.max(120, Math.min(560, maxHeight));
+
+  return { top, left, width, maxHeight };
+};
+
 const JumpDropdown = ({ id, label, jump, scrollToSection, t }) => {
   const [open, setOpen] = useState(false);
+  const [panelPos, setPanelPos] = useState(null);
   const wrapperRef = useRef(null);
+  const buttonRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
@@ -179,11 +205,28 @@ const JumpDropdown = ({ id, label, jump, scrollToSection, t }) => {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return;
+    const reposition = () => setPanelPos(computePanelPosition(buttonRef.current));
+    window.addEventListener('resize', reposition);
+    return () => window.removeEventListener('resize', reposition);
+  }, [open]);
+
+  const handleToggle = () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    setPanelPos(computePanelPosition(buttonRef.current));
+    setOpen(true);
+  };
+
   return (
     <div ref={wrapperRef} style={styles.dropdownWrapper}>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setOpen((isOpen) => !isOpen)}
+        onClick={handleToggle}
         className="footer-jump-btn"
         style={styles.jumpBtn}
         aria-haspopup="true"
@@ -198,6 +241,18 @@ const JumpDropdown = ({ id, label, jump, scrollToSection, t }) => {
           className="footer-dropdown"
           role={jump.contact ? 'dialog' : 'list'}
           aria-label={label}
+          style={
+            panelPos
+              ? {
+                  position: 'fixed',
+                  top: panelPos.top,
+                  left: panelPos.left,
+                  width: panelPos.width,
+                  maxHeight: panelPos.maxHeight,
+                  transform: 'none',
+                }
+              : undefined
+          }
         >
           {jump.contact
             ? CONTACT_ITEMS.map((item) => (

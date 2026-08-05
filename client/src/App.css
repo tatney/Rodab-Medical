@@ -672,6 +672,8 @@ input, textarea, select {
   flex-direction: column;
   gap: 6px;
   text-align: left;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .footer-dropdown-item {
@@ -3335,18 +3337,6 @@ input, textarea, select {
   .footer-bottom-bar {
     text-align: center;
     gap: 8px;
-  }
-
-  .footer-dropdown {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: calc(100vw - 32px);
-    max-width: 340px;
-    max-height: min(78vh, 560px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
   }
 
   .fd-grid {
