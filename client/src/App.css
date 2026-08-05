@@ -3268,17 +3268,7 @@ input, textarea, select {
   }
 
   .sidebar {
-    position: fixed;
-    left: 0;
-    top: 116px;
-    height: calc(100vh - 116px);
-    transform: translateX(-100%);
-    z-index: 950;
-    box-shadow: var(--shadow-xl);
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
+    display: none;
   }
 
   .admin-layout {
@@ -4367,8 +4357,8 @@ input, textarea, select {
 }
 
 @media (max-width: 900px) {
-  .menu-toggle {
-    display: flex;
+  .patient-layout-toolbar {
+    display: none;
   }
 
   .admin-dashboard .main-content {
