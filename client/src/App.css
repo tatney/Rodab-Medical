@@ -561,6 +561,17 @@ input, textarea, select {
   }
 }
 
+@media (max-width: 480px) {
+  .marquee {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  }
+  .marquee-card {
+    width: min(320px, 72vw);
+    padding: 20px;
+  }
+}
+
 /* ================================================================
    FOOTER
    ================================================================ */
