@@ -226,25 +226,27 @@ export default function HomePage() {
           <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 48 }}>
             {onlineServices.sub}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
-            {onlineServices.items.map((svc, index) => (
-              <Link
-                key={index}
-                to={ONLINE_LINKS[index]}
-                style={{
-                  padding: 28, borderRadius: 12, border: '1px solid var(--border)',
-                  textAlign: 'start', textDecoration: 'none', color: 'var(--text-strong)',
-                  backgroundColor: 'var(--surface-card)', transition: 'box-shadow 0.2s, transform 0.2s',
-                  display: 'block',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' }}
-              >
-                <div style={{ fontSize: 36, marginBottom: 12 }}>{ONLINE_ICONS[index]}</div>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 6 }}>{svc.title}</h3>
-                <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>{svc.desc}</p>
-              </Link>
-            ))}
+          <div className="marquee">
+            <div className="marquee-track">
+              {[0, 1].map((copy) => (
+                <div key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
+                  {onlineServices.items.map((svc, index) => (
+                    <Link
+                      key={index}
+                      to={ONLINE_LINKS[index]}
+                      className="marquee-card"
+                      style={{ textDecoration: 'none', color: 'var(--text-strong)', display: 'block', transition: 'box-shadow 0.2s, transform 0.2s' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'translateY(0)' }}
+                    >
+                      <div style={{ fontSize: 36, marginBottom: 12 }}>{ONLINE_ICONS[index]}</div>
+                      <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 6 }}>{svc.title}</h3>
+                      <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>{svc.desc}</p>
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -258,22 +260,26 @@ export default function HomePage() {
           <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 48 }}>
             {medicalServices.sub}
           </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32 }}>
-            {medicalServices.items.map((svc, index) => (
-              <div
-                key={index}
-                style={{
-                  padding: 32, borderRadius: 12, border: '1px solid var(--border)',
-                  textAlign: 'start', transition: 'box-shadow 0.2s, transform 0.2s', cursor: 'default',
-                }}
-                onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' }}
-              >
-                <div style={{ fontSize: 40, marginBottom: 12 }}>{MEDICAL_ICONS[index]}</div>
-                <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{svc.title}</h3>
-                <p style={{ fontSize: 15, color: 'var(--text-muted)', lineHeight: 1.6 }}>{svc.desc}</p>
-              </div>
-            ))}
+          <div className="marquee">
+            <div className="marquee-track">
+              {[0, 1].map((copy) => (
+                <div key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
+                  {medicalServices.items.map((svc, index) => (
+                    <div
+                      key={index}
+                      className="marquee-card"
+                      style={{ transition: 'box-shadow 0.2s, transform 0.2s', cursor: 'default' }}
+                      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
+                      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'translateY(0)' }}
+                    >
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>{MEDICAL_ICONS[index]}</div>
+                      <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{svc.title}</h3>
+                      <p style={{ fontSize: 15, color: 'var(--text-muted)', lineHeight: 1.6 }}>{svc.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
           <Link
             to="/services"
@@ -422,14 +428,14 @@ export default function HomePage() {
           <h2 style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', fontWeight: 800, color: 'var(--text-strong)', marginBottom: 48 }}>
             {testimonials.heading}
           </h2>
-          <div className="testimonial-marquee">
-            <div className="testimonial-marquee-track">
+          <div className="marquee">
+            <div className="marquee-track">
               {[0, 1].map((copy) => (
-                <div key={copy} className="testimonial-marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
+                <div key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
                   {testimonials.items.map((item, index) => (
                     <div
                       key={index}
-                      className="testimonial-card"
+                      className="marquee-card"
                     >
                       <div style={{ fontSize: 20, color: '#f59e0b', marginBottom: 12 }}>
                         <span aria-label={`${item.rating || 5} ${t('home.testimonials.rating')}`}>{'★'.repeat(item.rating || 5)}</span>
