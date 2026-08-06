@@ -68,7 +68,7 @@ export async function downloadFormPdf(template, values = {}, options = {}) {
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
-  doc.text(`${HOSPITAL.address}  |  ${HOSPITAL.phone}  |  ${HOSPITAL.email}`, margin, 18)
+  doc.text(HOSPITAL.address, margin, 18)
 
   doc.setFontSize(8.5)
   doc.text(`Form Code: ${template.form_code || '—'}`, pageWidth - margin, 11, { align: 'right' })
@@ -171,7 +171,7 @@ export async function downloadMedicalRecordPdf(patient = {}, fieldLabels = {}) {
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
-  doc.text(`${HOSPITAL.address}  |  ${HOSPITAL.phone}  |  ${HOSPITAL.email}`, margin, 18)
+  doc.text(HOSPITAL.address, margin, 18)
 
   doc.setFontSize(8.5)
   doc.text(`Issued: ${issued}`, pageWidth - margin, 11, { align: 'right' })
