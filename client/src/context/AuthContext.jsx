@@ -22,6 +22,13 @@ export function AuthProvider({ children }) {
         .eq('id', authUser.id)
         .single()
 
+      if (profile?.is_flagged) {
+        await supabase.auth.signOut()
+        setUser(null)
+        setLoading(false)
+        return
+      }
+
       setUser(profile || null)
     } catch (err) {
       console.error('Profile fetch failed:', err)

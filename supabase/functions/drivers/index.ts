@@ -6,6 +6,7 @@ import {
   corsHeaders,
   requireAuth,
   requireAdmin,
+  requireSuperAdmin,
 } from "../_shared/helper.ts";
 
 Deno.serve(async (req: Request): Promise<Response> => {
@@ -225,7 +226,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     // DELETE /drivers/:id
     if (!action && paramId && req.method === "DELETE") {
-      const auth = await requireAdmin(req, sb);
+      const auth = await requireSuperAdmin(req, sb);
       if (auth.resp) return auth.resp;
 
       const { error: deleteError } = await sb

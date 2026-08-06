@@ -10,6 +10,9 @@ import {
   getAllHospitals,
   createAdminUser,
   deleteUser,
+  flagUser,
+  unflagUser,
+  rewardUser,
   createHospital,
   updateHospital,
   deleteHospital,
@@ -96,6 +99,19 @@ const SuperAdminDashboard = () => {
   });
   const [adminSubmitting, setAdminSubmitting] = useState(false);
 
+  /* ── Users ── */
+  const [users, setUsers] = useState([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState("");
+  const [userFlaggedFilter, setUserFlaggedFilter] = useState("");
+  const [userDateFrom, setUserDateFrom] = useState("");
+  const [userDateTo, setUserDateTo] = useState("");
+  const [userModal, setUserModal] = useState(null);
+  const [userModalAction, setUserModalAction] = useState("");
+  const [userModalReason, setUserModalReason] = useState("");
+  const [userModalAmount, setUserModalAmount] = useState("");
+  const [userSubmitting, setUserSubmitting] = useState(false);
+
   /* ── Hospitals ── */
   const [hospitals, setHospitals] = useState([]);
   const [hospitalForm, setHospitalForm] = useState({
@@ -175,6 +191,15 @@ const SuperAdminDashboard = () => {
     }
   }, []);
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      const { data } = await getAdminUsers();
+      setUsers(data?.users || []);
+    } catch (err) {
+      console.error("Failed to fetch users", err);
+    }
+  }, []);
+
   const fetchHospitals = useCallback(async () => {
     try {
       const { data } = await getAllHospitals();
@@ -223,11 +248,11 @@ const SuperAdminDashboard = () => {
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true);
-      await Promise.all([fetchAnalytics(), fetchAdmins(), fetchHospitals(), fetchEmergencies(), fetchEvents(), fetchProgrammes(), fetchPartners()]);
+      await Promise.all([fetchAnalytics(), fetchAdmins(), fetchUsers(), fetchHospitals(), fetchEmergencies(), fetchEvents(), fetchProgrammes(), fetchPartners()]);
       setLoading(false);
     };
     loadAll();
-  }, [fetchAnalytics, fetchAdmins, fetchHospitals, fetchEmergencies, fetchEvents, fetchProgrammes, fetchPartners]);
+  }, [fetchAnalytics, fetchAdmins, fetchUsers, fetchHospitals, fetchEmergencies, fetchEvents, fetchProgrammes, fetchPartners]);
 
   /* Auto-refresh emergency data every 15 s */
   useEffect(() => {
@@ -282,6 +307,77 @@ const SuperAdminDashboard = () => {
     } catch (err) {
       toast.error("Failed to delete admin.");
     }
+  };
+
+  /* ═══════════════════════════════════════════
+     USERS (ACCOUNT MODERATION)
+     ═══════════════════════════════════════════ */
+  const openUserModal = (user, action) => {
+    setUserModal(user);
+    setUserModalAction(action);
+    setUserModalReason("");
+    setUserModalAmount("");
+  };
+
+  const handleUserModalSubmit = async (e) => {
+    e.preventDefault();
+    if (!userModal) return;
+    setUserSubmitting(true);
+    try {
+      if (userModalAction === "flag") {
+        if (!userModalReason.trim()) {
+          toast.error("A flag reason is required.");
+          return;
+        }
+        await flagUser(userModal.id, userModalReason.trim());
+        toast.success("User flagged and signed out.");
+      } else if (userModalAction === "unflag") {
+        await unflagUser(userModal.id);
+        toast.success("User unflagged.");
+      } else if (userModalAction === "reward") {
+        const amount = Number(userModalAmount);
+        if (!Number.isInteger(amount) || amount <= 0) {
+          toast.error("Enter a positive whole-number amount.");
+          return;
+        }
+        await rewardUser(userModal.id, amount, userModalReason.trim());
+        toast.success(`Rewarded ${amount} point(s).`);
+      } else if (userModalAction === "delete") {
+        if (userModal.id === user?.id) {
+          toast.error("You cannot delete your own account.");
+          return;
+        }
+        if (!window.confirm(`Permanently delete the account of ${userModal.full_name || userModal.email}?`)) {
+          return;
+        }
+        await deleteUser(userModal.id);
+        toast.success("User account deleted.");
+      }
+      setUserModal(null);
+      fetchUsers();
+      fetchAnalytics();
+    } catch (err) {
+      toast.error(err?.message || "Action failed.");
+    } finally {
+      setUserSubmitting(false);
+    }
+  };
+
+  const handleDeleteUser = (user) => {
+    if (user.id === user?.id) {
+      toast.error("You cannot delete your own account.");
+      return;
+    }
+    if (!window.confirm(`Permanently delete the account of ${user.full_name || user.email}?`)) {
+      return;
+    }
+    deleteUser(user.id)
+      .then(() => {
+        toast.success("User account deleted.");
+        fetchUsers();
+        fetchAnalytics();
+      })
+      .catch((err) => toast.error(err?.message || "Failed to delete user."));
   };
 
   /* ═══════════════════════════════════════════
@@ -900,6 +996,255 @@ const SuperAdminDashboard = () => {
       </div>
     </div>
   );
+
+  /* ── Users Tab ── */
+  const renderUsers = () => {
+    const q = userSearch.trim().toLowerCase();
+    const filtered = users.filter((u) => {
+      if (userRoleFilter && u.role !== userRoleFilter) return false;
+      if (userFlaggedFilter === "flagged" && !u.is_flagged) return false;
+      if (userFlaggedFilter === "unflagged" && u.is_flagged) return false;
+      if (userDateFrom && new Date(u.created_at) < new Date(userDateFrom)) return false;
+      if (userDateTo && new Date(u.created_at) > new Date(userDateTo)) return false;
+      if (q) {
+        const haystack = [
+          u.full_name,
+          u.fullName,
+          u.email,
+          u.phone,
+          u.id,
+          u.national_id,
+          u.medical_id,
+        ].filter(Boolean).join(" ").toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
+
+    return (
+      <div className="users-section">
+        <h3>Account Search</h3>
+        <form
+          className="create-form"
+          onSubmit={(e) => e.preventDefault()}
+          style={{ marginBottom: 12 }}
+        >
+          <div className="form-row">
+            <div className="form-group">
+              <label>Search</label>
+              <input
+                type="text"
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                placeholder="Name, email, phone or ID"
+              />
+            </div>
+            <div className="form-group">
+              <label>Role</label>
+              <select
+                value={userRoleFilter}
+                onChange={(e) => setUserRoleFilter(e.target.value)}
+              >
+                <option value="">All roles</option>
+                <option value="user">Patient</option>
+                <option value="doctor">Doctor</option>
+                <option value="driver">Driver</option>
+                <option value="admin">Admin</option>
+                <option value="super_admin">Super Admin</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>Status</label>
+              <select
+                value={userFlaggedFilter}
+                onChange={(e) => setUserFlaggedFilter(e.target.value)}
+              >
+                <option value="">All</option>
+                <option value="flagged">Flagged</option>
+                <option value="unflagged">Not flagged</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Joined from</label>
+              <input
+                type="date"
+                value={userDateFrom}
+                onChange={(e) => setUserDateFrom(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Joined to</label>
+              <input
+                type="date"
+                value={userDateTo}
+                onChange={(e) => setUserDateTo(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>&nbsp;</label>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setUserSearch("");
+                  setUserRoleFilter("");
+                  setUserFlaggedFilter("");
+                  setUserDateFrom("");
+                  setUserDateTo("");
+                }}
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <h3>Accounts ({filtered.length})</h3>
+        <div className="table-wrapper">
+          <table className="data-table" aria-label="Accounts">
+            <caption className="sr-only">All Accounts</caption>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email / Phone</th>
+                <th>Role</th>
+                <th>Points</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((u) => (
+                <tr key={u.id}>
+                  <td>
+                    <strong>{u.full_name || u.fullName || "—"}</strong>
+                    {u.is_flagged && u.flag_reason && (
+                      <div className="muted" style={{ fontSize: 12, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={u.flag_reason}>
+                        ⚠ {u.flag_reason}
+                      </div>
+                    )}
+                  </td>
+                  <td>
+                    <div>{u.email || "—"}</div>
+                    <div className="muted" style={{ fontSize: 12 }}>{u.phone || ""}</div>
+                  </td>
+                  <td>
+                    <span className={`role-chip role-${u.role}`}>{u.role}</span>
+                  </td>
+                  <td>{u.reward_points || 0}</td>
+                  <td>
+                    {u.is_flagged ? (
+                      <span className="badge badge-error">Flagged</span>
+                    ) : (
+                      <span className="badge badge-success">Active</span>
+                    )}
+                  </td>
+                  <td>{u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}</td>
+                  <td className="actions-cell">
+                    {u.is_flagged ? (
+                      <button className="btn btn-edit btn-sm" onClick={() => openUserModal(u, "unflag")}>
+                        Unflag
+                      </button>
+                    ) : (
+                      u.role !== "super_admin" && (
+                        <button className="btn btn-secondary btn-sm" onClick={() => openUserModal(u, "flag")}>
+                          Flag
+                        </button>
+                      )
+                    )}
+                    <button className="btn btn-primary btn-sm" onClick={() => openUserModal(u, "reward")}>
+                      Reward
+                    </button>
+                    {u.role !== "super_admin" && (
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDeleteUser(u)}>
+                        Delete
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="muted text-center">
+                    No accounts match the current filters.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {userModal && (
+          <div
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 40, overflowY: 'auto' }}
+            onClick={() => setUserModal(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Account action"
+          >
+            <div
+              style={{ backgroundColor: '#fff', borderRadius: 14, maxWidth: 520, width: '100%', padding: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 700 }}>
+                {userModalAction === "flag" && `Flag ${userModal.full_name || userModal.email}`}
+                {userModalAction === "unflag" && `Unflag ${userModal.full_name || userModal.email}`}
+                {userModalAction === "reward" && `Reward ${userModal.full_name || userModal.email}`}
+              </h3>
+              <form onSubmit={handleUserModalSubmit}>
+                {(userModalAction === "flag" || userModalAction === "reward") && (
+                  <div className="form-group">
+                    <label>
+                      {userModalAction === "flag" ? "Reason (required)" : "Reason (optional)"}
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={userModalReason}
+                      onChange={(e) => setUserModalReason(e.target.value)}
+                      required={userModalAction === "flag"}
+                    />
+                  </div>
+                )}
+                {userModalAction === "reward" && (
+                  <div className="form-group">
+                    <label>Points</label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={userModalAmount}
+                      onChange={(e) => setUserModalAmount(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+                {userModalAction === "flag" && (
+                  <p className="muted" style={{ marginTop: 8 }}>
+                    Flagging signs the user out and blocks future logins until unflagged.
+                  </p>
+                )}
+                <div className="form-actions">
+                  <button type="submit" className="btn btn-primary" disabled={userSubmitting}>
+                    {userSubmitting ? "Saving…" : "Confirm"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setUserModal(null)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   /* ── Hospitals Tab ── */
   const renderHospitals = () => (
@@ -1695,6 +2040,8 @@ const SuperAdminDashboard = () => {
         return renderOverview();
       case "admins":
         return renderAdmins();
+      case "users":
+        return renderUsers();
       case "hospitals":
         return renderHospitals();
       case "emergency":

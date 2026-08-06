@@ -1109,6 +1109,26 @@ export const deleteUser = async (id) => {
   return ok(json)
 }
 
+export const flagUser = async (id, reason) => {
+  const json = await invokeEdge(`admin/users/${id}/flag`, 'POST', { reason })
+  return ok(json)
+}
+
+export const unflagUser = async (id) => {
+  const json = await invokeEdge(`admin/users/${id}/unflag`, 'POST')
+  return ok(json)
+}
+
+export const rewardUser = async (id, amount, reason) => {
+  const json = await invokeEdge(`admin/users/${id}/reward`, 'POST', { amount, reason })
+  return ok(json)
+}
+
+export const deleteMyAccount = async () => {
+  const json = await invokeEdge('delete-account', 'DELETE')
+  return ok(json)
+}
+
 // ─── Analytics ────────────────────────────────────────────────────────────────
 
 export const getAnalytics = async (params) => {
@@ -1602,6 +1622,10 @@ const api = {
   createAdminUser,
   createDoctorAccount,
   deleteUser,
+  flagUser,
+  unflagUser,
+  rewardUser,
+  deleteMyAccount,
   getAnalytics,
   getFormTemplates,
   getFormTemplatesAdmin,

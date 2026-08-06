@@ -11,7 +11,6 @@ export const roleConfig = {
     label: 'Super Admin',
     alias: {
       dashboard: 'overview',
-      users: 'admins',
       doctors: 'overview',
       drivers: 'overview',
       reports: 'overview',
@@ -20,6 +19,7 @@ export const roleConfig = {
     tabs: [
       { key: 'overview', to: '/super-admin/overview', label: 'Overview', icon: 'dashboard' },
       { key: 'admins', to: '/super-admin/admins', label: 'Admins', icon: 'users' },
+      { key: 'users', to: '/super-admin/users', label: 'Users', icon: 'users' },
       { key: 'hospitals', to: '/super-admin/hospitals', label: 'Hospitals', icon: 'hospital' },
       { key: 'emergency', to: '/super-admin/emergency', label: 'Emergency', icon: 'emergency', badge: true },
       { key: 'news', to: '/super-admin/news', label: 'News & Blogs', icon: 'news' },

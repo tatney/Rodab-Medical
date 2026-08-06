@@ -5,13 +5,13 @@ import Map from '../../components/Map';
 import NotificationBell from '../../components/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
 import {
-  getAnalytics, getAdminUsers, createAdminUser, deleteUser,
+  getAnalytics, getAdminUsers, createAdminUser,
   getDoctors, createDoctorAccount, deleteDoctor,
   getDepartments, createDepartment, updateDepartment, deleteDepartment,
   getAvailability, createAvailabilitySlot, deleteAvailabilitySlot,
   getAllHospitals, createHospital, updateHospital, deleteHospital,
   getVehicles, createVehicle, updateVehicle, deleteVehicle,
-  getDrivers, createDriverWithAccount, deleteDriver,
+  getDrivers, createDriverWithAccount,
   getActiveEmergencies, getFeesAdmin, createFee, updateFee, deleteFee,
   createNotification, getAdminMessages,
   getPrescriptionsAdmin, approvePrescription,
@@ -284,12 +284,6 @@ const AdminDashboard = () => {
     finally { setAdminSubmitting(false); }
   };
 
-  const handleDeleteUser = async (id) => {
-    if (!window.confirm("Delete this user?")) return;
-    try { await deleteUser(id); fetchAdmins(); fetchDoctors(); fetchAnalytics(); }
-    catch (err) { toast.error("Failed to delete user."); }
-  };
-
   /* ═══════════════════════════════════════════
      DEPARTMENT CRUD
      ═══════════════════════════════════════════ */
@@ -456,12 +450,6 @@ const AdminDashboard = () => {
       toast.success("Driver created successfully.");
     } catch (err) { toast.error(err?.message || "Failed to create driver."); }
     finally { setDriverSubmitting(false); }
-  };
-
-  const handleDeleteDriver = async (id) => {
-    if (!window.confirm("Delete this driver?")) return;
-    try { await deleteDriver(id); fetchDrivers(); fetchAnalytics(); }
-    catch (err) { toast.error(err?.message || "Failed to delete driver."); }
   };
 
   /* ═══════════════════════════════════════════
@@ -718,17 +706,16 @@ const AdminDashboard = () => {
       <h3>All Users ({admins.length})</h3>
       <div style={{ overflowX: 'auto' }}>
         <table className="data-table" aria-label="Users">
-          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th></tr></thead>
           <tbody>
             {admins.map((u) => (
               <tr key={u.id || u._id}>
                 <td>{u.fullName || u.name}</td>
                 <td>{u.email}</td>
                 <td><span className={`role-chip role-${u.role}`}>{u.role}</span></td>
-                <td><button className="btn btn-danger btn-sm" onClick={() => handleDeleteUser(u.id || u._id)}>Delete</button></td>
               </tr>
             ))}
-            {admins.length === 0 && <EmptyRow colSpan={4} />}
+            {admins.length === 0 && <EmptyRow colSpan={3} />}
           </tbody>
         </table>
       </div>
@@ -1134,7 +1121,7 @@ const AdminDashboard = () => {
       <h3>All Drivers ({drivers.length})</h3>
       <div style={{ overflowX: 'auto' }}>
         <table className="data-table" aria-label="Drivers">
-          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>License</th><th>Vehicle</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>License</th><th>Vehicle</th></tr></thead>
           <tbody>
             {drivers.map((dr) => (
               <tr key={dr.id || dr._id}>
@@ -1143,10 +1130,9 @@ const AdminDashboard = () => {
                 <td>{dr.phone || "—"}</td>
                 <td className="mono">{dr.licenseNumber || dr.license_number || "—"}</td>
                 <td>{dr.vehiclePlate || dr.vehicle?.plateNumber || "—"}</td>
-                <td><button className="btn btn-danger btn-sm" onClick={() => handleDeleteDriver(dr.id || dr._id)}>Delete</button></td>
               </tr>
             ))}
-            {drivers.length === 0 && <EmptyRow colSpan={6} msg="No drivers yet." />}
+            {drivers.length === 0 && <EmptyRow colSpan={5} msg="No drivers yet." />}
           </tbody>
         </table>
       </div>

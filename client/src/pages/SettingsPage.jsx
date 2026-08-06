@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { updateProfile } from '../api'
+import { updateProfile, deleteMyAccount } from '../api'
 
 const colors = {
   primary: '#0b2a57',
@@ -43,6 +43,9 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [deleteArmed, setDeleteArmed] = useState(false)
+  const [deleteEmail, setDeleteEmail] = useState('')
+  const [deleting, setDeleting] = useState(false)
 
   const [form, setForm] = useState({
     fullName: '',
@@ -114,6 +117,24 @@ export default function SettingsPage() {
     navigate('/login')
   }
 
+  const handleDeleteAccount = async () => {
+    setError('')
+    if (deleteEmail.trim().toLowerCase() !== (user?.email || '').trim().toLowerCase()) {
+      setError('Email does not match. Please type your account email to confirm.')
+      return
+    }
+    setDeleting(true)
+    try {
+      await deleteMyAccount()
+    } catch (err) {
+      setError(err?.message || 'Failed to delete account.')
+      setDeleting(false)
+      return
+    }
+    try { await logout() } catch { /* session already gone */ }
+    navigate('/login')
+  }
+
   const initial = (form.fullName || form.email || '?')[0].toUpperCase()
   const rc = roleColors[user?.role] || roleColors.user
 
@@ -181,6 +202,27 @@ export default function SettingsPage() {
           >
             {roleLabels[user?.role] || user?.role}
           </span>
+          {typeof user?.reward_points === 'number' && (
+            <span
+              title="Reward points balance"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                marginTop: 6,
+                padding: '3px 10px',
+                borderRadius: 12,
+                fontSize: 12,
+                fontWeight: 700,
+                backgroundColor: '#fef9c3',
+                color: '#a16207',
+                border: '1px solid #fde047',
+              }}
+            >
+              <span aria-hidden="true">⭐</span>
+              {user.reward_points} pts
+            </span>
+          )}
         </div>
       </div>
 
@@ -359,6 +401,83 @@ export default function SettingsPage() {
           </svg>
           Logout
         </button>
+
+        {user?.role === 'user' ? (
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${colors.gray100}` }}>
+            <h3 style={{ fontSize: 15, fontWeight: 700, color: colors.gray900, marginBottom: 4 }}>Delete Account</h3>
+            <p style={{ fontSize: 13, color: colors.gray500, margin: '0 0 12px' }}>
+              Permanently delete your account, medical records and data. This cannot be undone.
+            </p>
+            {!deleteArmed ? (
+              <button
+                onClick={() => setDeleteArmed(true)}
+                style={{
+                  padding: '12px 20px',
+                  backgroundColor: '#fef2f2',
+                  color: colors.red,
+                  border: '1px solid #fecaca',
+                  borderRadius: 8,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
+              >
+                Delete Account
+              </button>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <label htmlFor="settings-delete-email" style={{ fontSize: 13, fontWeight: 600, color: colors.gray700 }}>
+                  Type your email ({form.email}) to confirm
+                </label>
+                <input
+                  id="settings-delete-email"
+                  type="email"
+                  value={deleteEmail}
+                  onChange={(e) => setDeleteEmail(e.target.value)}
+                  style={inputStyle}
+                  autoFocus
+                />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={handleDeleteAccount}
+                    disabled={deleting}
+                    style={{
+                      padding: '12px 20px',
+                      backgroundColor: deleting ? colors.gray300 : colors.red,
+                      color: colors.white,
+                      border: 'none',
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: deleting ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {deleting ? 'Deleting...' : 'Permanently Delete'}
+                  </button>
+                  <button
+                    onClick={() => { setDeleteArmed(false); setDeleteEmail(''); setError('') }}
+                    style={{
+                      padding: '12px 20px',
+                      backgroundColor: colors.gray100,
+                      color: colors.gray700,
+                      border: `1px solid ${colors.gray300}`,
+                      borderRadius: 8,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <p style={{ fontSize: 13, color: colors.gray500, marginTop: 16, paddingTop: 16, borderTop: `1px solid ${colors.gray100}` }}>
+            To delete this account, please contact an administrator.
+          </p>
+        )}
       </div>
     </div>
   )

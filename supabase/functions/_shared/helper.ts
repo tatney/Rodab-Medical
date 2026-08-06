@@ -89,6 +89,19 @@ export async function requireAdmin(
   return result;
 }
 
+export async function requireSuperAdmin(
+  req: Request,
+  sb: SupabaseClient
+): Promise<
+  { user: { id: string; role: string; [k: string]: unknown }; resp?: never } | { resp: Response }
+> {
+  const result = await requireAuth(req, sb);
+  if (result.resp) return result;
+  if (result.user.role !== "super_admin")
+    return { resp: errorResp("Super admin access required", 403) };
+  return result;
+}
+
 export async function requireDoctor(
   req: Request,
   sb: SupabaseClient

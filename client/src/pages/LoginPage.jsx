@@ -30,6 +30,11 @@ export default function LoginPage() {
         .eq('id', data.user.id)
         .single()
 
+      if (profile?.is_flagged) {
+        await supabase.auth.signOut()
+        throw new Error('Your account has been flagged and access is restricted. Please contact support.')
+      }
+
       await refreshUser()
       await new Promise(r => setTimeout(r, 0))
 

@@ -5,6 +5,7 @@ import {
   errorResp,
   corsHeaders,
   requireAdmin,
+  requireSuperAdmin,
 } from "../_shared/helper.ts";
 
 Deno.serve(async (req: Request): Promise<Response> => {
@@ -136,7 +137,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
     // DELETE /admin/users/:id
     if (action === "users" && paramId && req.method === "DELETE") {
-      const auth = await requireAdmin(req, sb);
+      const auth = await requireSuperAdmin(req, sb);
       if (auth.resp) return auth.resp;
 
       const { error: profileError } = await sb
@@ -155,6 +156,119 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       return jsonResp({ message: "User deleted successfully" });
+    }
+
+    // POST /admin/users/:id/flag
+    if (action === "users" && paramId && req.method === "POST" && rest[2] === "flag") {
+      const auth = await requireSuperAdmin(req, sb);
+      if (auth.resp) return auth.resp;
+
+      const body = await req.json();
+      const reason = (body?.reason || "").toString().trim();
+      if (!reason) return errorResp("Flag reason is required");
+
+      const { error } = await sb
+        .from("profiles")
+        .update({
+          is_flagged: true,
+          flag_reason: reason,
+          flagged_at: new Date().toISOString(),
+          flagged_by: auth.user.id,
+        })
+        .eq("id", paramId);
+
+      if (error) return errorResp(error.message, 500);
+
+      await sb.auth.admin.signOut(paramId);
+      await sb.from("account_actions").insert({
+        user_id: paramId,
+        action_type: "flag",
+        detail: reason,
+        performed_by: auth.user.id,
+      });
+      await sb.from("notifications").insert({
+        user_id: paramId,
+        target_user_id: paramId,
+        title: "Account flagged",
+        message: `Your account has been flagged for the following reason: ${reason}. Please contact support.`,
+      });
+
+      return jsonResp({ message: "User flagged successfully" });
+    }
+
+    // POST /admin/users/:id/unflag
+    if (action === "users" && paramId && req.method === "POST" && rest[2] === "unflag") {
+      const auth = await requireSuperAdmin(req, sb);
+      if (auth.resp) return auth.resp;
+
+      const { error } = await sb
+        .from("profiles")
+        .update({
+          is_flagged: false,
+          flag_reason: null,
+          flagged_at: null,
+          flagged_by: null,
+        })
+        .eq("id", paramId);
+
+      if (error) return errorResp(error.message, 500);
+
+      await sb.from("account_actions").insert({
+        user_id: paramId,
+        action_type: "unflag",
+        performed_by: auth.user.id,
+      });
+      await sb.from("notifications").insert({
+        user_id: paramId,
+        target_user_id: paramId,
+        title: "Account reinstated",
+        message: "Your account has been reinstated.",
+      });
+
+      return jsonResp({ message: "User unflagged successfully" });
+    }
+
+    // POST /admin/users/:id/reward
+    if (action === "users" && paramId && req.method === "POST" && rest[2] === "reward") {
+      const auth = await requireSuperAdmin(req, sb);
+      if (auth.resp) return auth.resp;
+
+      const body = await req.json();
+      const amount = Number(body?.amount);
+      if (!Number.isInteger(amount) || amount <= 0) {
+        return errorResp("A positive integer amount is required");
+      }
+      const reason = (body?.reason || "").toString().trim();
+
+      const { data: profile, error: fetchError } = await sb
+        .from("profiles")
+        .select("reward_points")
+        .eq("id", paramId)
+        .single();
+      if (fetchError) return errorResp(fetchError.message, 500);
+
+      const { error } = await sb
+        .from("profiles")
+        .update({ reward_points: (profile.reward_points || 0) + amount })
+        .eq("id", paramId);
+
+      if (error) return errorResp(error.message, 500);
+
+      await sb.from("account_actions").insert({
+        user_id: paramId,
+        action_type: "reward",
+        detail: reason,
+        amount,
+        performed_by: auth.user.id,
+      });
+      await sb.from("notifications").insert({
+        user_id: paramId,
+        target_user_id: paramId,
+        title: "Reward points added",
+        message: `You received ${amount} reward point(s).${reason ? ` Reason: ${reason}` : ""}`,
+      });
+
+      return jsonResp({ message: "Reward granted successfully" });
     }
 
     return errorResp("Not found", 404);
