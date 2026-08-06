@@ -11,6 +11,7 @@ import { useI18n } from '../i18n/I18nContext'
 import { getFormTemplates, getEvents } from '../api'
 import { extractArray } from '../utils/api-helpers'
 import { downloadFormPdf } from '../utils/pdf'
+import { scrollToSection } from '../utils/scrollToSection'
 
 const B = `${SUPABASE_URL}/storage/v1/object/public/images`
 
@@ -101,12 +102,8 @@ export default function HomePage() {
   useEffect(() => {
     if (location.state?.scrollTo) {
       const id = location.state.scrollTo
-      const timer = setTimeout(() => {
-        const el = document.getElementById(id)
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 80)
+      scrollToSection(id)
       window.history.replaceState({}, '')
-      return () => clearTimeout(timer)
     }
   }, [location.state])
 

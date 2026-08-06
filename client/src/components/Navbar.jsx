@@ -5,6 +5,7 @@ import { SUPABASE_URL, LANDING_MODE } from '../config';
 import { useI18n } from '../i18n/I18nContext';
 import LanguageSelector from './LanguageSelector';
 import AccessibilityButton from './AccessibilityButton';
+import { scrollToSection as scrollToSectionUtil } from '../utils/scrollToSection';
 
 const NAV_ITEMS = [
   { to: '/dashboard', labelKey: 'nav.dashboard' },
@@ -235,10 +236,7 @@ const Navbar = () => {
       navigate('/', { state: { scrollTo: id } });
       return;
     }
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    scrollToSectionUtil(id);
   }, [location.pathname, navigate]);
 
   const navLinks = user ? (ROLE_NAV[user.role] || []) : LANDING_MODE ? LANDING_NAV : UNAUTH_NAV;

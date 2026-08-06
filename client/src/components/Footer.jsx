@@ -2,6 +2,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { SUPABASE_URL } from '../config';
 import { useI18n } from '../i18n/I18nContext';
+import { scrollToSection as scrollToSectionUtil } from '../utils/scrollToSection';
 
 const JUMP_LINKS = [
   {
@@ -314,8 +315,7 @@ const Footer = () => {
       navigate('/', { state: { scrollTo: id } });
       return;
     }
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    scrollToSectionUtil(id);
   };
 
   return (

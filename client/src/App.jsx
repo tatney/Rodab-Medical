@@ -14,6 +14,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import CookieConsent from './components/CookieConsent';
 import PatientLayout from './components/PatientLayout';
 import PageLoader from './components/PageLoader';
+import ScrollToTop from './components/ScrollToTop';
 import HomePage from './pages/HomePage';
 
 // Public Pages
@@ -58,6 +59,7 @@ function App() {
     <HelmetProvider>
     <EmergencyProvider>
       <div className="app">
+        <ScrollToTop />
         <a href="#main-content" className="skip-to-content">Skip to main content</a>
         <Navbar />
         <EmergencyAlertOverlay />
