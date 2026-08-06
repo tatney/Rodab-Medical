@@ -13,6 +13,11 @@ import {
   flagUser,
   unflagUser,
   rewardUser,
+  updateAdminUser,
+  updateDoctorAccount,
+  updateDriver,
+  getDepartments,
+  getVehicles,
   createHospital,
   updateHospital,
   deleteHospital,
@@ -112,6 +117,13 @@ const SuperAdminDashboard = () => {
   const [userModalAmount, setUserModalAmount] = useState("");
   const [userSubmitting, setUserSubmitting] = useState(false);
 
+  /* ── Edit account (Users tab) ── */
+  const [editUser, setEditUser] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [vehicles, setVehicles] = useState([]);
+
   /* ── Hospitals ── */
   const [hospitals, setHospitals] = useState([]);
   const [hospitalForm, setHospitalForm] = useState({
@@ -200,6 +212,24 @@ const SuperAdminDashboard = () => {
     }
   }, []);
 
+  const fetchDepartments = useCallback(async () => {
+    try {
+      const { data } = await getDepartments();
+      setDepartments(data?.departments || []);
+    } catch (err) {
+      console.error("Failed to fetch departments", err);
+    }
+  }, []);
+
+  const fetchVehicles = useCallback(async () => {
+    try {
+      const { data } = await getVehicles();
+      setVehicles(data?.vehicles || []);
+    } catch (err) {
+      console.error("Failed to fetch vehicles", err);
+    }
+  }, []);
+
   const fetchHospitals = useCallback(async () => {
     try {
       const { data } = await getAllHospitals();
@@ -248,11 +278,11 @@ const SuperAdminDashboard = () => {
   useEffect(() => {
     const loadAll = async () => {
       setLoading(true);
-      await Promise.all([fetchAnalytics(), fetchAdmins(), fetchUsers(), fetchHospitals(), fetchEmergencies(), fetchEvents(), fetchProgrammes(), fetchPartners()]);
+      await Promise.all([fetchAnalytics(), fetchAdmins(), fetchUsers(), fetchHospitals(), fetchEmergencies(), fetchEvents(), fetchProgrammes(), fetchPartners(), fetchDepartments(), fetchVehicles()]);
       setLoading(false);
     };
     loadAll();
-  }, [fetchAnalytics, fetchAdmins, fetchUsers, fetchHospitals, fetchEmergencies, fetchEvents, fetchProgrammes, fetchPartners]);
+  }, [fetchAnalytics, fetchAdmins, fetchUsers, fetchHospitals, fetchEmergencies, fetchEvents, fetchProgrammes, fetchPartners, fetchDepartments, fetchVehicles]);
 
   /* Auto-refresh emergency data every 15 s */
   useEffect(() => {
@@ -378,6 +408,74 @@ const SuperAdminDashboard = () => {
         fetchAnalytics();
       })
       .catch((err) => toast.error(err?.message || "Failed to delete user."));
+  };
+
+  const openEditUser = (u) => {
+    const doctor = Array.isArray(u.doctor) ? u.doctor[0] : u.doctor;
+    const driver = Array.isArray(u.drivers) ? u.drivers[0] : u.drivers;
+    setEditUser(u);
+    setEditForm({
+      full_name: u.full_name || u.fullName || "",
+      email: u.email || "",
+      phone: u.phone || "",
+      password: "",
+      role: u.role || "",
+      specialty: doctor?.specialty || u.specialty || "",
+      department_id: doctor?.department_id || u.department_id || "",
+      consultation_fee: doctor?.consultation_fee ?? "",
+      license_number: driver?.license_number || u.license_number || "",
+      vehicle_id: driver?.vehicle_id || u.vehicle_id || "",
+      is_available: driver?.is_available ?? true,
+    });
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setEditForm((f) => ({ ...f, [name]: type === "checkbox" ? checked : value }));
+  };
+
+  const handleEditUserSubmit = async (e) => {
+    e.preventDefault();
+    if (!editUser) return;
+    setEditSubmitting(true);
+    try {
+      const id = editUser.id;
+      const base = {
+        full_name: editForm.full_name,
+        email: editForm.email,
+        phone: editForm.phone,
+      };
+      if (editForm.password) base.password = editForm.password;
+
+      if (editUser.role === "doctor") {
+        await updateDoctorAccount(id, {
+          ...base,
+          specialty: editForm.specialty,
+          department_id: editForm.department_id || null,
+          consultation_fee:
+            editForm.consultation_fee === "" ? undefined : Number(editForm.consultation_fee),
+        });
+      } else if (editUser.role === "driver") {
+        await updateDriver(id, {
+          ...base,
+          license_number: editForm.license_number,
+          vehicle_id: editForm.vehicle_id || null,
+          is_available: editForm.is_available,
+        });
+      } else {
+        await updateAdminUser(id, base);
+      }
+
+      toast.success("Account updated successfully.");
+      setEditUser(null);
+      fetchUsers();
+      fetchAdmins();
+      fetchAnalytics();
+    } catch (err) {
+      toast.error(err?.message || "Failed to update account.");
+    } finally {
+      setEditSubmitting(false);
+    }
   };
 
   /* ═══════════════════════════════════════════
@@ -1144,6 +1242,9 @@ const SuperAdminDashboard = () => {
                   </td>
                   <td>{u.created_at ? new Date(u.created_at).toLocaleDateString() : "—"}</td>
                   <td className="actions-cell">
+                    <button className="btn btn-edit btn-sm" onClick={() => openEditUser(u)}>
+                      Edit
+                    </button>
                     {u.is_flagged ? (
                       <button className="btn btn-edit btn-sm" onClick={() => openUserModal(u, "unflag")}>
                         Unflag
@@ -1234,6 +1335,167 @@ const SuperAdminDashboard = () => {
                     type="button"
                     className="btn btn-secondary"
                     onClick={() => setUserModal(null)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {editUser && (
+          <div
+            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 40, overflowY: 'auto' }}
+            onClick={() => setEditUser(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Edit account"
+          >
+            <div
+              style={{ backgroundColor: '#fff', borderRadius: 14, maxWidth: 560, width: '100%', padding: 28 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 700 }}>
+                Edit {editUser.role === "doctor" ? "Doctor" : editUser.role === "driver" ? "Driver" : "Admin"} — {editUser.full_name || editUser.email}
+              </h3>
+              <form onSubmit={handleEditUserSubmit}>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Full Name</label>
+                    <input
+                      type="text"
+                      name="full_name"
+                      value={editForm.full_name}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Phone</label>
+                    <input
+                      type="text"
+                      name="phone"
+                      value={editForm.phone}
+                      onChange={handleEditChange}
+                    />
+                  </div>
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={editForm.email}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>New Password</label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={editForm.password}
+                      onChange={handleEditChange}
+                      placeholder="Leave blank to keep current"
+                      minLength={6}
+                      autoComplete="new-password"
+                    />
+                  </div>
+                </div>
+
+                {editUser.role === "doctor" && (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>Department</label>
+                      <select
+                        name="department_id"
+                        value={editForm.department_id || ""}
+                        onChange={handleEditChange}
+                      >
+                        <option value="">None</option>
+                        {departments.map((d) => (
+                          <option key={d.id} value={d.id}>{d.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label>Specialty</label>
+                      <input
+                        type="text"
+                        name="specialty"
+                        value={editForm.specialty}
+                        onChange={handleEditChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Consultation Fee</label>
+                      <input
+                        type="number"
+                        name="consultation_fee"
+                        value={editForm.consultation_fee}
+                        onChange={handleEditChange}
+                        min="0"
+                        step="any"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {editUser.role === "driver" && (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>License Number</label>
+                      <input
+                        type="text"
+                        name="license_number"
+                        value={editForm.license_number}
+                        onChange={handleEditChange}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Vehicle</label>
+                      <select
+                        name="vehicle_id"
+                        value={editForm.vehicle_id || ""}
+                        onChange={handleEditChange}
+                      >
+                        <option value="">None</option>
+                        {vehicles.map((v) => (
+                          <option key={v.id} value={v.id}>{v.plate_number || v.plateNumber}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <input
+                          type="checkbox"
+                          name="is_available"
+                          checked={!!editForm.is_available}
+                          onChange={handleEditChange}
+                        />
+                        Available
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+                  {editForm.password
+                    ? "A new password will be set. The account holder must use it on next login."
+                    : "Leave the password field blank to keep the current password."}
+                </p>
+
+                <div className="form-actions" style={{ marginTop: 16 }}>
+                  <button type="submit" className="btn btn-primary" disabled={editSubmitting}>
+                    {editSubmitting ? "Saving…" : "Save Changes"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setEditUser(null)}
                   >
                     Cancel
                   </button>

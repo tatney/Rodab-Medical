@@ -57,3 +57,6 @@ verify_jwt = true
 
 [functions.health]
 verify_jwt = false
+
+[functions.forgot-password]
+verify_jwt = false

@@ -271,6 +271,126 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return jsonResp({ message: "Reward granted successfully" });
     }
 
+    // PUT /admin/users/:id  (super admin: update staff/admin account incl email & password)
+    if (action === "users" && paramId && req.method === "PUT") {
+      const auth = await requireSuperAdmin(req, sb);
+      if (auth.resp) return auth.resp;
+
+      const body = await req.json();
+      const { email, password, full_name, phone, role } = body;
+
+      const authUpdates: Record<string, unknown> = {};
+      if (email !== undefined) {
+        if (typeof email !== "string" || !email.includes("@")) {
+          return errorResp("A valid email is required");
+        }
+        authUpdates.email = email;
+      }
+      if (password !== undefined) {
+        if (typeof password !== "string" || password.length < 6) {
+          return errorResp("Password must be at least 6 characters");
+        }
+        authUpdates.password = password;
+      }
+
+      if (Object.keys(authUpdates).length > 0) {
+        const { error: authError } = await sb.auth.admin.updateUserById(
+          paramId,
+          authUpdates
+        );
+        if (authError) return errorResp(authError.message, 500);
+      }
+
+      const profileUpdates: Record<string, unknown> = {};
+      if (full_name !== undefined) profileUpdates.full_name = full_name;
+      if (phone !== undefined) profileUpdates.phone = phone;
+      if (email !== undefined) profileUpdates.email = email;
+      if (role !== undefined) profileUpdates.role = role;
+
+      if (Object.keys(profileUpdates).length > 0) {
+        const { error: profileError } = await sb
+          .from("profiles")
+          .update(profileUpdates)
+          .eq("id", paramId);
+        if (profileError) return errorResp(profileError.message, 500);
+      }
+
+      const { data: updated, error: fetchError } = await sb
+        .from("profiles")
+        .select("*, doctor(*), drivers(*)")
+        .eq("id", paramId)
+        .maybeSingle();
+      if (fetchError) return errorResp(fetchError.message, 500);
+
+      return jsonResp({ user: updated });
+    }
+
+    // PUT /admin/doctors/:id  (super admin: update doctor incl email & password)
+    if (action === "doctors" && paramId && req.method === "PUT") {
+      const auth = await requireSuperAdmin(req, sb);
+      if (auth.resp) return auth.resp;
+
+      const body = await req.json();
+      const { email, password, full_name, phone, department_id, specialty, consultation_fee } = body;
+
+      const authUpdates: Record<string, unknown> = {};
+      if (email !== undefined) {
+        if (typeof email !== "string" || !email.includes("@")) {
+          return errorResp("A valid email is required");
+        }
+        authUpdates.email = email;
+      }
+      if (password !== undefined) {
+        if (typeof password !== "string" || password.length < 6) {
+          return errorResp("Password must be at least 6 characters");
+        }
+        authUpdates.password = password;
+      }
+
+      if (Object.keys(authUpdates).length > 0) {
+        const { error: authError } = await sb.auth.admin.updateUserById(
+          paramId,
+          authUpdates
+        );
+        if (authError) return errorResp(authError.message, 500);
+      }
+
+      const profileUpdates: Record<string, unknown> = {};
+      if (full_name !== undefined) profileUpdates.full_name = full_name;
+      if (phone !== undefined) profileUpdates.phone = phone;
+      if (email !== undefined) profileUpdates.email = email;
+
+      if (Object.keys(profileUpdates).length > 0) {
+        const { error: profileError } = await sb
+          .from("profiles")
+          .update(profileUpdates)
+          .eq("id", paramId);
+        if (profileError) return errorResp(profileError.message, 500);
+      }
+
+      const doctorUpdates: Record<string, unknown> = {};
+      if (department_id !== undefined) doctorUpdates.department_id = department_id || null;
+      if (specialty !== undefined) doctorUpdates.specialty = specialty;
+      if (consultation_fee !== undefined) doctorUpdates.consultation_fee = consultation_fee;
+
+      if (Object.keys(doctorUpdates).length > 0) {
+        const { error: doctorError } = await sb
+          .from("doctor")
+          .update(doctorUpdates)
+          .eq("id", paramId);
+        if (doctorError) return errorResp(doctorError.message, 500);
+      }
+
+      const { data: updated, error: fetchError } = await sb
+        .from("profiles")
+        .select("*, doctor(*)")
+        .eq("id", paramId)
+        .maybeSingle();
+      if (fetchError) return errorResp(fetchError.message, 500);
+
+      return jsonResp({ user: updated });
+    }
+
     return errorResp("Not found", 404);
   } catch (err) {
     return errorResp(err.message || "Internal server error", 500);

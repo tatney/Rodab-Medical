@@ -2,6 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import supabase from '../supabaseClient'
+import { requestPasswordReset } from '../api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -81,11 +82,9 @@ export default function LoginPage() {
     setForgotMsg('')
     setForgotLoading(true)
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/login`,
-      })
+      const { data, error } = await requestPasswordReset(forgotEmail)
       if (error) throw error
-      setForgotMsg('If an account exists with that email, a password reset link has been sent.')
+      setForgotMsg(data?.message || 'If an account exists with that email, a password reset link has been sent.')
     } catch {
       setForgotErr('Failed to send reset email. Please try again.')
     } finally {

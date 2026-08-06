@@ -176,8 +176,30 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       const body = await req.json();
 
-      const { full_name, phone, email, license_number, vehicle_id, is_available } =
+      const { full_name, phone, email, password, license_number, vehicle_id, is_available } =
         body;
+
+      const authUpdates: Record<string, unknown> = {};
+      if (email !== undefined) {
+        if (typeof email !== "string" || !email.includes("@")) {
+          return errorResp("A valid email is required");
+        }
+        authUpdates.email = email;
+      }
+      if (password !== undefined) {
+        if (typeof password !== "string" || password.length < 6) {
+          return errorResp("Password must be at least 6 characters");
+        }
+        authUpdates.password = password;
+      }
+
+      if (Object.keys(authUpdates).length > 0) {
+        const { error: authError } = await sb.auth.admin.updateUserById(
+          paramId,
+          authUpdates
+        );
+        if (authError) return errorResp(authError.message, 500);
+      }
 
       const profileUpdates: Record<string, unknown> = {};
       if (full_name !== undefined) profileUpdates.full_name = full_name;

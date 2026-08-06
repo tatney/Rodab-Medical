@@ -22,6 +22,7 @@ const ServicesPage = lazy(() => import('./pages/ServicesPage'));
 const TrackPage = lazy(() => import('./pages/TrackPage'));
 const FindDoctorPage = lazy(() => import('./pages/FindDoctorPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
 const SOSPage = lazy(() => import('./pages/SOSPage'));
 const FAQsPage = lazy(() => import('./pages/FAQsPage'));
@@ -90,6 +91,7 @@ function App() {
                 <Route path="/track/:id" element={<TrackPage />} />
                 <Route path="/find-doctor" element={<FindDoctorPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/reset-password" element={<ResetPasswordPage />} />
                 <Route path="/signup" element={<SignupPage />} />
                 <Route path="/sos" element={<SOSPage />} />
                 <Route path="/faqs" element={<FAQsPage />} />

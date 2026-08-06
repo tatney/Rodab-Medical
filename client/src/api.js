@@ -506,33 +506,17 @@ export const createDriverWithAccount = async (data) => {
 }
 
 export const updateDriver = async (id, data) => {
-  const profileUpdates = {}
-  if (data.full_name !== undefined) profileUpdates.full_name = data.full_name
-  if (data.phone !== undefined) profileUpdates.phone = data.phone
-  if (data.email !== undefined) profileUpdates.email = data.email
+  const payload = {}
+  if (data.full_name !== undefined) payload.full_name = data.full_name
+  if (data.phone !== undefined) payload.phone = data.phone
+  if (data.email !== undefined) payload.email = data.email
+  if (data.password !== undefined) payload.password = data.password
+  if (data.license_number !== undefined) payload.license_number = data.license_number
+  if (data.vehicle_id !== undefined) payload.vehicle_id = data.vehicle_id
+  if (data.is_available !== undefined) payload.is_available = data.is_available
 
-  if (Object.keys(profileUpdates).length > 0) {
-    const { error } = await supabase.from('profiles').update(profileUpdates).eq('id', id)
-    if (error) throw error
-  }
-
-  const driverUpdates = {}
-  if (data.license_number !== undefined) driverUpdates.license_number = data.license_number
-  if (data.vehicle_id !== undefined) driverUpdates.vehicle_id = data.vehicle_id
-  if (data.is_available !== undefined) driverUpdates.is_available = data.is_available
-
-  if (Object.keys(driverUpdates).length > 0) {
-    const { error } = await supabase.from('drivers').update(driverUpdates).eq('id', id)
-    if (error) throw error
-  }
-
-  const { data: result, error: fetchError } = await supabase
-    .from('profiles')
-    .select('*, driver(*)')
-    .eq('id', id)
-    .single()
-  if (fetchError) throw fetchError
-  return ok({ driver: result })
+  const json = await invokeEdge(`drivers/${id}`, 'PUT', payload)
+  return ok({ driver: json })
 }
 
 export const deleteDriver = async (id) => {
@@ -1074,7 +1058,7 @@ export const getAdminMessages = async (params) => {
 // ─── Admin Users ──────────────────────────────────────────────────────────────
 
 export const getAdminUsers = async (params) => {
-  let query = supabase.from('profiles').select('*')
+  let query = supabase.from('profiles').select('*, doctor(*), drivers(*)')
   if (params?.role) query = query.eq('role', params.role)
   const { data, error } = await query
   if (error) throw error
@@ -1104,6 +1088,16 @@ export const createDoctorAccount = async (data) => {
   return ok({ doctor: json.doctor })
 }
 
+export const updateAdminUser = async (id, data) => {
+  const json = await invokeEdge(`admin/users/${id}`, 'PUT', data)
+  return ok({ user: json.user })
+}
+
+export const updateDoctorAccount = async (id, data) => {
+  const json = await invokeEdge(`admin/doctors/${id}`, 'PUT', data)
+  return ok({ user: json.user })
+}
+
 export const deleteUser = async (id) => {
   const json = await invokeEdge(`admin/users/${id}`, 'DELETE')
   return ok(json)
@@ -1126,6 +1120,14 @@ export const rewardUser = async (id, amount, reason) => {
 
 export const deleteMyAccount = async () => {
   const json = await invokeEdge('delete-account', 'DELETE')
+  return ok(json)
+}
+
+export const requestPasswordReset = async (email) => {
+  const json = await invokeEdge('forgot-password', 'POST', {
+    email,
+    redirectTo: `${window.location.origin}/reset-password`,
+  })
   return ok(json)
 }
 
@@ -1621,11 +1623,14 @@ const api = {
   getAdminUsers,
   createAdminUser,
   createDoctorAccount,
+  updateAdminUser,
+  updateDoctorAccount,
   deleteUser,
   flagUser,
   unflagUser,
   rewardUser,
   deleteMyAccount,
+  requestPasswordReset,
   getAnalytics,
   getFormTemplates,
   getFormTemplatesAdmin,
