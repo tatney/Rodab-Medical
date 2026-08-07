@@ -411,7 +411,7 @@ const SuperAdminDashboard = () => {
   };
 
   const openEditUser = (u) => {
-    const doctor = Array.isArray(u.doctor) ? u.doctor[0] : u.doctor;
+    const doctor = Array.isArray(u.doctors) ? u.doctors[0] : u.doctors;
     const driver = Array.isArray(u.drivers) ? u.drivers[0] : u.drivers;
     setEditUser(u);
     setEditForm({

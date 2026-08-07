@@ -34,7 +34,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const result = await Promise.all(
         (departments || []).map(async (dept) => {
           const { data: doctors } = await sb
-            .from("doctor")
+            .from("doctors")
             .select("*, profiles!user_id(full_name, email)")
             .eq("department_id", dept.id);
           return { ...dept, doctors: doctors || [] };

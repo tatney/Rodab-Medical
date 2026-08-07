@@ -1049,7 +1049,7 @@ export const getAdminMessages = async (params) => {
 // ─── Admin Users ──────────────────────────────────────────────────────────────
 
 export const getAdminUsers = async (params) => {
-  let query = supabase.from('profiles').select('*, doctor(*), drivers(*)')
+  let query = supabase.from('profiles').select('*, doctors(*), drivers(*)')
   if (params?.role) query = query.eq('role', params.role)
   const { data, error } = await query
   if (error) throw error

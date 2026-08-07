@@ -122,7 +122,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
 
       const { data: doctor, error: doctorError } = await sb
-        .from("doctor")
+        .from("doctors")
         .insert({
           id: userId,
           user_id: userId,
@@ -319,7 +319,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       const { data: updated, error: fetchError } = await sb
         .from("profiles")
-        .select("*, doctor(*), drivers(*)")
+        .select("*, doctors(*), drivers(*)")
         .eq("id", paramId)
         .maybeSingle();
       if (fetchError) return errorResp(fetchError.message, 500);
@@ -375,7 +375,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       if (Object.keys(doctorUpdates).length > 0) {
         const { error: doctorError } = await sb
-          .from("doctor")
+          .from("doctors")
           .update(doctorUpdates)
           .eq("id", paramId);
         if (doctorError) return errorResp(doctorError.message, 500);
@@ -383,7 +383,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       const { data: updated, error: fetchError } = await sb
         .from("profiles")
-        .select("*, doctor(*)")
+        .select("*, doctors(*)")
         .eq("id", paramId)
         .maybeSingle();
       if (fetchError) return errorResp(fetchError.message, 500);
