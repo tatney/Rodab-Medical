@@ -478,7 +478,7 @@ export const updateRideStatus = async (id, data) => {
 export const getDrivers = async (params) => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('*, driver(*)')
+    .select('*, drivers(*)')
     .eq('role', 'driver')
   if (error) throw error
   return ok({ drivers: data || [] })
@@ -533,11 +533,32 @@ export const updateDriverLocation = async (id, data) => {
 
 export const getAvailableDrivers = async () => {
   const { data, error } = await supabase
-    .from('drivers')
-    .select('*, profiles(*)')
-    .eq('is_available', true)
+    .from('profiles')
+    .select('*, drivers(*)')
+    .eq('role', 'driver')
   if (error) throw error
-  return ok({ drivers: data || [], data: data || [] })
+
+  const drivers = (data || [])
+    .filter((p) => {
+      const dr = p.drivers?.[0]
+      return !dr || dr.is_available !== false
+    })
+    .map((p) => {
+      const dr = p.drivers?.[0] || {}
+      return {
+        id: dr.id || p.id,
+        profile_id: dr.profile_id || p.id,
+        full_name: dr.full_name || p.full_name,
+        phone: dr.phone || p.phone,
+        license_number: dr.license_number,
+        vehicle_id: dr.vehicle_id,
+        is_available: dr.is_available !== false,
+        status: dr.status,
+        email: p.email,
+      }
+    })
+
+  return ok({ drivers, data: drivers })
 }
 
 // ─── Vehicles ─────────────────────────────────────────────────────────────────

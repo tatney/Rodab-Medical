@@ -1,41 +1,14 @@
 ﻿import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react'
 import { getActiveEmergencies } from '../api'
 import { useAuth } from './AuthContext'
+import { startPremiumAlert } from '../utils/alertSound'
 
 const EmergencyContext = createContext(null)
 
 function playSiren() {
   try {
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)()
-    const osc1 = audioCtx.createOscillator()
-    const osc2 = audioCtx.createOscillator()
-    const gainNode = audioCtx.createGain()
-
-    osc1.type = 'sine'
-    osc2.type = 'sine'
-    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime)
-
-    osc1.connect(gainNode)
-    osc2.connect(gainNode)
-    gainNode.connect(audioCtx.destination)
-
-    const now = audioCtx.currentTime
-    for (let i = 0; i < 6; i++) {
-      osc1.frequency.setValueAtTime(800, now + i * 0.5)
-      osc1.frequency.linearRampToValueAtTime(1200, now + i * 0.5 + 0.25)
-      osc1.frequency.linearRampToValueAtTime(800, now + i * 0.5 + 0.5)
-      osc2.frequency.setValueAtTime(600, now + i * 0.5)
-      osc2.frequency.linearRampToValueAtTime(1000, now + i * 0.5 + 0.25)
-      osc2.frequency.linearRampToValueAtTime(600, now + i * 0.5 + 0.5)
-    }
-
-    gainNode.gain.setValueAtTime(0.3, now + 2.5)
-    gainNode.gain.linearRampToValueAtTime(0, now + 3.5)
-
-    osc1.start(now)
-    osc2.start(now)
-    osc1.stop(now + 3.5)
-    osc2.stop(now + 3.5)
+    const handle = startPremiumAlert({ loop: false })
+    handle.start()
   } catch (err) {
     console.warn('Siren audio failed:', err)
   }

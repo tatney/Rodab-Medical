@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { getActiveEmergencies, getDriverActiveRides, getAvailableDrivers, assignDriver, createNotification, getNotifications, markNotificationRead, cancelAmbulanceRequest } from '../api';
 import supabase from '../supabaseClient';
 import { useToast } from './ToastContext';
+import { startPremiumAlert } from '../utils/alertSound';
 
 const EmergencyAlertOverlay = () => {
   const { user } = useAuth();
@@ -23,9 +24,7 @@ const EmergencyAlertOverlay = () => {
 
   const toast = useToast();
 
-  const audioCtxRef = useRef(null);
-  const oscRefs = useRef([]);
-  const beepIntervalRef = useRef(null);
+  const alertRef = useRef(null);
   const audioSuspendedRef = useRef(false);
   const [cancelling, setCancelling] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -67,16 +66,16 @@ const EmergencyAlertOverlay = () => {
 
   const playAlert = () => {
     try {
-      if (audioCtxRef.current) audioCtxRef.current.close();
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      audioCtxRef.current = ctx;
-      oscRefs.current = [];
+      stopAlert();
+      const handle = startPremiumAlert({ loop: true });
+      alertRef.current = handle;
 
-      if (ctx.state === 'suspended') {
+      if (handle.suspended) {
         audioSuspendedRef.current = true;
         setSoundEnabled(false);
         const resumeOnClick = () => {
-          ctx.resume().then(() => {
+          handle.resume().then(() => {
+            handle.start();
             audioSuspendedRef.current = false;
             setSoundEnabled(true);
           });
@@ -86,41 +85,16 @@ const EmergencyAlertOverlay = () => {
       }
       audioSuspendedRef.current = false;
       setSoundEnabled(true);
-
-      const beep = () => {
-        if (!ctx || ctx.state === 'closed') return;
-        for (let b = 0; b < 3; b++) {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(880, ctx.currentTime + b * 0.2);
-          gain.gain.setValueAtTime(0, ctx.currentTime + b * 0.2);
-          gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + b * 0.2 + 0.02);
-          gain.gain.linearRampToValueAtTime(0, ctx.currentTime + b * 0.2 + 0.15);
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.start(ctx.currentTime + b * 0.2);
-          osc.stop(ctx.currentTime + b * 0.2 + 0.15);
-          oscRefs.current.push(osc);
-        }
-      };
-
-      beep();
-      clearInterval(beepIntervalRef.current);
-      beepIntervalRef.current = setInterval(beep, 1500);
+      handle.start();
     } catch (err) {
       console.warn('Alert audio failed:', err);
     }
   };
 
   const stopAlert = () => {
-    clearInterval(beepIntervalRef.current);
-    beepIntervalRef.current = null;
-    oscRefs.current.forEach((o) => { try { o.stop(); } catch {} });
-    oscRefs.current = [];
-    if (audioCtxRef.current) {
-      try { audioCtxRef.current.close(); } catch {}
-      audioCtxRef.current = null;
+    if (alertRef.current) {
+      alertRef.current.stop();
+      alertRef.current = null;
     }
   };
 
