@@ -103,6 +103,8 @@ const SuperAdminDashboard = () => {
     gender: "male",
   });
   const [adminSubmitting, setAdminSubmitting] = useState(false);
+  const [adminSearch, setAdminSearch] = useState("");
+  const [adminRoleFilter, setAdminRoleFilter] = useState("");
 
   /* ── Users ── */
   const [users, setUsers] = useState([]);
@@ -987,113 +989,183 @@ const SuperAdminDashboard = () => {
   };
 
   /* ── Admins Tab ── */
-  const renderAdmins = () => (
-    <div className="admins-section">
-      <h3>Create Admin</h3>
-      <form className="create-form" onSubmit={handleCreateAdmin}>
-        <div className="form-row">
-          <div className="form-group">
-            <label>Full Name</label>
-            <input
-              type="text"
-              name="fullName"
-              value={adminForm.fullName}
-              onChange={handleAdminChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={adminForm.email}
-              onChange={handleAdminChange}
-              required
-            />
-          </div>
-        </div>
-        <div className="form-row">
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              name="password"
-              value={adminForm.password}
-              onChange={handleAdminChange}
-              required
-              minLength={6}
-            />
-          </div>
-          <div className="form-group">
-            <label>Age</label>
-            <input
-              type="number"
-              name="age"
-              value={adminForm.age}
-              onChange={handleAdminChange}
-              min={18}
-              max={120}
-            />
-          </div>
-          <div className="form-group">
-            <label>Gender</label>
-            <select name="gender" value={adminForm.gender} onChange={handleAdminChange}>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={adminSubmitting}>
-          {adminSubmitting ? "Creating…" : "Create Admin"}
-        </button>
-      </form>
+  const renderAdmins = () => {
+    const q = adminSearch.trim().toLowerCase();
+    const filtered = admins.filter((a) => {
+      if (adminRoleFilter && a.role !== adminRoleFilter) return false;
+      if (q) {
+        const haystack = [
+          a.full_name,
+          a.fullName,
+          a.name,
+          a.email,
+          a.id,
+          a.gender,
+        ].filter(Boolean).join(" ").toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+      return true;
+    });
 
-      <h3>All Admins</h3>
-      <div className="table-wrapper">
-        <table className="data-table" aria-label="Admins">
-          <caption className="sr-only">All Admins</caption>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {admins.map((a) => (
-              <tr key={a.id || a._id}>
-                <td>{a.fullName || a.name}</td>
-                <td>{a.email}</td>
-                <td>
-                  <span className={`role-chip role-${a.role}`}>{a.role}</span>
-                </td>
-                <td>
-                  {a.role !== "super_admin" && (
-                    <button
-                      className="btn btn-danger btn-sm"
-                      onClick={() => handleDeleteAdmin(a.id || a._id, a.role)}
-                    >
-                      Delete
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-            {admins.length === 0 && (
+    return (
+      <div className="admins-section">
+        <h3>Create Admin</h3>
+        <form className="create-form" onSubmit={handleCreateAdmin}>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Full Name</label>
+              <input
+                type="text"
+                name="fullName"
+                value={adminForm.fullName}
+                onChange={handleAdminChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                value={adminForm.email}
+                onChange={handleAdminChange}
+                required
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                name="password"
+                value={adminForm.password}
+                onChange={handleAdminChange}
+                required
+                minLength={8}
+              />
+            </div>
+            <div className="form-group">
+              <label>Age</label>
+              <input
+                type="number"
+                name="age"
+                value={adminForm.age}
+                onChange={handleAdminChange}
+                min={18}
+                max={120}
+              />
+            </div>
+            <div className="form-group">
+              <label>Gender</label>
+              <select name="gender" value={adminForm.gender} onChange={handleAdminChange}>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" className="btn btn-primary" disabled={adminSubmitting}>
+            {adminSubmitting ? "Creating…" : "Create Admin"}
+          </button>
+        </form>
+
+        <h3>Manage Accounts</h3>
+        <form
+          className="create-form"
+          onSubmit={(e) => e.preventDefault()}
+          style={{ marginBottom: 12 }}
+        >
+          <div className="form-row">
+            <div className="form-group">
+              <label>Search</label>
+              <input
+                type="text"
+                value={adminSearch}
+                onChange={(e) => setAdminSearch(e.target.value)}
+                placeholder="Search by name, ID or gender"
+              />
+            </div>
+            <div className="form-group">
+              <label>Role</label>
+              <select
+                value={adminRoleFilter}
+                onChange={(e) => setAdminRoleFilter(e.target.value)}
+              >
+                <option value="">All roles</option>
+                <option value="admin">Admin</option>
+                <option value="doctor">Doctor</option>
+                <option value="driver">Driver</option>
+                <option value="user">User</option>
+                <option value="super_admin">Super Admin</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label>&nbsp;</label>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setAdminSearch("");
+                  setAdminRoleFilter("");
+                }}
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <h3>All Accounts ({filtered.length})</h3>
+        <div className="table-wrapper">
+          <table className="data-table" aria-label="Admins">
+            <caption className="sr-only">All Accounts</caption>
+            <thead>
               <tr>
-                <td colSpan={4} className="muted text-center">
-                  No admins found.
-                </td>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Gender</th>
+                <th>Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((a) => (
+                <tr key={a.id || a._id}>
+                  <td>{a.fullName || a.full_name || a.name}</td>
+                  <td>{a.email}</td>
+                  <td>
+                    <span className={`role-chip role-${a.role}`}>{a.role}</span>
+                  </td>
+                  <td>{a.gender || "—"}</td>
+                  <td className="actions-cell">
+                    <button className="btn btn-edit btn-sm" onClick={() => openEditUser(a)}>
+                      Edit
+                    </button>
+                    {a.role !== "super_admin" && (
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDeleteAdmin(a.id || a._id, a.role)}
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="muted text-center">
+                    No accounts found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   /* ── Users Tab ── */
   const renderUsers = () => {
@@ -1113,6 +1185,7 @@ const SuperAdminDashboard = () => {
           u.id,
           u.national_id,
           u.medical_id,
+          u.gender,
         ].filter(Boolean).join(" ").toLowerCase();
         if (!haystack.includes(q)) return false;
       }
@@ -1344,166 +1417,170 @@ const SuperAdminDashboard = () => {
           </div>
         )}
 
-        {editUser && (
-          <div
-            style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 40, overflowY: 'auto' }}
-            onClick={() => setEditUser(null)}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Edit account"
-          >
-            <div
-              style={{ backgroundColor: '#fff', borderRadius: 14, maxWidth: 560, width: '100%', padding: 28 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 700 }}>
-                Edit {editUser.role === "doctor" ? "Doctor" : editUser.role === "driver" ? "Driver" : "Admin"} — {editUser.full_name || editUser.email}
-              </h3>
-              <form onSubmit={handleEditUserSubmit}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Full Name</label>
-                    <input
-                      type="text"
-                      name="full_name"
-                      value={editForm.full_name}
-                      onChange={handleEditChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Phone</label>
-                    <input
-                      type="text"
-                      name="phone"
-                      value={editForm.phone}
-                      onChange={handleEditChange}
-                    />
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={editForm.email}
-                      onChange={handleEditChange}
-                      required
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>New Password</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={editForm.password}
-                      onChange={handleEditChange}
-                      placeholder="Leave blank to keep current"
-                      minLength={6}
-                      autoComplete="new-password"
-                    />
-                  </div>
-                </div>
+      </div>
+    );
+  };
 
-                {editUser.role === "doctor" && (
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Department</label>
-                      <select
-                        name="department_id"
-                        value={editForm.department_id || ""}
-                        onChange={handleEditChange}
-                      >
-                        <option value="">None</option>
-                        {departments.map((d) => (
-                          <option key={d.id} value={d.id}>{d.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Specialty</label>
-                      <input
-                        type="text"
-                        name="specialty"
-                        value={editForm.specialty}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Consultation Fee</label>
-                      <input
-                        type="number"
-                        name="consultation_fee"
-                        value={editForm.consultation_fee}
-                        onChange={handleEditChange}
-                        min="0"
-                        step="any"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {editUser.role === "driver" && (
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>License Number</label>
-                      <input
-                        type="text"
-                        name="license_number"
-                        value={editForm.license_number}
-                        onChange={handleEditChange}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Vehicle</label>
-                      <select
-                        name="vehicle_id"
-                        value={editForm.vehicle_id || ""}
-                        onChange={handleEditChange}
-                      >
-                        <option value="">None</option>
-                        {vehicles.map((v) => (
-                          <option key={v.id} value={v.id}>{v.plate_number || v.plateNumber}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <input
-                          type="checkbox"
-                          name="is_available"
-                          checked={!!editForm.is_available}
-                          onChange={handleEditChange}
-                        />
-                        Available
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
-                  {editForm.password
-                    ? "A new password will be set. The account holder must use it on next login."
-                    : "Leave the password field blank to keep the current password."}
-                </p>
-
-                <div className="form-actions" style={{ marginTop: 16 }}>
-                  <button type="submit" className="btn btn-primary" disabled={editSubmitting}>
-                    {editSubmitting ? "Saving…" : "Save Changes"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setEditUser(null)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+  const renderEditModal = () => {
+    if (!editUser) return null;
+    return (
+      <div
+        style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15,23,42,0.5)', zIndex: 1000, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: 40, overflowY: 'auto' }}
+        onClick={() => setEditUser(null)}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit account"
+      >
+        <div
+          style={{ backgroundColor: '#fff', borderRadius: 14, maxWidth: 560, width: '100%', padding: 28 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <h3 style={{ margin: '0 0 16px', fontSize: 18, fontWeight: 700 }}>
+            Edit {editUser.role === "doctor" ? "Doctor" : editUser.role === "driver" ? "Driver" : "Admin"} — {editUser.full_name || editUser.email}
+          </h3>
+          <form onSubmit={handleEditUserSubmit}>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  name="full_name"
+                  value={editForm.full_name}
+                  onChange={handleEditChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Phone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={editForm.phone}
+                  onChange={handleEditChange}
+                />
+              </div>
             </div>
-          </div>
-        )}
+            <div className="form-row">
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editForm.email}
+                  onChange={handleEditChange}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>New Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={editForm.password}
+                  onChange={handleEditChange}
+                  placeholder="Leave blank to keep current"
+                  minLength={6}
+                  autoComplete="new-password"
+                />
+              </div>
+            </div>
+
+            {editUser.role === "doctor" && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Department</label>
+                  <select
+                    name="department_id"
+                    value={editForm.department_id || ""}
+                    onChange={handleEditChange}
+                  >
+                    <option value="">None</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Specialty</label>
+                  <input
+                    type="text"
+                    name="specialty"
+                    value={editForm.specialty}
+                    onChange={handleEditChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Consultation Fee</label>
+                  <input
+                    type="number"
+                    name="consultation_fee"
+                    value={editForm.consultation_fee}
+                    onChange={handleEditChange}
+                    min="0"
+                    step="any"
+                  />
+                </div>
+              </div>
+            )}
+
+            {editUser.role === "driver" && (
+              <div className="form-row">
+                <div className="form-group">
+                  <label>License Number</label>
+                  <input
+                    type="text"
+                    name="license_number"
+                    value={editForm.license_number}
+                    onChange={handleEditChange}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Vehicle</label>
+                  <select
+                    name="vehicle_id"
+                    value={editForm.vehicle_id || ""}
+                    onChange={handleEditChange}
+                  >
+                    <option value="">None</option>
+                    {vehicles.map((v) => (
+                      <option key={v.id} value={v.id}>{v.plate_number || v.plateNumber}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <input
+                      type="checkbox"
+                      name="is_available"
+                      checked={!!editForm.is_available}
+                      onChange={handleEditChange}
+                    />
+                    Available
+                  </label>
+                </div>
+              </div>
+            )}
+
+            <p className="muted" style={{ fontSize: 12, marginTop: 8 }}>
+              {editForm.password
+                ? "A new password will be set. The account holder must use it on next login."
+                : "Leave the password field blank to keep the current password."}
+            </p>
+
+            <div className="form-actions" style={{ marginTop: 16 }}>
+              <button type="submit" className="btn btn-primary" disabled={editSubmitting}>
+                {editSubmitting ? "Saving…" : "Save Changes"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setEditUser(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     );
   };
@@ -2360,6 +2437,8 @@ const SuperAdminDashboard = () => {
             renderTabContent()
           )}
         </section>
+
+        {renderEditModal()}
       </main>
     </div>
   );
