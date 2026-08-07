@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Sidebar, { roleConfig } from '../../components/Sidebar';
 import Map from '../../components/Map';
@@ -55,6 +55,7 @@ const btnStyle = (color, bg) => ({
 export default function DriverDashboard() {
   const { user } = useAuth();
   const { tab } = useParams();
+  const navigate = useNavigate();
   const validKeys = roleConfig.driver.tabs.map((t) => t.key);
   const activeTab = validKeys.includes(tab) ? tab : 'rides';
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -65,6 +66,7 @@ export default function DriverDashboard() {
   const [hospitals, setHospitals] = useState([]);
   const [driverLocation, setDriverLocation] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
+  const [navTarget, setNavTarget] = useState(null);
 
   const locationTimerRef = useRef(null);
 
@@ -141,6 +143,58 @@ export default function DriverDashboard() {
       address: h.address,
     }));
 
+  // ── Navigation helpers ──────────────────────────────────
+  const nearestHospitalTo = (lat, lng) => {
+    let best = null;
+    let bestD = Infinity;
+    hospitals.forEach((h) => {
+      if (!h.latitude || !h.longitude) return;
+      const d = Math.hypot(h.latitude - lat, h.longitude - lng);
+      if (d < bestD) {
+        bestD = d;
+        best = h;
+      }
+    });
+    return best;
+  };
+
+  const handleNavigate = (ride, type) => {
+    const anchor =
+      ride.latitude != null && ride.longitude != null
+        ? { lat: ride.latitude, lng: ride.longitude }
+        : driverLocation;
+    const coords = type === 'patient'
+      ? { lat: ride.latitude, lng: ride.longitude }
+      : (() => {
+          if (!anchor) return null;
+          const h = nearestHospitalTo(anchor.lat, anchor.lng);
+          return h ? { lat: h.latitude, lng: h.longitude } : null;
+        })();
+    if (type === 'patient' && (coords.lat == null || coords.lng == null)) {
+      toast.error('Patient coordinates are not available.');
+      return;
+    }
+    if (type === 'hospital' && (!coords || coords.lat == null || coords.lng == null)) {
+      toast.error('No hospital coordinates available for navigation.');
+      return;
+    }
+    const hosp = type === 'hospital' ? nearestHospitalTo(anchor.lat, anchor.lng) : null;
+    setNavTarget({
+      rideId: ride.id,
+      type,
+      ...coords,
+      label: type === 'patient'
+        ? `Patient: ${ride.patient_name || 'Unknown'}`
+        : `Hospital: ${hosp?.name || 'Nearest hospital'}`,
+    });
+    if (activeTab !== 'map') navigate('/driver/map');
+  };
+
+  const routeDestination =
+    navTarget && navTarget.lat != null && navTarget.lng != null
+      ? { lat: navTarget.lat, lng: navTarget.lng }
+      : null;
+
   // ── Handlers ────────────────────────────────────────────
   const handleStatusUpdate = async (rideId, newStatus) => {
     setUpdatingId(rideId);
@@ -198,6 +252,7 @@ export default function DriverDashboard() {
               markers={patientMarkers}
               hospitals={hospitalMarkers}
               driverLocation={driverLocation}
+              routeDestination={routeDestination}
               showRoute={activeRides.length > 0}
               height="320px"
             />
@@ -275,6 +330,23 @@ export default function DriverDashboard() {
                       <div style={valueStyle}>{ride.assigned_at ? new Date(ride.assigned_at).toLocaleString() : ride.created_at ? new Date(ride.created_at).toLocaleString() : '-'}</div>
                     </div>
                   </div>
+
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
+                    {ride.latitude && ride.longitude && (
+                      <button
+                        onClick={() => handleNavigate(ride, 'patient')}
+                        style={btnStyle('#0b2a57', '#e0e7ff')}
+                      >
+                        🧭 Navigate to Patient
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleNavigate(ride, 'hospital')}
+                      style={btnStyle('#166534', '#dcfce7')}
+                    >
+                      🏥 Navigate to Hospital
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -329,10 +401,43 @@ export default function DriverDashboard() {
               </button>
             ) : null;
           })}
+          {activeRides.map((ride) => (
+            <button
+              key={`nav-${ride.id}`}
+              onClick={() => handleNavigate(ride, 'patient')}
+              disabled={!ride.latitude || !ride.longitude}
+              style={btnStyle('#0b2a57', '#e0e7ff')}
+            >
+              🧭 Navigate: {ride.patient_name || 'Patient'}
+            </button>
+          ))}
+          {activeRides.map((ride) => (
+            <button
+              key={`navh-${ride.id}`}
+              onClick={() => handleNavigate(ride, 'hospital')}
+              style={btnStyle('#166534', '#dcfce7')}
+            >
+              🏥 To Hospital
+            </button>
+          ))}
         </div>
       )}
 
       {/* Full page map */}
+      {navTarget && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 10, backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 15 }}>🧭</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: '#1e3a8a' }}>Navigating to:</span>
+          <span style={{ fontSize: 13, color: '#3730a3', flex: 1 }}>{navTarget.label}</span>
+          <button
+            onClick={() => setNavTarget(null)}
+            style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #c7d2fe', backgroundColor: 'white', color: '#1e3a8a', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          >
+            Clear route
+          </button>
+        </div>
+      )}
+
       <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #e5e7eb', height: 'calc(100vh - 220px)', minHeight: 400 }}>
         <Map
           center={driverLocation ? [driverLocation.lat, driverLocation.lng] : [33.8938, 35.5018]}
@@ -340,6 +445,7 @@ export default function DriverDashboard() {
           markers={patientMarkers}
           hospitals={hospitalMarkers}
           driverLocation={driverLocation}
+          routeDestination={routeDestination}
           showRoute={activeRides.length > 0}
           height="100%"
         />

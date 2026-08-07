@@ -10,15 +10,19 @@ const Map = ({
   zoom = 13,
   markers = [],
   hospitals = [],
+  drivers = [],
+  driverPaths = [],
   height = '400px',
   showRoute = false,
   driverLocation = null,
+  routeDestination = null,
   onMapClick = null,
 }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
   const routeLayerRef = useRef(null);
+  const pathsLayerRef = useRef(null);
   const [mapMode, setMapMode] = useState('map');
   const [mapReady, setMapReady] = useState(false);
   const [L, setL] = useState(null);
@@ -63,6 +67,7 @@ const Map = ({
 
     markersLayerRef.current = L.layerGroup().addTo(map);
     routeLayerRef.current = L.layerGroup().addTo(map);
+    pathsLayerRef.current = L.layerGroup().addTo(map);
 
     mapInstanceRef.current = map;
     setMapReady(true);
@@ -174,6 +179,40 @@ const Map = ({
       bounds.push([hospital.lat, hospital.lng]);
     });
 
+    // Fleet ambulance markers
+    drivers.forEach((driver) => {
+      if (driver.lat == null || driver.lng == null) return;
+      const color = driver.color || '#6b7280';
+      const icon = createDivIcon(color, 32, driver.iconLabel || 'A');
+      if (!icon) return;
+
+      const html = driver.pulse
+        ? `<div class="pulse-marker-wrap"><span class="pulse-marker-dot" style="background:${color};"></span><div class="pulse-marker-html">${icon.options.html}</div></div>`
+        : icon.options.html;
+
+      const pulsingIcon = driver.pulse
+        ? L.divIcon({
+            html,
+            className: 'custom-marker',
+            iconSize: icon.options.iconSize,
+            iconAnchor: icon.options.iconAnchor,
+            popupAnchor: icon.options.popupAnchor,
+          })
+        : icon;
+
+      L.marker([driver.lat, driver.lng], { icon: pulsingIcon })
+        .addTo(layer)
+        .bindPopup(
+          `<div style="font-family:system-ui;min-width:190px;">
+            <strong style="font-size:14px;">${escapeHtml(driver.name || 'Ambulance')}</strong><br/>
+            <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${color}20;color:${color};margin:4px 0;">${escapeHtml(driver.statusLabel || (driver.pulse ? 'ON RIDE' : driver.color === '#16a34a' ? 'AVAILABLE' : 'OFF DUTY'))}</span>
+            ${driver.plate ? `<br/><span style="color:#666;font-size:12px;">${escapeHtml(driver.plate)}</span>` : ''}
+            ${driver.lastUpdate ? `<br/><span style="color:#9ca3af;font-size:11px;">Updated ${escapeHtml(driver.lastUpdate)}</span>` : ''}
+          </div>`
+        );
+      bounds.push([driver.lat, driver.lng]);
+    });
+
     // Driver location
     if (driverLocation) {
       const driverIcon = createDivIcon('#1e3a5f', 28, 'D');
@@ -196,7 +235,25 @@ const Map = ({
     } else if (bounds.length === 1) {
       mapInstanceRef.current.setView(bounds[0], zoom);
     }
-  }, [markers, hospitals, driverLocation, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [markers, hospitals, drivers, driverLocation, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Movement path polylines
+  useEffect(() => {
+    if (!L || !mapReady || !mapInstanceRef.current) return;
+
+    const layer = pathsLayerRef.current;
+    layer.clearLayers();
+
+    driverPaths.forEach((path) => {
+      if (!Array.isArray(path) || path.length < 2) return;
+      L.polyline(path, {
+        color: path.color || '#0b2a57',
+        weight: 4,
+        opacity: 0.55,
+        dashArray: '8 8',
+      }).addTo(layer);
+    });
+  }, [driverPaths, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // OSRM Route display
   useEffect(() => {
@@ -204,13 +261,20 @@ const Map = ({
 
     routeLayerRef.current.clearLayers();
 
-    if (showRoute && driverLocation && markers.length >= 1) {
+    if (showRoute && driverLocation && (routeDestination || markers.length >= 1)) {
       const origin = { lat: driverLocation.lat, lng: driverLocation.lng };
-      const destination = markers[markers.length - 1];
 
-      const waypoints = markers.length > 1
-        ? markers.slice(0, -1).map((m) => `${m.lng},${m.lat}`).join(';')
-        : '';
+      let destination;
+      let waypoints = '';
+
+      if (routeDestination && routeDestination.lat != null && routeDestination.lng != null) {
+        destination = routeDestination;
+      } else {
+        destination = markers[markers.length - 1];
+        waypoints = markers.length > 1
+          ? markers.slice(0, -1).map((m) => `${m.lng},${m.lat}`).join(';')
+          : '';
+      }
 
       const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat}${
         waypoints ? ';' + waypoints : ''
@@ -247,7 +311,7 @@ const Map = ({
           console.error('Route fetch error:', err);
         });
     }
-  }, [showRoute, markers, driverLocation, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showRoute, markers, driverLocation, routeDestination, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ position: 'relative', height, width: '100%', borderRadius: '12px', overflow: 'hidden' }}>
@@ -306,6 +370,28 @@ const Map = ({
               Driver
             </div>
           )}
+          {drivers.length > 0 && (
+            <>
+              <div style={styles.legendItem}>
+                <span style={{ ...styles.legendDot, backgroundColor: '#dc2626' }} />
+                On ride
+              </div>
+              <div style={styles.legendItem}>
+                <span style={{ ...styles.legendDot, backgroundColor: '#16a34a' }} />
+                Available
+              </div>
+              <div style={styles.legendItem}>
+                <span style={{ ...styles.legendDot, backgroundColor: '#6b7280' }} />
+                Off duty
+              </div>
+            </>
+          )}
+          {driverPaths.length > 0 && (
+            <div style={styles.legendItem}>
+              <span style={{ ...styles.legendDot, backgroundColor: '#0b2a57' }} />
+              Movement path
+            </div>
+          )}
           {hospitals.length > 0 && (
             <div style={styles.legendItem}>
               <span style={{ ...styles.legendDot, backgroundColor: '#16a34a' }} />
@@ -331,6 +417,36 @@ const Map = ({
         .custom-marker {
           background: transparent !important;
           border: none !important;
+        }
+        .pulse-marker-wrap {
+          position: relative;
+          width: 32px;
+          height: 45px;
+        }
+        .pulse-marker-dot {
+          position: absolute;
+          left: 50%;
+          bottom: 0;
+          transform: translateX(-50%);
+          width: 14px;
+          height: 14px;
+          border-radius: 50%;
+          box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5);
+          animation: livePulse 1.6s infinite;
+          z-index: 1;
+        }
+        .pulse-marker-html {
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+        .pulse-marker-html svg {
+          filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35));
+        }
+        @keyframes livePulse {
+          0%   { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.55); }
+          70%  { box-shadow: 0 0 0 12px rgba(220, 38, 38, 0); }
+          100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
         }
       `}</style>
     </div>

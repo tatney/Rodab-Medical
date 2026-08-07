@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar, { roleConfig } from '../../components/Sidebar';
 import Map from '../../components/Map';
+import LiveMonitor from '../../components/LiveMonitor';
 import NotificationBell from '../../components/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -1123,15 +1124,18 @@ const AdminDashboard = () => {
         <table className="data-table" aria-label="Drivers">
           <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>License</th><th>Vehicle</th></tr></thead>
           <tbody>
-            {drivers.map((dr) => (
-              <tr key={dr.id || dr._id}>
-                <td>{dr.fullName || dr.name}</td>
-                <td>{dr.email}</td>
-                <td>{dr.phone || "—"}</td>
-                <td className="mono">{dr.licenseNumber || dr.license_number || "—"}</td>
-                <td>{dr.vehiclePlate || dr.vehicle?.plateNumber || "—"}</td>
-              </tr>
-            ))}
+            {drivers.map((dr) => {
+              const drv = Array.isArray(dr.drivers) ? dr.drivers[0] : dr.drivers || {};
+              return (
+                <tr key={dr.id || dr._id}>
+                  <td>{dr.full_name || dr.fullName || dr.name}</td>
+                  <td>{dr.email}</td>
+                  <td>{dr.phone || "—"}</td>
+                  <td className="mono">{drv.license_number || dr.licenseNumber || "—"}</td>
+                  <td>{dr.vehiclePlate || dr.vehicle?.plateNumber || drv.vehicle_id || "—"}</td>
+                </tr>
+              );
+            })}
             {drivers.length === 0 && <EmptyRow colSpan={5} msg="No drivers yet." />}
           </tbody>
         </table>
@@ -1145,8 +1149,8 @@ const AdminDashboard = () => {
   const renderEmergency = () => (
     <div className="emergency-section">
       <h3>Live Emergency Monitoring</h3>
-      <div className="emergency-map-container">
-        <Map markers={emergencies.filter((e) => e.latitude && e.longitude).map((e) => ({ id: e.id || e._id, name: `Emergency - ${e.patient_name || "Unknown"}`, lat: e.latitude, lng: e.longitude, type: "emergency", priority: e.emergency_level || "normal" }))} height="450px" />
+      <div className="live-monitor-wrap">
+        <LiveMonitor hospitals={hospitals} />
       </div>
       <h3>Active Emergencies ({emergencies.length})</h3>
       <div className="emergency-cards">

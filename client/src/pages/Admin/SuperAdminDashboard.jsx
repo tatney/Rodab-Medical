@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar, { roleConfig } from '../../components/Sidebar';
 import Map from '../../components/Map';
+import LiveMonitor from '../../components/LiveMonitor';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ToastContext';
 import {
@@ -1760,20 +1761,8 @@ const SuperAdminDashboard = () => {
     <div className="emergency-section">
       <h3>Live Emergency Monitoring</h3>
 
-      <div className="emergency-map-container">
-        <Map
-          markers={emergencies
-            .filter((e) => e.latitude && e.longitude)
-            .map((e) => ({
-              id: e.id || e._id,
-              name: `Emergency – ${e.patient_name || "Unknown"}`,
-              lat: e.latitude,
-              lng: e.longitude,
-              type: "emergency",
-              priority: e.emergency_level || e.priority || "normal",
-            }))}
-          height="450px"
-        />
+      <div className="live-monitor-wrap">
+        <LiveMonitor hospitals={hospitals} />
       </div>
 
       <h3>Active Emergencies ({emergencies.length})</h3>
