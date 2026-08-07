@@ -7,6 +7,8 @@ import {
   requireAuth,
   requireAdmin,
   requireSuperAdmin,
+  validateEmail,
+  validateStrongPassword,
 } from "../_shared/helper.ts";
 
 Deno.serve(async (req: Request): Promise<Response> => {
@@ -56,6 +58,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
       if (!email || !password || !full_name) {
         return errorResp("email, password, and full_name are required");
       }
+
+      const emailError = validateEmail(email);
+      if (emailError) return errorResp(emailError);
+      const passwordError = validateStrongPassword(password);
+      if (passwordError) return errorResp(passwordError);
 
       const { data: authUser, error: authError } =
         await sb.auth.admin.createUser({
@@ -181,15 +188,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       const authUpdates: Record<string, unknown> = {};
       if (email !== undefined) {
-        if (typeof email !== "string" || !email.includes("@")) {
-          return errorResp("A valid email is required");
-        }
+        const emailError = validateEmail(email);
+        if (emailError) return errorResp(emailError);
         authUpdates.email = email;
       }
       if (password !== undefined) {
-        if (typeof password !== "string" || password.length < 6) {
-          return errorResp("Password must be at least 6 characters");
-        }
+        const passwordError = validateStrongPassword(password);
+        if (passwordError) return errorResp(passwordError);
         authUpdates.password = password;
       }
 

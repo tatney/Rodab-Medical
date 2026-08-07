@@ -45,6 +45,30 @@ export function errorResp(message: string, status = 400) {
   return jsonResp({ error: message }, status);
 }
 
+const EMAIL_PATTERN =
+  /^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/;
+
+export function validateEmail(email: unknown): string | null {
+  if (typeof email !== "string" || email.trim().length > 254) {
+    return "A valid email address is required";
+  }
+  if (!EMAIL_PATTERN.test(email.trim())) {
+    return "A valid email address is required";
+  }
+  return null;
+}
+
+export function validateStrongPassword(pw: unknown): string | null {
+  if (typeof pw !== "string" || pw.length < 8) {
+    return "Password must be at least 8 characters long";
+  }
+  if (!/[a-z]/.test(pw)) return "Password must contain a lowercase letter";
+  if (!/[A-Z]/.test(pw)) return "Password must contain an uppercase letter";
+  if (!/[0-9]/.test(pw)) return "Password must contain a number";
+  if (!/[^A-Za-z0-9]/.test(pw)) return "Password must contain a symbol";
+  return null;
+}
+
 export async function getUser(
   req: Request,
   sb: SupabaseClient

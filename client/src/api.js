@@ -53,36 +53,27 @@ export const login = async (email, password) => {
 }
 
 export const signup = async ({ full_name, email, password, phone, role, age, gender, blood_group, chronic_disease }) => {
-  const { data, error } = await supabase.auth.signUp({
+  const data = await invokeEdge('auth-signup', 'POST', {
     email,
     password,
-    options: {
-      data: { full_name, phone, role: role || 'user' },
-    },
+    full_name: full_name || '',
+    phone: phone || '',
+    role: role || 'user',
+    age,
+    gender,
+    blood_group,
+    chronic_disease,
   })
-  if (error) throw error
 
-  if (data.user && !data.session) {
-    return ok({ message: 'Check your email for verification link' })
+  if (data && data.session) {
+    const { error: setError } = await supabase.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    })
+    if (setError) console.error('setSession error:', setError)
   }
 
-  if (data.user) {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: data.user.id,
-        email,
-        full_name: full_name || '',
-        phone: phone || '',
-        role: role || 'user',
-      })
-    if (profileError) console.error('Profile insert error:', profileError)
-  }
-
-  return ok({
-    token: data.session?.access_token || null,
-    user: data.user ? { id: data.user.id, email, full_name, role: role || 'user' } : null,
-  })
+  return ok(data)
 }
 
 export const getProfile = async () => {

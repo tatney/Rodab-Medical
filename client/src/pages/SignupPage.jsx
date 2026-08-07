@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import supabase from '../supabaseClient'
+import { signup } from '../api'
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
@@ -41,6 +41,10 @@ export default function SignupPage() {
       setError('Passwords do not match.')
       return
     }
+    if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}$/.test(form.email.trim())) {
+      setError('Please enter a valid email address.')
+      return
+    }
     const checks = validatePassword(form.password)
     if (!Object.values(checks).every(Boolean)) {
       setError('Password does not meet all requirements.')
@@ -49,35 +53,21 @@ export default function SignupPage() {
 
     setLoading(true)
     try {
-      const { data, error: authError } = await supabase.auth.signUp({
+      const { data } = await signup({
         email: form.email,
         password: form.password,
-        options: {
-          data: {
-            full_name: form.fullName,
-            phone: form.phone,
-            role: 'user',
-            age: form.age,
-            gender: form.gender,
-            blood_group: form.bloodGroup,
-            chronic_disease: form.chronicDisease,
-          },
-        },
+        full_name: form.fullName,
+        phone: form.phone,
+        role: 'user',
+        age: form.age,
+        gender: form.gender,
+        blood_group: form.bloodGroup,
+        chronic_disease: form.chronicDisease,
       })
-      if (authError) throw authError
 
-      if (data.user) {
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          email: form.email,
-          full_name: form.fullName,
-          phone: form.phone,
-          role: 'user',
-          age: form.age ? Number(form.age) : null,
-          gender: form.gender || null,
-          blood_group: form.bloodGroup || null,
-          chronic_disease: form.chronicDisease || null,
-        })
+      if (data && data.session) {
+        navigate('/dashboard')
+        return
       }
 
       setVerified(true)
