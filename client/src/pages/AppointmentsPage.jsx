@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react'
-import { getAppointments, getDepartments, getDeptAvailability, createAppointment } from '../api'
+import { getAppointments, getDepartments, getDeptAvailability, createAppointment, deleteAppointment } from '../api'
 import SEO from '../components/SEO'
 import colors from '../utils/colors'
 
@@ -14,6 +14,37 @@ const timeSlots = []
 for (let h = 8; h < 17; h++) {
   timeSlots.push(`${String(h).padStart(2, '0')}:00`)
   timeSlots.push(`${String(h).padStart(2, '0')}:30`)
+}
+
+const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+
+function dayOfWeekIndex(value) {
+  if (value === null || value === undefined || value === '') return null
+  const str = String(value).trim().toLowerCase()
+  if (/^\d+$/.test(str)) return Number(str)
+  const idx = DAY_NAMES.indexOf(str)
+  return idx === -1 ? null : idx
+}
+
+// An availability row covers the selected date when its exact date matches or
+// its day_of_week matches the weekday of that date.
+function coversDate(row, date) {
+  if (!date) return false
+  if (row.date) {
+    if (String(row.date).slice(0, 10) === date) return true
+  }
+  const rowDow = dayOfWeekIndex(row.day_of_week)
+  if (rowDow === null) return false
+  return rowDow === new Date(`${date}T00:00:00`).getDay()
+}
+
+// A half-hour slot is bookable when it falls inside a doctor's availability window.
+function coversSlot(row, slot, date) {
+  if (!coversDate(row, date)) return false
+  const start = String(row.start_time || '').slice(0, 5)
+  const end = String(row.end_time || '').slice(0, 5)
+  if (!start || !end) return false
+  return slot >= start && slot < end
 }
 
 const inputStyle = {
@@ -91,9 +122,7 @@ export default function AppointmentsPage() {
     }
     setSubmitting(true)
     try {
-      const matchedSlot = availableSlots.find(
-        (s) => (s.start_time || '').slice(0, 5) === selectedSlot && s.date === selectedDate
-      )
+      const matchedSlot = availableSlots.find((s) => coversSlot(s, selectedSlot, selectedDate))
       await createAppointment({
         doctor_id: matchedSlot?.doctor_id,
         appointment_date: selectedDate,
@@ -107,9 +136,19 @@ export default function AppointmentsPage() {
       setReason('')
       loadData()
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create appointment.')
+      setError(err.response?.data?.message || err.response?.data?.error || err.message || 'Failed to create appointment.')
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleCancel = async (id) => {
+    if (!window.confirm('Cancel this appointment?')) return
+    try {
+      await deleteAppointment(id)
+      loadData()
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to cancel appointment.')
     }
   }
 
@@ -414,47 +453,52 @@ export default function AppointmentsPage() {
             {/* Time Slots */}
             <div style={{ marginBottom: 24 }}>
               <label id="time-slot-label" style={labelStyle}>Select Time</label>
+              {selectedDate && (
+                <p style={{ fontSize: 13, color: colors.gray500, margin: '0 0 8px', fontFamily: 'Barlow, sans-serif' }}>
+                  {availableSlots.some((s) => coversDate(s, selectedDate))
+                    ? 'Available times are based on the doctors\u2019 schedules for this department and date.'
+                    : 'No availability set for this date yet. Please pick another date.'}
+                </p>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 8 }} role="group" aria-labelledby="time-slot-label">
                 {timeSlots.map((slot) => {
-                  const isTaken = availableSlots.some(
-                    (s) => (s.start_time || '').slice(0, 5) === slot && s.date === selectedDate
-                  )
+                  const isAvailable = availableSlots.some((s) => coversSlot(s, slot, selectedDate))
                   const isSelected = selectedSlot === slot
                   return (
                     <button
                       key={slot}
                       type="button"
-                      disabled={isTaken}
+                      disabled={!isAvailable}
                       onClick={() => setSelectedSlot(slot)}
                       style={{
                         padding: '10px 4px',
                         borderRadius: 8,
                         border: `1px solid ${isSelected ? colors.primary : colors.gray200}`,
-                        backgroundColor: isTaken
-                          ? colors.gray50
-                          : isSelected
+                        backgroundColor: isAvailable
+                          ? isSelected
                             ? colors.primary
-                            : colors.white,
-                        color: isTaken
-                          ? colors.gray400
-                          : isSelected
+                            : colors.white
+                          : colors.gray50,
+                        color: isAvailable
+                          ? isSelected
                             ? colors.white
-                            : colors.gray700,
+                            : colors.gray700
+                          : colors.gray400,
                         fontSize: 13,
                         fontWeight: 600,
-                        cursor: isTaken ? 'not-allowed' : 'pointer',
+                        cursor: isAvailable ? 'pointer' : 'not-allowed',
                         fontFamily: 'Barlow, sans-serif',
                         transition: 'all 0.15s ease',
                         boxShadow: isSelected ? `0 2px 8px ${colors.primary}33` : 'none',
                       }}
                       onMouseEnter={(e) => {
-                        if (!isTaken && !isSelected) {
+                        if (isAvailable && !isSelected) {
                           e.target.style.borderColor = colors.primary
                           e.target.style.backgroundColor = `${colors.primary}0a`
                         }
                       }}
                       onMouseLeave={(e) => {
-                        if (!isTaken && !isSelected) {
+                        if (isAvailable && !isSelected) {
                           e.target.style.borderColor = colors.gray200
                           e.target.style.backgroundColor = colors.white
                         }
@@ -631,23 +675,48 @@ export default function AppointmentsPage() {
                       fontFamily: 'Barlow, sans-serif',
                     }}
                   >
-                    {apt.date} at {apt.time}
+                    {apt.appointment_date
+                      ? new Date(`${apt.appointment_date}T00:00:00`).toLocaleDateString()
+                      : ''}
+                    {apt.appointment_time ? ` at ${String(apt.appointment_time).slice(0, 5)}` : ''}
                   </p>
                 </div>
-                <span
-                  style={{
-                    padding: '6px 16px',
-                    borderRadius: 999,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    backgroundColor: status.bg,
-                    color: status.color,
-                    fontFamily: 'Barlow, sans-serif',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {status.label}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span
+                    style={{
+                      padding: '6px 16px',
+                      borderRadius: 999,
+                      fontSize: 13,
+                      fontWeight: 600,
+                      backgroundColor: status.bg,
+                      color: status.color,
+                      fontFamily: 'Barlow, sans-serif',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {status.label}
+                  </span>
+                  {(apt.status === 'pending' || apt.status === 'confirmed') && (
+                    <button
+                      type="button"
+                      onClick={() => handleCancel(apt.id)}
+                      style={{
+                        padding: '6px 14px',
+                        backgroundColor: colors.dangerLight,
+                        color: colors.danger,
+                        border: `1px solid ${colors.dangerBorder}`,
+                        borderRadius: 6,
+                        fontSize: 13,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        fontFamily: 'Barlow, sans-serif',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </div>
               </div>
             )
           })}

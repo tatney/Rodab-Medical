@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { getDoctors, getDoctorsDepartments, getDeptAvailability, createAppointment } from '../api'
+import { getDoctors, getDoctorsDepartments, getAvailability, createAppointment } from '../api'
 import SEO from '../components/SEO'
 import { useToast } from '../components/ToastContext'
 import { useI18n } from '../i18n/I18nContext'
@@ -8,6 +8,34 @@ const timeSlots = []
 for (let h = 8; h < 17; h++) {
   timeSlots.push(`${String(h).padStart(2, '0')}:00`)
   timeSlots.push(`${String(h).padStart(2, '0')}:30`)
+}
+
+const DAY_NAMES = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+
+function dayOfWeekIndex(value) {
+  if (value === null || value === undefined || value === '') return null
+  const str = String(value).trim().toLowerCase()
+  if (/^\d+$/.test(str)) return Number(str)
+  const idx = DAY_NAMES.indexOf(str)
+  return idx === -1 ? null : idx
+}
+
+function coversDate(row, date) {
+  if (!date) return false
+  if (row.date) {
+    if (String(row.date).slice(0, 10) === date) return true
+  }
+  const rowDow = dayOfWeekIndex(row.day_of_week)
+  if (rowDow === null) return false
+  return rowDow === new Date(`${date}T00:00:00`).getDay()
+}
+
+function coversSlot(row, slot, date) {
+  if (!coversDate(row, date)) return false
+  const start = String(row.start_time || '').slice(0, 5)
+  const end = String(row.end_time || '').slice(0, 5)
+  if (!start || !end) return false
+  return slot >= start && slot < end
 }
 
 export default function FindDoctorPage() {
@@ -85,10 +113,10 @@ export default function FindDoctorPage() {
     load()
   }, [])
 
-  const fetchAvailability = useCallback(async (deptId) => {
-    if (!deptId) return
+  const fetchAvailability = useCallback(async (doctorId) => {
+    if (!doctorId) return
     try {
-      const res = await getDeptAvailability(deptId)
+      const res = await getAvailability({ doctor_id: doctorId })
       setAvailableSlots(res.data?.slots || res.data || [])
     } catch {
       setAvailableSlots([])
@@ -96,8 +124,8 @@ export default function FindDoctorPage() {
   }, [])
 
   useEffect(() => {
-    if (bookingDoctor?.department_id || bookingDoctor?.department?.id) {
-      fetchAvailability(bookingDoctor.department_id || bookingDoctor.department?.id)
+    if (bookingDoctor?.id) {
+      fetchAvailability(bookingDoctor.id)
     }
   }, [bookingDoctor, fetchAvailability])
 
@@ -115,8 +143,9 @@ export default function FindDoctorPage() {
     try {
       await createAppointment({
         doctor_id: bookingDoctor.id,
-        date: bookingDate,
-        time: selectedSlot,
+        department_id: bookingDoctor.department_id || bookingDoctor.department?.id,
+        appointment_date: bookingDate,
+        appointment_time: selectedSlot,
         reason,
       })
       setBookingSuccess(true)
@@ -380,31 +409,31 @@ export default function FindDoctorPage() {
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 8, marginBottom: 20 }} role="group" aria-labelledby="booking-time-slot-label">
                   {timeSlots.map((slot) => {
-                    const isTaken = availableSlots.some(
-                      (s) => s.time === slot && s.date === bookingDate && s.taken
+                    const isAvailable = availableSlots.some(
+                      (s) => coversSlot(s, slot, bookingDate)
                     )
                     return (
                       <button
                         key={slot}
-                        disabled={isTaken}
+                        disabled={!isAvailable}
                         onClick={() => setSelectedSlot(slot)}
                         style={{
                           padding: '8px 4px',
                           borderRadius: 6,
                           border: `1px solid ${selectedSlot === slot ? 'var(--primary)' : 'var(--border)'}`,
-                          backgroundColor: isTaken
-                            ? 'var(--surface-container-low)'
-                            : selectedSlot === slot
+                          backgroundColor: isAvailable
+                            ? selectedSlot === slot
                               ? 'var(--primary)'
-                              : 'var(--surface-card)',
-                          color: isTaken
-                            ? 'var(--text-muted)'
-                            : selectedSlot === slot
+                              : 'var(--surface-card)'
+                            : 'var(--surface-container-low)',
+                          color: isAvailable
+                            ? selectedSlot === slot
                               ? '#ffffff'
-                              : 'var(--text-body)',
+                              : 'var(--text-body)'
+                            : 'var(--text-muted)',
                           fontSize: 13,
                           fontWeight: 500,
-                          cursor: isTaken ? 'not-allowed' : 'pointer',
+                          cursor: isAvailable ? 'pointer' : 'not-allowed',
                           transition: 'all 0.15s',
                         }}
                       >

@@ -201,6 +201,31 @@ export const createAppointment = async (data) => {
       hospital_id: data.hospital_id,
       status: 'pending',
     })
+    .select('*, doctor:doctors!doctor_id(*)')
+    .single()
+  if (error) throw error
+
+  if (result?.doctor?.user_id) {
+    try {
+      await createNotification({
+        targetUserId: result.doctor.user_id,
+        title: 'New appointment request',
+        message: `A patient booked ${result.appointment_date} at ${String(result.appointment_time).slice(0, 5)}. Please confirm.`,
+        type: 'appointment',
+      })
+    } catch {
+      // Notification is best-effort; never block the booking itself.
+    }
+  }
+
+  return ok({ appointment: result })
+}
+
+export const updateAppointment = async (id, updates) => {
+  const { data: result, error } = await supabase
+    .from('appointments')
+    .update(updates)
+    .eq('id', id)
     .select()
     .single()
   if (error) throw error
@@ -213,11 +238,22 @@ export const deleteAppointment = async (id) => {
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
 
+  // Prefer a soft cancel so the appointment stays visible in history.
+  const { data: updated, error } = await supabase
+    .from('appointments')
+    .update({ status: 'cancelled' })
+    .eq('id', id)
+    .select()
+  if (!error && updated && updated.length > 0) {
+    return ok({ message: 'Appointment cancelled successfully', status: 'cancelled' })
+  }
+
+  // Fallback for environments where the patient can't UPDATE yet: hard delete.
   let query = supabase.from('appointments').delete().eq('id', id)
   if (profile?.role === 'user') query = query.eq('patient_id', user.id)
 
-  const { error } = await query
-  if (error) throw error
+  const { error: deleteError } = await query
+  if (deleteError) throw deleteError
   return ok({ message: 'Appointment cancelled successfully' })
 }
 
@@ -1574,6 +1610,7 @@ const api = {
   deleteDoctor,
   getAppointments,
   createAppointment,
+  updateAppointment,
   deleteAppointment,
   getConsultations,
   createConsultation,

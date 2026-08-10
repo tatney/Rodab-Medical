@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Sidebar, { roleConfig } from '../../components/Sidebar';
 import {
   getAppointments,
+  updateAppointment,
   getConsultations,
   getDoctors,
   getAvailability,
@@ -60,6 +61,28 @@ const btnDanger = {
   backgroundColor: '#fee2e2',
   color: '#dc2626',
   border: '1px solid #fecaca',
+  borderRadius: 6,
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: 'pointer',
+};
+
+const btnOutline = {
+  padding: '6px 14px',
+  backgroundColor: '#ffffff',
+  color: '#7c3aed',
+  border: '1px solid #7c3aed',
+  borderRadius: 6,
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: 'pointer',
+};
+
+const btnSuccess = {
+  padding: '6px 14px',
+  backgroundColor: '#dcfce7',
+  color: '#16a34a',
+  border: '1px solid #bbf7d0',
   borderRadius: 6,
   fontSize: 13,
   fontWeight: 600,
@@ -175,10 +198,10 @@ export default function DoctorDashboard() {
         name: a.patient_name || a.patient?.name || a.user?.full_name || 'Unknown',
         phone: a.patient_phone || a.patient?.phone || a.user?.phone || '-',
         department: a.department?.name || a.department_name || '-',
-        lastVisit: a.date,
+        lastVisit: a.appointment_date || a.date,
       };
-    } else if (key && a.date > (patientMap[key].lastVisit || '')) {
-      patientMap[key].lastVisit = a.date;
+    } else if (key && (a.appointment_date || a.date) > (patientMap[key].lastVisit || '')) {
+      patientMap[key].lastVisit = a.appointment_date || a.date;
     }
   });
   const patients = Object.values(patientMap);
@@ -187,9 +210,9 @@ export default function DoctorDashboard() {
   const activityLog = [
     ...myApts.map((a) => ({
       type: 'appointment',
-      text: `${a.patient_name || 'Patient'} - ${a.department?.name || a.department_name || 'Dept'} (${a.status})`,
-      date: a.date,
-      time: a.time,
+      text: `${a.profiles?.full_name || a.patient_name || 'Patient'} - ${a.department?.name || a.department_name || 'Dept'} (${a.status})`,
+      date: a.appointment_date || a.date,
+      time: a.appointment_time || a.time,
     })),
     ...myConsultations.map((c) => ({
       type: 'consultation',
@@ -246,6 +269,17 @@ export default function DoctorDashboard() {
     } catch (err) {
       console.error('Failed to delete slot:', err);
       toast.error('Failed to remove slot.');
+    }
+  };
+
+  const handleUpdateStatus = async (aptId, status) => {
+    try {
+      await updateAppointment(aptId, { status });
+      setAppointments((prev) => prev.map((a) => (a.id === aptId ? { ...a, status } : a)));
+      toast.success(`Appointment marked as ${status}.`);
+    } catch (err) {
+      console.error('Failed to update appointment:', err);
+      toast.error(err.response?.data?.message || 'Failed to update appointment.');
     }
   };
 
@@ -376,14 +410,28 @@ export default function DoctorDashboard() {
             return (
               <div key={apt.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', borderRadius: 10, border: '1px solid #e5e7eb', backgroundColor: '#fafafa' }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{apt.patient_name || apt.patient?.name || 'Patient'}</div>
+                  <div style={{ fontSize: 15, fontWeight: 600, color: '#111827' }}>{apt.profiles?.full_name || apt.patient_name || apt.patient?.name || 'Patient'}</div>
                   <div style={{ fontSize: 13, color: '#6b7280', marginTop: 2 }}>{apt.department?.name || apt.department_name || '-'}</div>
-                  <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>{apt.date} at {apt.time}</div>
+                  <div style={{ fontSize: 13, color: '#9ca3af', marginTop: 2 }}>
+                    {apt.appointment_date ? new Date(`${apt.appointment_date}T00:00:00`).toLocaleDateString() : ''}
+                    {apt.appointment_time ? ` at ${String(apt.appointment_time).slice(0, 5)}` : ''}
+                  </div>
                   {apt.reason && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4, fontStyle: 'italic' }}>{apt.reason}</div>}
                 </div>
-                <span style={{ padding: '5px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600, backgroundColor: st.bg, color: st.color, whiteSpace: 'nowrap', marginLeft: 12 }}>
-                  {st.label}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                  <span style={{ padding: '5px 14px', borderRadius: 999, fontSize: 12, fontWeight: 600, backgroundColor: st.bg, color: st.color, whiteSpace: 'nowrap' }}>
+                    {st.label}
+                  </span>
+                  {apt.status === 'pending' && (
+                    <button style={btnOutline} onClick={() => handleUpdateStatus(apt.id, 'confirmed')}>Confirm</button>
+                  )}
+                  {apt.status === 'confirmed' && (
+                    <button style={btnSuccess} onClick={() => handleUpdateStatus(apt.id, 'completed')}>Complete</button>
+                  )}
+                  {(apt.status === 'pending' || apt.status === 'confirmed') && (
+                    <button style={btnDanger} onClick={() => handleUpdateStatus(apt.id, 'cancelled')}>Cancel</button>
+                  )}
+                </div>
               </div>
             );
           })}

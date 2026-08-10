@@ -17,7 +17,7 @@ import {
   createNotification, getAdminMessages,
   getPrescriptionsAdmin, approvePrescription,
   getIllnessCertsAdmin, approveIllnessCert,
-  getAppointments, getConsultations,
+  getAppointments, updateAppointment, getConsultations,
   getFormTemplatesAdmin, createFormTemplate, updateFormTemplate, deleteFormTemplate,
   getPatientsWithRecords,
 } from '../../api';
@@ -223,6 +223,15 @@ const AdminDashboard = () => {
   const fetchAppointments = useCallback(async () => {
     try { setAppointments(toArray(await getAppointments())); } catch (err) { console.error("Appointments error:", err?.message || err); }
   }, []);
+
+  const handleUpdateApptStatus = async (id, status) => {
+    try {
+      await updateAppointment(id, { status });
+      fetchAppointments();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update appointment status.");
+    }
+  };
 
   const fetchConsultations = useCallback(async () => {
     try { setConsultations(toArray(await getConsultations())); } catch (err) { console.error("Consultations error:", err?.message || err); }
@@ -1627,17 +1636,30 @@ const AdminDashboard = () => {
       <h3>All Appointments ({appointments.length})</h3>
       <div style={{ overflowX: 'auto' }}>
         <table className="data-table" aria-label="Appointments">
-          <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th><th>Type</th></tr></thead>
+          <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody>
             {appointments.map((appt) => (
               <tr key={appt.id || appt._id}>
                 <td className="mono">{(appt.id || appt._id || "").slice(0, 8)}</td>
-                <td>{appt.patientName || appt.patient_name || "—"}</td>
-                <td>{appt.doctorName || appt.doctor_name || "—"}</td>
-                <td>{(appt.appointmentDate || appt.date) ? new Date(appt.appointmentDate || appt.date).toLocaleDateString() : 'N/A'}</td>
-                <td>{appt.appointmentTime || appt.time || "—"}</td>
+                <td>{appt.profiles?.full_name || appt.patientName || appt.patient_name || "—"}</td>
+                <td>{appt.doctor?.full_name || appt.doctors?.full_name || appt.doctorName || appt.doctor_name || "—"}</td>
+                <td>{(appt.appointment_date || appt.appointmentDate || appt.date) ? new Date(appt.appointment_date || appt.appointmentDate || appt.date).toLocaleDateString() : 'N/A'}</td>
+                <td>{String(appt.appointment_time || appt.appointmentTime || appt.time || "").slice(0, 5) || "—"}</td>
                 <td><span className={`badge badge-${appt.status}`}>{appt.status}</span></td>
-                <td>{appt.type || appt.appointmentType || "—"}</td>
+                <td>
+                  {appt.status !== 'completed' && appt.status !== 'cancelled' && (
+                    <select
+                      value={appt.status || 'pending'}
+                      onChange={(e) => handleUpdateApptStatus(appt.id || appt._id, e.target.value)}
+                      style={{ padding: '4px 8px', borderRadius: 6, border: '1px solid #d1d5db', fontSize: 13, cursor: 'pointer' }}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirm</option>
+                      <option value="completed">Complete</option>
+                      <option value="cancelled">Cancel</option>
+                    </select>
+                  )}
+                </td>
               </tr>
             ))}
             {appointments.length === 0 && <EmptyRow colSpan={7} msg="No appointments found." />}
