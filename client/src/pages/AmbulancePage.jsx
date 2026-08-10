@@ -265,7 +265,7 @@ export default function AmbulancePage() {
   if (!user) {
     return (
       <div style={{ minHeight: '70vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 }}>
-        <SEO title="Ambulance Services" description="24/7 emergency ambulance services with GPS tracking and rapid response teams at Rodab Medical." url="/ambulance" />
+        <SEO title="Ambulance Services" description="Planned 24/7 emergency ambulance services with GPS tracking and rapid response teams — coming soon at Rodab Medical." url="/ambulance" />
         <div
           style={{
             maxWidth: 520,
@@ -384,7 +384,7 @@ export default function AmbulancePage() {
 
   return (
     <div style={{ padding: '48px 24px', maxWidth: 1200, margin: '0 auto' }}>
-      <SEO title="Ambulance Services" description="24/7 emergency ambulance services with GPS tracking and rapid response teams at Rodab Medical." url="/ambulance" />
+      <SEO title="Ambulance Services" description="Planned 24/7 emergency ambulance services with GPS tracking and rapid response teams — coming soon at Rodab Medical." url="/ambulance" />
       <h1 style={{ fontSize: 32, fontWeight: 800, color: colors.gray900, marginBottom: 32 }}>Ambulance Dispatch</h1>
 
       {error && (

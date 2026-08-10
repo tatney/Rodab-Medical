@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 
 const siteConfig = {
   name: 'Rodab Medical Hospital',
-  description: 'Compassionate healthcare services in Entebbe, Uganda. Emergency care, cardiology, neurology, orthopedics, and more. Open 24/7.',
+  description: 'Rodab Medical Hospital is opening soon in Entebbe, Uganda. Compassionate emergency care, cardiology, neurology, orthopedics, and more — planned around you.',
   url: 'https://rodabmed.vercel.app',
   logo: 'https://cemaqackwtqkkqxlkttn.supabase.co/storage/v1/object/public/images/logo-footer.png',
   phone: '+353831257105',
@@ -44,18 +44,7 @@ const defaultJsonLd = {
     { '@type': 'MedicalProcedure', name: 'Neurology Consultation' },
     { '@type': 'MedicalTherapy', name: 'Physical Therapy' },
   ],
-  openingHoursSpecification: {
-    '@type': 'OpeningHoursSpecification',
-    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-    opens: '00:00',
-    closes: '23:59',
-  },
   priceRange: '$$',
-  aggregateRating: {
-    '@type': 'AggregateRating',
-    ratingValue: '4.8',
-    reviewCount: '256',
-  },
 }
 
 export default function SEO({ title, description, jsonLd, url }) {

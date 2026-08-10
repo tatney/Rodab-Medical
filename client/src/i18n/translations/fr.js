@@ -94,7 +94,7 @@ export default {
   footer: {
     brandSub: 'Services de santé',
     aboutText:
-      'Des services de santé de classe mondiale, prodigués avec compassion à Entebbe, en Ouganda et dans les environs. Votre bien-être est notre priorité.',
+      'Ouverture prochaine à Entebbe, en Ouganda. Nous bâtissons un hôpital compatissant et de classe mondiale — et votre bien-être sera notre priorité.',
     quickLinks: 'Liens rapides',
     home: 'Accueil',
     aboutUs: 'À propos',
@@ -109,7 +109,7 @@ export default {
     jumpOnlineServices: 'Services en ligne',
     jumpServices: 'Nos services',
     jumpAbout: 'À propos',
-    jumpTestimonials: 'Témoignages',
+    jumpTestimonials: 'Notre engagement',
     servicesHeading: 'Nos services',
     emergencyCare: 'Soins d’urgence',
     generalMedicine: 'Médecine générale',
@@ -140,30 +140,30 @@ export default {
   home: {
     seoTitle: 'Accueil',
     seoDescription:
-      'Services de santé avec compassion à Entebbe, en Ouganda. Urgences, cardiologie, neurologie, orthopédie et plus encore. Ouvert 24h/24.',
+      'Rodab Medical ouvrira bientôt à Entebbe, en Ouganda. Un nouvel hôpital apportant des soins compatissants : urgences, cardiologie, neurologie, orthopédie et plus encore.',
     slides: [
       {
         title: 'Des soins avec compassion',
         subtitle:
-          'Des soins médicaux avancés prodigués avec compassion et excellence par nos spécialistes de renommée mondiale.',
+          'Nous nous préparons à offrir des soins médicaux avancés, prodigués avec compassion et excellence par des spécialistes de renommée mondiale.',
         cta: 'Nos services',
       },
       {
         title: 'Installations de pointe',
         subtitle:
-          'Des équipements médicaux modernes et des environnements confortables pour une récupération optimale.',
+          'Un hôpital moderne en préparation — conçu avec des équipements de pointe et des environnements confortables pour une récupération optimale.',
         cta: 'À propos',
       },
       {
         title: 'Urgences 24h/24',
         subtitle:
-          'Des services médicaux d’urgence rapides avec des ambulances entièrement équipées et des paramédicaux formés.',
+          'Des urgences 24h/24 prévues avec des ambulances entièrement équipées et des paramédicaux formés, prêts pour notre communauté.',
         cta: 'SOS Urgence',
       },
       {
         title: 'Spécialistes experts',
         subtitle:
-          'Des médecins et chirurgiens certifiés offrant des plans de traitement personnalisés.',
+          'Nous recrutons des médecins et chirurgiens certifiés qui offriront des plans de traitement personnalisés.',
         cta: 'Trouver un médecin',
       },
     ],
@@ -171,10 +171,10 @@ export default {
     nextSlide: 'Diapositive suivante',
     goToSlide: 'Aller à la diapositive',
     stats: [
-      { label: 'Années de service' },
-      { label: 'Médecins experts' },
-      { label: 'Patients traités' },
-      { label: 'Soins d’urgence' },
+      { label: 'Années d’expérience combinée' },
+      { label: 'Médecins rejoignant notre équipe' },
+      { label: 'Patients en première année (objectif)' },
+      { label: 'Soins d’urgence (prévus)' },
     ],
     onlineServices: {
       heading: 'Services en ligne',
@@ -204,31 +204,31 @@ export default {
     features: {
       heading: 'Pourquoi choisir Rodab Medical ?',
       items: [
-        { title: 'Disponibilité 24h/24', desc: 'Des services médicaux autour de l’horloge pour toutes les urgences et consultations.' },
-        { title: 'Équipements modernes', desc: 'Les dernières technologies médicales et des outils de diagnostic de pointe.' },
-        { title: 'Personnel expert', desc: 'Des médecins, infirmières et professionnels de santé hautement qualifiés.' },
-        { title: 'Soins abordables', desc: 'Des soins de qualité à des prix compétitifs avec le soutien de l’assurance.' },
+        { title: 'Disponibilité 24h/24', desc: 'Des services médicaux autour de l’horloge prévus pour toutes les urgences et consultations.' },
+        { title: 'Équipements modernes', desc: 'Les dernières technologies médicales et des outils de diagnostic de pointe au cœur de notre installation.' },
+        { title: 'Personnel expert', desc: 'Une équipe de médecins, infirmières et professionnels de santé hautement qualifiés que nous recrutons dès maintenant.' },
+        { title: 'Soins abordables', desc: 'Des soins de qualité prévus à des prix compétitifs, avec le soutien de l’assurance.' },
       ],
     },
     cta: {
-      heading: 'Votre santé ne peut pas attendre',
-      text: 'Qu’il s’agisse d’un examen de routine ou d’une urgence médicale, notre équipe est prête à vous offrir les soins que vous méritez.',
+      heading: 'Ouverture prochaine',
+      text: 'Rodab Medical se prépare à ouvrir ses portes à Entebbe. Réservez votre premier rendez-vous dès aujourd’hui et soyez parmi nos premiers patients.',
       emergencySos: 'SOS Urgence',
       bookAppointment: 'Prendre rendez-vous',
     },
     story: {
       heading: 'Notre histoire',
-      p1: 'Fondé avec la mission d’offrir des soins de santé accessibles et de classe mondiale, l’hôpital Rodab Medical est devenu un nom de confiance dans l’excellence médicale. Notre parcours a commencé avec une conviction simple : chaque patient mérite des soins compatissants et de qualité.',
-      p2: 'Au fil des ans, nous avons investi dans des technologies de pointe, recruté les meilleurs talents médicaux et élargi nos services pour répondre aux besoins évolutifs de notre communauté.',
+      p1: 'L’hôpital Rodab Medical se prépare à ouvrir ses portes avec la mission d’offrir des soins de santé accessibles et de classe mondiale à notre communauté. Notre parcours a commencé avec une conviction simple : chaque patient mérite des soins compatissants et de qualité.',
+      p2: 'Aujourd’hui, nous investissons dans des technologies de pointe, recrutons les meilleurs talents médicaux et concevons nos services pour répondre aux besoins évolutifs de notre communauté dès le premier jour.',
       learnMore: 'En savoir plus sur nous',
     },
     testimonials: {
-      heading: 'Ce que disent nos patients',
+      heading: 'Notre engagement envers vous',
       rating: 'sur 5 étoiles',
       items: [
-        { name: 'Ahmad H.', text: "L'équipe d'urgence a sauvé la vie de mon père. Leur temps de réponse était incroyable et les soins exceptionnels." },
-        { name: 'Sara M.', text: 'Le Dr Khoury et l’équipe de cardiologie ont fourni des soins remarquables lors de ma chirurgie cardiaque. Éternellement reconnaissante.' },
-        { name: 'Layla K.', text: 'Le service de maternité était incroyable. Les infirmières étaient si attentionnées et les installations excellentes.' },
+        { name: 'Soins d’urgence', text: 'Des équipes d’urgence formées seront prêtes 24h/24 dès le jour de l’ouverture, avec des ambulances entièrement équipées et une réponse rapide.' },
+        { name: 'Cardiologie', text: 'Nous constituons notre équipe de cardiologie autour de spécialistes formés à l’international, engagés pour des soins cardiaques d’excellence.' },
+        { name: 'Maternité et néonatologie', text: 'Nos équipes de maternité et de néonatologie seront prêtes à accueillir chaque nouvelle vie avec des soins experts et compatissants.' },
       ],
     },
     forms: {
@@ -259,7 +259,7 @@ export default {
     },
     programmes: {
       heading: 'Programmes',
-      sub: 'Programmes de soins continus et initiatives communautaires',
+      sub: 'Programmes de soins à venir et initiatives communautaires',
       viewAll: 'Voir tous les programmes →',
       noEvents: 'Pas encore de programmes. Revenez bientôt !',
       allCategories: 'Tout',
@@ -270,23 +270,23 @@ export default {
     },
     whereWeWork: {
       heading: 'Où nous travaillons',
-      sub: 'Actifs dans toute l’Ouganda',
+      sub: 'Couverture prévue dans toute l’Ouganda',
       description:
-        'Rodab Medical opère dans toutes les grandes villes d’Ouganda. De Kampala à Jinja, Masaka, Mbarara et Fort Portal — et au-delà — nos hôpitaux, cliniques et équipes de soins offrent des soins de santé de classe mondiale aux communautés de tout le pays, garantissant à chaque Ougandais un accès à des soins médicaux compatissants et de qualité.',
+        'Rodab Medical est prévu pour servir les communautés dans toute l’Ouganda. De Kampala à Jinja, Masaka, Mbarara et Fort Portal — et au-delà — notre hôpital et nos équipes de soins sont préparés pour offrir des soins de classe mondiale dans tout le pays, garantissant à chaque Ougandais un accès à des soins compatissants et de qualité.',
     },
   },
 
   servicesPage: {
     seoTitle: 'Nos services',
     seoDescription:
-      'Services de santé complets incluant les urgences, la cardiologie, la neurologie, l’orthopédie, le diagnostic et plus encore à Rodab Medical.',
+      'Des services de santé complets prévus à Rodab Medical, qui ouvrira bientôt à Entebbe — urgences, cardiologie, neurologie, orthopédie, diagnostic et plus encore.',
     heading: 'Nos services médicaux',
-    sub: 'L’hôpital Rodab Medical offre une gamme complète de services médicaux assurés par des professionnels expérimentés utilisant les dernières technologies.',
+    sub: 'L’hôpital Rodab Medical offrira, dès son ouverture, une gamme complète de services médicaux assurés par des professionnels expérimentés utilisant les dernières technologies.',
     findDoctor: 'Trouver un médecin',
     items: [
       {
         title: 'Médecine d’urgence',
-        desc: 'Des soins vitaux immédiats avec un service d’urgence entièrement équipé et des équipes d’intervention rapide disponibles 24h/24.',
+        desc: 'Des soins vitaux immédiats prévus avec un service d’urgence entièrement équipé et des équipes d’intervention rapide disponibles 24h/24.',
         features: ['Urgences 24h/24', 'Équipes d’intervention rapide', 'Centre de traumatologie'],
       },
       {
@@ -344,9 +344,9 @@ export default {
 
   programmes: {
     seoTitle: 'Programmes',
-    seoDescription: 'Découvrez les programmes de soins continus et les initiatives de santé communautaire de Rodab Medical.',
+    seoDescription: 'Découvrez les programmes de soins à venir et les initiatives de santé communautaire de Rodab Medical.',
     heading: 'Programmes',
-    subtitle: 'Programmes de soins continus et initiatives communautaires de Rodab Medical.',
+    subtitle: 'Programmes de soins à venir et initiatives communautaires de Rodab Medical.',
     loading: 'Chargement des programmes…',
     empty: 'Pas encore de programmes. Revenez bientôt !',
     allCategories: 'Tout',
@@ -355,10 +355,10 @@ export default {
   about: {
     seoTitle: 'À propos',
     seoDescription:
-      'Découvrez la mission de Rodab Medical, son équipe et son engagement à offrir des soins de santé compatissants à Entebbe, en Ouganda.',
+      'Découvrez Rodab Medical, qui ouvrira bientôt à Entebbe, en Ouganda — notre mission, nos projets et notre engagement pour des soins compatissants.',
     heading: 'À propos de Rodab Medical',
     heroText:
-      'Une institution de santé de premier plan dédiée à fournir des services médicaux compatissants et de classe mondiale à notre communauté.',
+      'Une nouvelle institution de santé qui se prépare à ouvrir ses portes à Entebbe, en Ouganda — dédiée à fournir des services médicaux compatissants et de classe mondiale à notre communauté.',
     missionHeading: 'Notre mission',
     missionText:
       'Fournir des soins de santé exceptionnels centrés sur le patient, alliant excellence médicale et compassion authentique. Nous nous engageons à améliorer la santé et le bien-être de chaque personne que nous servons, quels que soient son origine ou sa situation.',
@@ -374,14 +374,14 @@ export default {
       { title: 'Esprit d’équipe', desc: 'Nous favorisons la collaboration entre nos équipes pluridisciplinaires pour offrir des soins complets.' },
       { title: 'Sécurité', desc: 'Nous priorisons la sécurité des patients et du personnel grâce à des protocoles rigoureux et une surveillance continue.' },
     ],
-    journeyHeading: 'Notre parcours',
+    journeyHeading: 'Notre feuille de route vers l’ouverture',
     milestones: [
-      { event: 'Fondation de l’hôpital avec une vision de soins de santé accessibles et de qualité' },
-      { event: 'Expansion avec un centre dédié aux soins cardiaques' },
-      { event: 'Ouverture de l’unité de néonatologie niveau III et de la maternité' },
-      { event: 'Obtention de l’accréditation internationale des soins de santé' },
-      { event: 'Lancement de la télésanté et des services de santé numériques' },
-      { event: 'Ouverture d’un nouveau bloc chirurgical avec des salles d’opération avancées' },
+      { event: 'Vision définie : apporter des soins de santé accessibles et de classe mondiale à Entebbe et au-delà' },
+      { event: 'Phase 1 — Première pierre et construction du campus hospitalier' },
+      { event: 'Phase 2 — Installation des équipements médicaux de pointe' },
+      { event: 'Phase 3 — Recrutement et formation de notre équipe médicale spécialisée' },
+      { event: 'Phase 4 — Jour d’ouverture : lancement des premiers services pour la communauté' },
+      { event: 'Phase 5 — Lancement des services prévus et expansion à travers l’Ouganda' },
     ],
   },
 
@@ -399,7 +399,7 @@ export default {
       {
         question: 'Quelles assurances acceptez-vous ?',
         answer:
-          'Nous acceptons la plupart des grands assureurs, y compris l’assurance maladie nationale, les compagnies privées et les couvertures internationales. Veuillez contacter notre service de facturation ou vérifier à la réception avant votre visite.',
+          'Nous prévoyons d’accepter la plupart des grands assureurs, y compris l’assurance maladie nationale, les compagnies privées et les couvertures internationales. Les détails seront confirmés sur notre site avant notre ouverture.',
       },
       {
         question: 'Comment fonctionne le service d’ambulance ?',
@@ -414,7 +414,7 @@ export default {
       {
         question: 'Quelles sont les heures de visite ?',
         answer:
-          'Les heures de visite générales sont de 10h00 à 20h00 chaque jour. Les unités de soins intensifs ont des horaires restreints. Des exceptions peuvent être faites pour les soins de fin de vie. Les enfants de moins de 12 ans doivent être accompagnés d’un adulte.',
+          'Les heures de visite générales prévues seront de 10h00 à 20h00 chaque jour. Les unités de soins intensifs auront des horaires restreints, et les enfants de moins de 12 ans devront être accompagnés d’un adulte.',
       },
       {
         question: 'Comment demander une ordonnance renouvelée ?',
@@ -429,7 +429,7 @@ export default {
       {
         question: 'Que faire en cas d’urgence médicale ?',
         answer:
-          'Pour les urgences vitales, appelez immédiatement le 111. Vous pouvez aussi utiliser notre bouton SOS pour la dépêche d’ambulance. Si vous êtes à l’hôpital, rendez-vous directement au service des urgences.',
+          'Pour les urgences vitales, appelez immédiatement le 111. Vous pouvez aussi utiliser notre bouton SOS pour la dépêche d’ambulance. Une fois l’hôpital ouvert, rendez-vous directement au service des urgences si vous êtes sur place.',
       },
     ],
     stillHaveQuestions: 'Vous avez encore des questions ?',
@@ -440,7 +440,7 @@ export default {
     seoTitle: 'Politique de confidentialité',
     seoDescription: 'Comment Rodab Medical gère vos données personnelles et votre confidentialité.',
     heading: 'Politique de confidentialité',
-    lastUpdated: 'Dernière mise à jour : 1er janvier 2024',
+    lastUpdated: 'Dernière mise à jour : 10 août 2026',
     intro:
       'À l’hôpital Rodab Medical, nous nous engageons à protéger votre confidentialité et à sauvegarder vos informations personnelles et médicales. Cette politique décrit comment nous collectons, utilisons, stockons et protégeons vos données.',
     sections: [
@@ -496,7 +496,7 @@ export default {
     seoTitle: 'Politiques',
     seoDescription: 'Politiques et directives de l’hôpital à Rodab Medical.',
     heading: 'Politiques de l’hôpital',
-    sub: 'Notre engagement pour des soins de qualité grâce à des normes et protocoles établis',
+    sub: 'Notre engagement pour des soins de qualité grâce à des normes et protocoles qui nous guideront dès l’ouverture',
     items: [
       {
         title: 'Droits des patients',
@@ -506,47 +506,47 @@ export default {
       {
         title: 'Confidentialité et vie privée',
         content:
-          'Toutes les informations des patients sont traitées avec la plus stricte confidentialité conformément aux réglementations HIPAA. Les dossiers médicaux et informations personnelles ne sont partagés qu’avec le personnel autorisé et avec le consentement du patient.',
+          'Toutes les informations des patients seront traitées avec la plus stricte confidentialité conformément aux réglementations HIPAA. Les dossiers médicaux et informations personnelles ne seront partagés qu’avec le personnel autorisé et avec le consentement du patient.',
       },
       {
         title: 'Contrôle des infections',
         content:
-          'L’hôpital Rodab Medical suit des protocoles rigoureux de prévention des infections, y compris l’hygiène des mains, la stérilisation et l’isolement, pour protéger patients, personnel et visiteurs contre les infections associées aux soins.',
+          'L’hôpital Rodab Medical suivra des protocoles rigoureux de prévention des infections, y compris l’hygiène des mains, la stérilisation et l’isolement, pour protéger patients, personnel et visiteurs contre les infections associées aux soins.',
       },
       {
         title: 'Sécurité des médicaments',
         content:
-          'Nous maintenons des protocoles stricts de gestion des médicaments : double vérification des ordonnances, étiquetage correct, éducation des patients et surveillance des réactions indésirables pour garantir la sécurité pharmaceutique.',
+          'Nous maintiendrons des protocoles stricts de gestion des médicaments : double vérification des ordonnances, étiquetage correct, éducation des patients et surveillance des réactions indésirables pour garantir la sécurité pharmaceutique.',
       },
       {
         title: 'Soins d’urgence',
         content:
-          'Notre service des urgences offre des soins 24h/24 à tous les patients, quelle que soit leur capacité à payer. Le triage suit les normes internationales pour garantir une attention immédiate aux cas les plus critiques.',
+          'Notre service des urgences offrira des soins 24h/24 à tous les patients, quelle que soit leur capacité à payer, dès notre ouverture. Le triage suivra les normes internationales pour garantir une attention immédiate aux cas les plus critiques.',
       },
       {
         title: 'Non-discrimination',
         content:
-          'Nous nous engageons à offrir des soins égaux à tous les patients sans discrimination. Notre personnel reçoit une formation régulière sur la sensibilité culturelle et les pratiques inclusives.',
+          'Nous nous engageons à offrir des soins égaux à tous les patients sans discrimination. Notre personnel recevra une formation régulière sur la sensibilité culturelle et les pratiques inclusives.',
       },
       {
         title: 'Heures de visite',
         content:
-          'Les heures de visite générales sont de 10h00 à 20h00 chaque jour. Les unités de soins intensifs ont des horaires restreints. Des exceptions peuvent être faites pour les soins de fin de vie.',
+          'Les heures de visite générales seront de 10h00 à 20h00 chaque jour. Les unités de soins intensifs auront des horaires restreints. Des exceptions peuvent être faites pour les soins de fin de vie.',
       },
       {
         title: 'Plaintes et retours',
         content:
-          'Nous accueillons les retours des patients et prenons toutes les plaintes au sérieux. Les préoccupations peuvent être signalées au service des relations patients. Toutes les plaintes sont examinées et traitées sous 48 heures.',
+          'Nous accueillerons les retours des patients et prendrons toutes les plaintes au sérieux. Les préoccupations pourront être signalées au service des relations patients, et toutes les plaintes seront examinées et traitées sous 48 heures.',
       },
       {
         title: 'Planification de la sortie',
         content:
-          'La planification de la sortie commence à l’admission. Notre équipe pluridisciplinaire veille à ce que les patients comprennent leur plan de soins, leurs médicaments, leurs rendez-vous de suivi et leurs contacts d’urgence.',
+          'La planification de la sortie commencera à l’admission. Notre équipe pluridisciplinaire veillera à ce que les patients comprennent leur plan de soins, leurs médicaments, leurs rendez-vous de suivi et leurs contacts d’urgence.',
       },
       {
         title: 'Politique financière',
         content:
-          'Le paiement est attendu au moment des soins sauf arrangement préalable. Nous acceptons la plupart des assurances et proposons des plans de paiement aux patients éligibles. Une aide financière est disponible pour les personnes qualifiées.',
+          'Le paiement sera attendu au moment des soins sauf arrangement préalable. Nous prévoyons d’accepter la plupart des assurances et de proposer des plans de paiement aux patients éligibles. Une aide financière sera disponible pour les personnes qualifiées.',
       },
     ],
     footerNote: 'Pour des informations détaillées sur une politique, veuillez contacter notre bureau administratif.',

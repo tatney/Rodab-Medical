@@ -94,7 +94,7 @@ export default {
   footer: {
     brandSub: 'Healthcare Services',
     aboutText:
-      'Providing compassionate, world-class healthcare services in Entebbe, Uganda and surrounding areas. Your well-being is our priority.',
+      'Opening soon in Entebbe, Uganda. We are building a compassionate, world-class hospital — and your well-being will be our priority.',
     quickLinks: 'Quick Links',
     home: 'Home',
     aboutUs: 'About Us',
@@ -109,7 +109,7 @@ export default {
     jumpOnlineServices: 'Online Services',
     jumpServices: 'Our Services',
     jumpAbout: 'About Us',
-    jumpTestimonials: 'Testimonials',
+    jumpTestimonials: 'Our Commitment',
     servicesHeading: 'Our Services',
     emergencyCare: 'Emergency Care',
     generalMedicine: 'General Medicine',
@@ -140,30 +140,30 @@ export default {
   home: {
     seoTitle: 'Home',
     seoDescription:
-      'Compassionate healthcare services in Entebbe, Uganda. Emergency care, cardiology, neurology, orthopedics, and more. Open 24/7.',
+      'Rodab Medical is opening soon in Entebbe, Uganda. A new hospital bringing compassionate emergency care, cardiology, neurology, orthopedics, and more.',
     slides: [
       {
         title: 'Compassionate Healthcare',
         subtitle:
-          'Advanced medical care delivered with compassion and excellence by our world-class specialists.',
+          "We're preparing to bring advanced medical care to Entebbe — delivered with compassion and excellence by world-class specialists.",
         cta: 'Our Services',
       },
       {
         title: 'State-of-the-Art Facility',
         subtitle:
-          'Modern medical equipment and comfortable patient environments for optimal recovery.',
+          'A modern hospital taking shape — designed with state-of-the-art equipment and comfortable patient environments for optimal recovery.',
         cta: 'About Us',
       },
       {
         title: 'Emergency Response 24/7',
         subtitle:
-          'Rapid emergency medical services with fully equipped ambulances and trained paramedics.',
+          'Planned 24/7 emergency response with fully equipped ambulances and trained paramedics ready for our community.',
         cta: 'Emergency SOS',
       },
       {
         title: 'Expert Specialists',
         subtitle:
-          'Board-certified physicians and surgeons providing personalized treatment plans.',
+          'We are recruiting board-certified physicians and surgeons who will provide personalized treatment plans.',
         cta: 'Find a Doctor',
       },
     ],
@@ -171,10 +171,10 @@ export default {
     nextSlide: 'Next slide',
     goToSlide: 'Go to slide',
     stats: [
-      { label: 'Years of Service' },
-      { label: 'Expert Doctors' },
-      { label: 'Patients Treated' },
-      { label: 'Emergency Care' },
+      { label: 'Years of Combined Experience' },
+      { label: 'Doctors Joining Our Team' },
+      { label: 'Patients in Year One (Goal)' },
+      { label: 'Emergency Care (Planned)' },
     ],
     onlineServices: {
       heading: 'Online Services',
@@ -204,31 +204,31 @@ export default {
     features: {
       heading: 'Why Choose Rodab Medical?',
       items: [
-        { title: '24/7 Availability', desc: 'Round-the-clock medical services for all emergencies and consultations.' },
-        { title: 'Modern Equipment', desc: 'Latest medical technology and state-of-the-art diagnostic tools.' },
-        { title: 'Expert Staff', desc: 'Highly qualified doctors, nurses, and medical professionals.' },
-        { title: 'Affordable Care', desc: 'Quality healthcare at competitive prices with insurance support.' },
+        { title: '24/7 Availability', desc: 'Round-the-clock medical services planned for all emergencies and consultations.' },
+        { title: 'Modern Equipment', desc: 'Latest medical technology and state-of-the-art diagnostic tools at the heart of our facility.' },
+        { title: 'Expert Staff', desc: 'A team of highly qualified doctors, nurses, and medical professionals we are recruiting now.' },
+        { title: 'Affordable Care', desc: 'Quality healthcare planned at competitive prices with insurance support.' },
       ],
     },
     cta: {
-      heading: "Your Health Can't Wait",
-      text: "Whether it's a routine check-up or a medical emergency, our team is ready to provide the care you deserve.",
+      heading: "We're Opening Soon",
+      text: 'Rodab Medical is preparing to open its doors in Entebbe. Book your first appointment today and be among our first patients.',
       emergencySos: 'Emergency SOS',
       bookAppointment: 'Book Appointment',
     },
     story: {
       heading: 'Our Story',
-      p1: 'Founded with a mission to provide accessible, world-class healthcare, Rodab Medical Hospital has grown into a trusted name in medical excellence. Our journey began with a simple belief: every patient deserves compassionate, quality care.',
-      p2: 'Over the years, we have invested in cutting-edge technology, recruited top medical talent, and expanded our services to meet the evolving needs of our community.',
+      p1: 'Rodab Medical Hospital is preparing to open its doors with a mission to provide accessible, world-class healthcare to our community. Our journey began with a simple belief: every patient deserves compassionate, quality care.',
+      p2: 'Today, we are investing in cutting-edge technology, recruiting top medical talent, and designing our services to meet the evolving needs of our community from day one.',
       learnMore: 'Learn More About Us',
     },
     testimonials: {
-      heading: 'What Our Patients Say',
+      heading: 'Our Commitment to You',
       rating: 'out of 5 stars',
       items: [
-        { name: 'Ahmad H.', text: "The emergency team saved my father's life. Their response time was incredible and the care was exceptional." },
-        { name: 'Sara M.', text: 'Dr. Khoury and the cardiology team provided outstanding care during my heart surgery. Forever grateful.' },
-        { name: 'Layla K.', text: 'The maternity ward was amazing. The nurses were so caring and the facilities were top-notch.' },
+        { name: 'Emergency Care', text: 'Trained emergency teams will be ready 24/7 from opening day, with fully equipped ambulances and rapid response.' },
+        { name: 'Cardiology & Heart Care', text: 'Our cardiology team is being built around internationally trained specialists committed to outstanding heart care.' },
+        { name: 'Maternity & Newborn Care', text: 'Our maternity and newborn care teams will be prepared to welcome every new life with expert, compassionate care.' },
       ],
     },
     forms: {
@@ -259,7 +259,7 @@ export default {
     },
     programmes: {
       heading: 'Programmes',
-      sub: 'Ongoing care programmes and community initiatives',
+      sub: 'Upcoming care programmes and community initiatives',
       viewAll: 'View all programmes →',
       noEvents: 'No programmes yet. Check back soon!',
       allCategories: 'All',
@@ -270,23 +270,23 @@ export default {
     },
     whereWeWork: {
       heading: 'Where We Work',
-      sub: 'Active Across Uganda',
+      sub: 'Planned Coverage Across Uganda',
       description:
-        'Rodab Medical operates across all major cities in Uganda. From Kampala to Jinja, Masaka, Mbarara and Fort Portal — and beyond — our hospitals, clinics and care teams deliver world-class healthcare to communities throughout the country, ensuring every Ugandan has access to compassionate, quality medical care.',
+        'Rodab Medical is planned to serve communities across Uganda. From Kampala to Jinja, Masaka, Mbarara and Fort Portal — and beyond — our hospital and care teams are being prepared to deliver world-class healthcare throughout the country, ensuring every Ugandan has access to compassionate, quality medical care.',
     },
   },
 
   servicesPage: {
     seoTitle: 'Our Services',
     seoDescription:
-      'Comprehensive healthcare services including emergency care, cardiology, neurology, orthopedics, diagnostics, and more at Rodab Medical.',
+      'Comprehensive healthcare services planned at Rodab Medical, opening soon in Entebbe — emergency care, cardiology, neurology, orthopedics, diagnostics, and more.',
     heading: 'Our Medical Services',
-    sub: 'Rodab Medical Hospital offers a comprehensive range of medical services staffed by experienced professionals using the latest technology.',
+    sub: 'Rodab Medical Hospital will offer a comprehensive range of medical services staffed by experienced professionals using the latest technology when we open.',
     findDoctor: 'Find a Doctor',
     items: [
       {
         title: 'Emergency Medicine',
-        desc: 'Immediate life-saving care with a fully equipped emergency department and rapid response teams available 24/7.',
+        desc: 'Planned immediate life-saving care with a fully equipped emergency department and rapid response teams available 24/7.',
         features: ['24/7 Emergency Care', 'Rapid Response Teams', 'Trauma Center'],
       },
       {
@@ -344,9 +344,9 @@ export default {
 
   programmes: {
     seoTitle: 'Programmes',
-    seoDescription: "Explore Rodab Medical's ongoing care programmes and community health initiatives.",
+    seoDescription: "Explore Rodab Medical's upcoming care programmes and community health initiatives.",
     heading: 'Programmes',
-    subtitle: 'Ongoing care programmes and community initiatives from Rodab Medical.',
+    subtitle: 'Upcoming care programmes and community initiatives from Rodab Medical.',
     loading: 'Loading programmes…',
     empty: 'No programmes yet. Check back soon!',
     allCategories: 'All',
@@ -355,10 +355,10 @@ export default {
   about: {
     seoTitle: 'About Us',
     seoDescription:
-      "Learn about Rodab Medical's mission, team, and commitment to providing compassionate healthcare in Entebbe, Uganda.",
+      "Learn about Rodab Medical, opening soon in Entebbe, Uganda — our mission, plans, and commitment to compassionate healthcare.",
     heading: 'About Rodab Medical',
     heroText:
-      'A leading healthcare institution dedicated to providing compassionate, world-class medical services to our community.',
+      'A new healthcare institution preparing to open its doors in Entebbe, Uganda — dedicated to providing compassionate, world-class medical services to our community.',
     missionHeading: 'Our Mission',
     missionText:
       'To provide exceptional, patient-centered healthcare that combines medical excellence with genuine compassion. We are committed to improving the health and wellbeing of every individual we serve, regardless of their background or circumstances.',
@@ -374,14 +374,14 @@ export default {
       { title: 'Teamwork', desc: 'We foster collaboration among our multidisciplinary teams to provide comprehensive patient care.' },
       { title: 'Safety', desc: 'We prioritize patient and staff safety through rigorous protocols and continuous monitoring.' },
     ],
-    journeyHeading: 'Our Journey',
+    journeyHeading: 'Our Roadmap to Opening',
     milestones: [
-      { event: 'Hospital founded with a vision for accessible quality healthcare' },
-      { event: 'Expanded to include a dedicated cardiac care center' },
-      { event: 'Opened the Level III NICU and maternity wing' },
-      { event: 'Achieved international healthcare accreditation' },
-      { event: 'Launched telehealth and digital health services' },
-      { event: 'Opened new surgical wing with advanced operating theatres' },
+      { event: 'Vision set: bringing accessible, world-class healthcare to Entebbe and beyond' },
+      { event: 'Phase 1 — Ground-breaking and construction of the hospital campus' },
+      { event: 'Phase 2 — Installation of state-of-the-art medical equipment' },
+      { event: 'Phase 3 — Recruitment and training of our specialist medical team' },
+      { event: 'Phase 4 — Opening day: first services live for the community' },
+      { event: 'Phase 5 — Launch of planned departments and expansion of services across Uganda' },
     ],
   },
 
@@ -399,7 +399,7 @@ export default {
       {
         question: 'What insurance plans do you accept?',
         answer:
-          'We accept most major insurance providers including national health insurance, private insurance companies, and international coverage. Please contact our billing department or check at reception for specific plan verification before your visit.',
+          'We plan to accept most major insurance providers including national health insurance, private insurance companies, and international coverage. Details will be confirmed on our website before we open.',
       },
       {
         question: 'How does the ambulance service work?',
@@ -414,7 +414,7 @@ export default {
       {
         question: 'What are the hospital visiting hours?',
         answer:
-          'General visiting hours are from 10:00 AM to 8:00 PM daily. ICU and critical care units have restricted visiting schedules. Exceptions may be made for end-of-life care situations. Children under 12 must be accompanied by an adult.',
+          'Planned visiting hours will run from 10:00 AM to 8:00 PM daily. ICU and critical care units will have restricted visiting schedules, and children under 12 must be accompanied by an adult.',
       },
       {
         question: 'How do I request a repeat prescription?',
@@ -429,7 +429,7 @@ export default {
       {
         question: 'What should I do in a medical emergency?',
         answer:
-          'For life-threatening emergencies, call 111 immediately. You can also use our SOS button for ambulance dispatch. If you are at the hospital, proceed directly to the Emergency Department.',
+          'For life-threatening emergencies, call 111 immediately. You can also use our SOS button for ambulance dispatch. Once the hospital is open, proceed directly to the Emergency Department if you are on site.',
       },
     ],
     stillHaveQuestions: 'Still have questions?',
@@ -440,7 +440,7 @@ export default {
     seoTitle: 'Privacy Policy',
     seoDescription: 'How Rodab Medical handles your personal data and privacy.',
     heading: 'Privacy Policy',
-    lastUpdated: 'Last updated: January 1, 2024',
+    lastUpdated: 'Last updated: August 10, 2026',
     intro:
       'At Rodab Medical Hospital, we are committed to protecting your privacy and safeguarding your personal and medical information. This privacy policy outlines how we collect, use, store, and protect your data.',
     sections: [
@@ -496,7 +496,7 @@ export default {
     seoTitle: 'Policies',
     seoDescription: 'Hospital policies and guidelines at Rodab Medical.',
     heading: 'Hospital Policies',
-    sub: 'Our commitment to quality care through established standards and protocols',
+    sub: 'Our commitment to quality care through standards and protocols that will guide us from opening day',
     items: [
       {
         title: 'Patient Rights',
@@ -506,47 +506,47 @@ export default {
       {
         title: 'Privacy & Confidentiality',
         content:
-          'All patient information is treated with the strictest confidentiality in accordance with HIPAA regulations. Medical records, test results, and personal information are only shared with authorized personnel and with patient consent.',
+          'All patient information will be treated with the strictest confidentiality in accordance with HIPAA regulations. Medical records, test results, and personal information will only be shared with authorized personnel and with patient consent.',
       },
       {
         title: 'Infection Control',
         content:
-          'Rodab Medical Hospital follows rigorous infection prevention and control protocols including hand hygiene, sterilization procedures, and isolation protocols to protect patients, staff, and visitors from healthcare-associated infections.',
+          'Rodab Medical Hospital will follow rigorous infection prevention and control protocols including hand hygiene, sterilization procedures, and isolation protocols to protect patients, staff, and visitors from healthcare-associated infections.',
       },
       {
         title: 'Medication Safety',
         content:
-          'We maintain strict medication management protocols including double-checking of prescriptions, proper labeling, patient education on medications, and adverse reaction monitoring to ensure pharmaceutical safety.',
+          'We will maintain strict medication management protocols including double-checking of prescriptions, proper labeling, patient education on medications, and adverse reaction monitoring to ensure pharmaceutical safety.',
       },
       {
         title: 'Emergency Care',
         content:
-          'Our emergency department provides 24/7 care to all patients regardless of their ability to pay. Emergency triage follows international standards to ensure the most critical patients receive immediate attention.',
+          'Our emergency department will provide 24/7 care to all patients regardless of their ability to pay once we open. Emergency triage will follow international standards to ensure the most critical patients receive immediate attention.',
       },
       {
         title: 'Non-Discrimination',
         content:
-          'We are committed to providing equal care to all patients without discrimination. Our staff receives regular training on cultural sensitivity and inclusive healthcare practices.',
+          'We are committed to providing equal care to all patients without discrimination. Our staff will receive regular training on cultural sensitivity and inclusive healthcare practices.',
       },
       {
         title: 'Visiting Hours',
         content:
-          'General visiting hours are from 10:00 AM to 8:00 PM daily. ICU and critical care units have restricted visiting schedules. Exceptions may be made for end-of-life care situations.',
+          'General visiting hours will run from 10:00 AM to 8:00 PM daily. ICU and critical care units will have restricted visiting schedules. Exceptions may be made for end-of-life care situations.',
       },
       {
         title: 'Complaints & Feedback',
         content:
-          'We welcome patient feedback and take all complaints seriously. Concerns can be reported to the Patient Relations department. All complaints are investigated and responded to within 48 hours.',
+          'We will welcome patient feedback and take all complaints seriously. Concerns can be reported to the Patient Relations department, and all complaints will be investigated and responded to within 48 hours.',
       },
       {
         title: 'Discharge Planning',
         content:
-          'Discharge planning begins upon admission. Our multidisciplinary team ensures patients understand their post-discharge care plan, medications, follow-up appointments, and emergency contacts.',
+          'Discharge planning will begin upon admission. Our multidisciplinary team will ensure patients understand their post-discharge care plan, medications, follow-up appointments, and emergency contacts.',
       },
       {
         title: 'Financial Policy',
         content:
-          'Payment is expected at the time of service unless prior arrangements have been made. We accept most major insurance plans and offer payment plans for eligible patients. Financial assistance is available for qualifying individuals.',
+          'Payment will be expected at the time of service unless prior arrangements have been made. We plan to accept most major insurance plans and offer payment plans for eligible patients. Financial assistance will be available for qualifying individuals.',
       },
     ],
     footerNote: 'For detailed information about any policy, please contact our administration office.',

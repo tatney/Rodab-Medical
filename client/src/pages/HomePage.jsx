@@ -483,13 +483,8 @@ export default function HomePage() {
                       key={index}
                       className="marquee-card"
                     >
-                      <div style={{ fontSize: 20, color: '#f59e0b', marginBottom: 12 }}>
-                        <span aria-label={`${item.rating || 5} ${t('home.testimonials.rating')}`}>{'★'.repeat(item.rating || 5)}</span>
-                      </div>
-                      <p style={{ fontSize: 15, color: 'var(--text-body)', lineHeight: 1.7, marginBottom: 16 }}>
-                        "{item.text}"
-                      </p>
-                      <div style={{ fontWeight: 700, color: 'var(--text-strong)', fontSize: 15 }}>{item.name}</div>
+                      <div style={{ fontWeight: 700, color: 'var(--primary)', fontSize: 16, marginBottom: 10 }}>{item.name}</div>
+                      <p style={{ fontSize: 15, color: 'var(--text-body)', lineHeight: 1.7 }}>"{item.text}"</p>
                     </div>
                   ))}
                 </div>

@@ -5,7 +5,7 @@ import { useI18n } from '../i18n/I18nContext'
 
 const VALUE_ICONS = ['🎯', '❤️', '🤝', '🔬', '👥', '🛡️']
 
-const MILESTONE_YEARS = ['2009', '2013', '2016', '2019', '2022', '2024']
+const MILESTONE_YEARS = ['Foundation', 'Phase 1', 'Phase 2', 'Phase 3', 'Phase 4', 'Phase 5']
 
 export default function AboutUsPage() {
   const { t, tr } = useI18n()
