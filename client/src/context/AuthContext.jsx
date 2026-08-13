@@ -35,7 +35,7 @@ export function AuthProvider({ children }) {
         .select('*')
         .eq('id', authUser.id)
         .single()
-        .timeout(8000)
+        .abortSignal(AbortSignal.timeout(8000))
 
       if (profile?.is_flagged) {
         await supabase.auth.signOut()

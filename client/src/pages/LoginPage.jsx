@@ -31,7 +31,7 @@ export default function LoginPage() {
         .select('*')
         .eq('id', data.user.id)
         .single()
-        .timeout(8000)
+        .abortSignal(AbortSignal.timeout(8000))
 
       if (profile?.is_flagged) {
         await supabase.auth.signOut()
