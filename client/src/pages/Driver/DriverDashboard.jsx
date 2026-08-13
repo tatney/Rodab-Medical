@@ -8,6 +8,8 @@ import {
   updateRideStatus,
   getHospitals,
   updateDriverLocation,
+  setDriverAvailability,
+  getMyDriverStatus,
 } from '../../api';
 import { getAccurateLocation, watchLocation, clearWatch, haversineKm } from '../../utils/geolocation';
 import { buildGoogleMapsUrl, buildWazeUrl } from '../../utils/routing';
@@ -108,6 +110,9 @@ export default function DriverDashboard() {
   const [navTarget, setNavTarget] = useState(null);
   const [navInfo, setNavInfo] = useState(null);
   const [followMode, setFollowMode] = useState(false);
+  const [availability, setAvailability] = useState('online');
+  const hasActiveRide = rides.some((r) => ['dispatched', 'in_transit', 'arrived'].includes(r.status));
+  const effectiveAvailability = hasActiveRide ? 'busy' : availability;
 
   const watchIdRef = useRef(null);
   const lastPersistRef = useRef({ ts: 0, lat: null, lng: null });
@@ -120,13 +125,18 @@ export default function DriverDashboard() {
     setError('');
     try {
       const driverId = user?.id;
-      const [ridesRes, hospRes] = await Promise.all([
+      const [ridesRes, hospRes, statusRes] = await Promise.all([
         getDriverRides(driverId).catch(() => ({ data: [] })),
         getHospitals().catch(() => ({ data: [] })),
+        getMyDriverStatus().catch(() => ({ data: { driver: null } })),
       ]);
 
       setRides(ridesRes.data?.rides || ridesRes.data || []);
       setHospitals(hospRes.data?.hospitals || hospRes.data || []);
+      const drv = statusRes.data?.driver;
+      if (drv?.status === 'offline' || drv?.status === 'off_duty') {
+        setAvailability('offline');
+      }
     } catch (err) {
       console.error('Failed to load driver data:', err);
       setError('Failed to load data. Please try again.');
@@ -177,6 +187,7 @@ export default function DriverDashboard() {
   }, [user, persistDriverLocation]);
 
   useEffect(() => {
+    if (effectiveAvailability === 'offline') return;
     let mounted = true;
 
     // Seed the map immediately with the best fix we can get.
@@ -202,7 +213,20 @@ export default function DriverDashboard() {
       mounted = false;
       clearWatch(watchIdRef.current);
     };
-  }, [applyLocation]);
+  }, [applyLocation, effectiveAvailability]);
+
+  const handleToggleAvailability = async () => {
+    if (hasActiveRide) return;
+    const next = availability === 'online' ? 'offline' : 'online';
+    setAvailability(next);
+    try {
+      await setDriverAvailability(next);
+    } catch (err) {
+      console.error('Failed to update availability:', err);
+      setAvailability(availability);
+      toast.error('Failed to update availability.');
+    }
+  };
 
   // ── Derived data ────────────────────────────────────────
   const activeRides = rides.filter((r) => ['dispatched', 'in_transit', 'arrived'].includes(r.status));
@@ -752,6 +776,28 @@ export default function DriverDashboard() {
               <span style={{ fontSize: 13, fontWeight: 600, color: '#991b1b' }}>{activeRides.length} Active Ride{activeRides.length > 1 ? 's' : ''}</span>
             </div>
           )}
+          <button
+            onClick={handleToggleAvailability}
+            disabled={effectiveAvailability === 'busy'}
+            title={
+              effectiveAvailability === 'busy'
+                ? 'Busy on a ride — availability updates automatically'
+                : effectiveAvailability === 'online'
+                  ? 'Go offline — stop broadcasting your location'
+                  : 'Go online — start broadcasting your location'
+            }
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '8px 16px', borderRadius: 999, cursor: effectiveAvailability === 'busy' ? 'not-allowed' : 'pointer',
+              border: effectiveAvailability === 'busy' ? '1px solid #fcd34d' : '1px solid #e5e7eb',
+              backgroundColor: effectiveAvailability === 'busy' ? '#fffbeb' : effectiveAvailability === 'online' ? '#dcfce7' : '#f3f4f6',
+              color: effectiveAvailability === 'busy' ? '#b45309' : effectiveAvailability === 'online' ? '#166534' : '#6b7280',
+              fontSize: 13, fontWeight: 600,
+            }}
+          >
+            <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: effectiveAvailability === 'busy' ? '#f59e0b' : effectiveAvailability === 'online' ? '#16a34a' : '#9ca3af' }} />
+            {effectiveAvailability === 'busy' ? 'BUSY' : effectiveAvailability === 'online' ? 'ONLINE' : 'OFFLINE'}
+          </button>
         </div>
 
         {/* Error */}

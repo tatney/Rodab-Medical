@@ -460,7 +460,7 @@ export const getLiveAmbulances = async () => {
     id: d.id,
     profile_id: d.profile_id,
     vehicle_id: d.vehicle_id,
-    is_available: d.is_available !== false && d.status !== 'off_duty',
+    is_available: d.is_available !== false && d.status !== 'off_duty' && d.status !== 'offline',
     status: d.status,
     latitude: d.current_latitude,
     longitude: d.current_longitude,
@@ -639,7 +639,10 @@ export const getAvailableDrivers = async () => {
   const drivers = (data || [])
     .filter((p) => {
       const dr = p.drivers?.[0]
-      return !dr || dr.is_available !== false
+      if (!dr) return true
+      const busy = dr.status === 'busy' || dr.is_available === false
+      const offline = dr.status === 'offline' || dr.status === 'off_duty'
+      return !busy && !offline
     })
     .map((p) => {
       const dr = p.drivers?.[0] || {}
@@ -657,6 +660,32 @@ export const getAvailableDrivers = async () => {
     })
 
   return ok({ drivers, data: drivers })
+}
+
+export const setDriverAvailability = async (status) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const isOnline = status === 'online'
+  const { error } = await supabase
+    .from('drivers')
+    .update({ status: isOnline ? 'online' : 'offline', is_available: isOnline })
+    .eq('profile_id', user.id)
+  if (error) throw error
+  return ok({ driver: null })
+}
+
+export const getMyDriverStatus = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('drivers')
+    .select('status, is_available')
+    .eq('profile_id', user.id)
+    .maybeSingle()
+  if (error) throw error
+  return ok({ driver: data })
 }
 
 // ─── Vehicles ─────────────────────────────────────────────────────────────────
@@ -1693,6 +1722,8 @@ const api = {
   updateDriver,
   deleteDriver,
   updateDriverLocation,
+  setDriverAvailability,
+  getMyDriverStatus,
   getAvailableDrivers,
   getVehicles,
   createVehicle,

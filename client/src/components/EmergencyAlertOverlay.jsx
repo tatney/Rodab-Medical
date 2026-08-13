@@ -394,11 +394,18 @@ const EmergencyAlertOverlay = () => {
                     style={styles.select}
                   >
                     <option value="">-- Select a driver --</option>
-                    {drivers.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.full_name || d.name || d.email} {d.vehicle_id ? `(Vehicle: ${d.vehicle_id})` : ''}
-                      </option>
-                    ))}
+                    {drivers.map((d) => {
+                      const st = d.status === 'busy'
+                        ? 'busy'
+                        : d.status === 'offline' || d.status === 'off_duty'
+                          ? 'offline'
+                          : 'online';
+                      return (
+                        <option key={d.id} value={d.id} disabled={st !== 'online'}>
+                          {d.full_name || d.name || d.email} — {st.charAt(0).toUpperCase() + st.slice(1)}
+                        </option>
+                      );
+                    })}
                   </select>
                   <button
                     onClick={handleAssignDriver}

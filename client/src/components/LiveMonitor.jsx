@@ -176,7 +176,7 @@ const LiveMonitor = ({ hospitals = [], mapHeight = '480px' }) => {
           if (lat == null || lng == null || d.id == null) return null;
 
           const isOnRide = activeDriverIds.has(d.id);
-          const available = dr?.is_available !== false && dr?.status !== 'off_duty';
+          const available = dr?.is_available !== false && dr?.status !== 'off_duty' && dr?.status !== 'offline';
           const color = isOnRide ? '#dc2626' : available ? '#16a34a' : '#6b7280';
 
           const st = stats[d.id];
@@ -194,7 +194,7 @@ const LiveMonitor = ({ hospitals = [], mapHeight = '480px' }) => {
             color,
             iconLabel: isOnRide ? 'R' : 'A',
             pulse: isOnRide,
-            statusLabel: isOnRide ? 'ON RIDE' : available ? 'AVAILABLE' : 'OFF DUTY',
+            statusLabel: isOnRide ? 'ON RIDE' : available ? 'AVAILABLE' : 'OFFLINE',
             lastUpdate: lastUpdateLabel,
           };
         })
@@ -430,7 +430,7 @@ const LiveMonitor = ({ hospitals = [], mapHeight = '480px' }) => {
                 {drivers.map((d) => {
                   const dr = getDriverRow(d);
                   const isOnRide = d.id != null && activeDriverIds.has(d.id);
-                  const available = dr?.is_available !== false && dr?.status !== 'off_duty';
+                  const available = dr?.is_available !== false && dr?.status !== 'off_duty' && dr?.status !== 'offline';
                   const hasLoc = dr?.current_latitude != null;
                   const st = stats[d.id];
                   return (
@@ -443,7 +443,7 @@ const LiveMonitor = ({ hospitals = [], mapHeight = '480px' }) => {
                       <span
                         className={`live-fleet-chip ${isOnRide ? 'on-ride' : available ? 'available' : 'off-duty'}`}
                       >
-                        {isOnRide ? 'ON RIDE' : available ? 'AVAILABLE' : 'OFF DUTY'}
+                        {isOnRide ? 'ON RIDE' : available ? 'AVAILABLE' : 'OFFLINE'}
                       </span>
                       <span className="live-fleet-meta">
                         {hasLoc ? (

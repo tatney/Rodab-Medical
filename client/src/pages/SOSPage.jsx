@@ -215,7 +215,7 @@ export default function SOSPage() {
       const latitude = current_latitude
       const longitude = current_longitude
       if (id == null || latitude == null || longitude == null) return
-      const available = is_available !== false && status !== 'off_duty'
+      const available = is_available !== false && status !== 'off_duty' && status !== 'offline'
 
       setLiveDrivers((prev) =>
         prev.some((d) => d.id === id)

@@ -266,7 +266,7 @@ const Map = ({
         .bindPopup(
           `<div style="font-family:system-ui;min-width:190px;">
             <strong style="font-size:14px;">${escapeHtml(driver.name || 'Ambulance')}</strong><br/>
-            <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${color}20;color:${color};margin:4px 0;">${escapeHtml(driver.statusLabel || (driver.pulse ? 'ON RIDE' : driver.color === '#16a34a' ? 'AVAILABLE' : 'OFF DUTY'))}</span>
+            <span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;background:${color}20;color:${color};margin:4px 0;">${escapeHtml(driver.statusLabel || (driver.pulse ? 'ON RIDE' : driver.color === '#16a34a' ? 'AVAILABLE' : 'OFFLINE'))}</span>
             ${driver.plate ? `<br/><span style="color:#666;font-size:12px;">${escapeHtml(driver.plate)}</span>` : ''}
             ${driver.lastUpdate ? `<br/><span style="color:#9ca3af;font-size:11px;">Updated ${escapeHtml(driver.lastUpdate)}</span>` : ''}
           </div>`
