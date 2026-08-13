@@ -105,7 +105,7 @@ export const roleConfig = {
       { key: 'dashboard', to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
       { key: 'appointments', to: '/appointments', label: 'Appointments', icon: 'appointments' },
       { key: 'consultations', to: '/consultations', label: 'Consultations', icon: 'consultations' },
-      { key: 'ambulance', to: '/ambulance', label: 'Ambulance', icon: 'ambulance' },
+      { key: 'sos', to: '/sos', label: 'Emergency SOS', icon: 'emergency' },
       { key: 'repeat-prescription', to: '/repeat-prescription', label: 'Repeat Prescription', icon: 'repeat-prescription' },
       { key: 'illness-certificate', to: '/illness-certificate', label: 'Illness Certificate', icon: 'certificates' },
       { key: 'forms', to: '/forms', label: 'Medical Forms', icon: 'forms' },

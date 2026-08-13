@@ -2,6 +2,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { EmergencyProvider } from './context/EmergencyContext';
+import { useAuth } from './context/AuthContext';
 import { LANDING_MODE } from './config';
 
 
@@ -32,7 +33,6 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Protected Pages
 const UserDashboard = lazy(() => import('./pages/UserDashboard'));
-const AmbulancePage = lazy(() => import('./pages/AmbulancePage'));
 const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage'));
 const ConsultationsPage = lazy(() => import('./pages/ConsultationsPage'));
 const FormsPage = lazy(() => import('./pages/FormsPage'));
@@ -54,6 +54,38 @@ const DriverDashboard = lazy(() => import('./pages/Driver/DriverDashboard'));
 
 import './App.css';
 
+function roleHome(role) {
+  switch (role) {
+    case 'super_admin': return '/super-admin';
+    case 'admin': return '/admin';
+    case 'doctor': return '/doctor';
+    case 'driver': return '/driver';
+    default: return '/dashboard';
+  }
+}
+
+function RootRoute() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div
+        role="status"
+        style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}
+      >
+        <div style={{ width: 48, height: 48, border: '4px solid #e5e7eb', borderTop: '4px solid #2563eb', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      </div>
+    );
+  }
+
+  if (user && !LANDING_MODE) {
+    const userRole = user.role || user.user_metadata?.role || '';
+    return <Navigate to={roleHome(userRole)} replace />;
+  }
+
+  return <HomePage />;
+}
+
 function App() {
   return (
     <HelmetProvider>
@@ -67,7 +99,7 @@ function App() {
         <main id="main-content" className="main-content">
           <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<RootRoute />} />
 
             {LANDING_MODE ? (
               <>
@@ -110,7 +142,7 @@ function App() {
                   />
                   <Route
                     path="/ambulance"
-                    element={<AmbulancePage />}
+                    element={<Navigate to="/sos" replace />}
                   />
                   <Route
                     path="/appointments"

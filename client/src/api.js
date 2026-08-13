@@ -431,6 +431,44 @@ export const getActiveEmergencies = async () => {
   return ok({ active: data || [], emergencies: data || [], rides: data || [] })
 }
 
+// Lightweight fleet snapshot for the patient-facing live map. Works for any
+// authenticated user because the `drivers` and `vehicles` tables have open
+// SELECT policies.
+export const getLiveAmbulances = async () => {
+  const { data, error } = await supabase
+    .from('drivers')
+    .select('id, profile_id, vehicle_id, is_available, status, current_latitude, current_longitude, last_location_update')
+    .order('last_location_update', { ascending: false })
+  if (error) throw error
+
+  const vehicleIds = [...new Set((data || []).map((d) => d.vehicle_id).filter(Boolean))]
+  let vehicleMap = {}
+  if (vehicleIds.length) {
+    const { data: vehicles, error: vehErr } = await supabase
+      .from('vehicles')
+      .select('id, plate_number, model, vehicle_type, status')
+      .in('id', vehicleIds)
+    if (!vehErr) {
+      vehicleMap = Object.fromEntries((vehicles || []).map((v) => [v.id, v]))
+    }
+  }
+
+  const drivers = (data || []).map((d) => ({
+    id: d.id,
+    profile_id: d.profile_id,
+    vehicle_id: d.vehicle_id,
+    is_available: d.is_available !== false && d.status !== 'off_duty',
+    status: d.status,
+    latitude: d.current_latitude,
+    longitude: d.current_longitude,
+    last_location_update: d.last_location_update,
+    plate: vehicleMap[d.vehicle_id]?.plate_number || '',
+    vehicle: vehicleMap[d.vehicle_id] || null,
+  }))
+
+  return ok({ drivers })
+}
+
 export const getDriverActiveRides = async () => {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
@@ -1639,6 +1677,7 @@ const api = {
   dispatchAmbulanceGuest,
   getAmbulanceHistory,
   getActiveEmergencies,
+  getLiveAmbulances,
   getDriverActiveRides,
   getDriverRides,
   trackAmbulance,

@@ -6,12 +6,12 @@ import { KAMPALA_DEFAULT, haversineKm } from '../utils/geolocation'
 import { useI18n } from '../i18n/I18nContext'
 
 const statusSteps = [
-  { key: 'requested', icon: '📋' },
-  { key: 'dispatched', icon: '🚑' },
-  { key: 'in_transit', icon: '🛣️' },
-  { key: 'arrived', icon: '🏥' },
-  { key: 'completed', icon: '✅' },
-  { key: 'cancelled', icon: '❌' },
+  { key: 'requested' },
+  { key: 'dispatched' },
+  { key: 'in_transit' },
+  { key: 'arrived' },
+  { key: 'completed' },
+  { key: 'cancelled' },
 ]
 
 const statusIndex = {}
@@ -359,87 +359,83 @@ export default function TrackPage() {
         {/* Left: Map */}
         <div>
           <div id="track-map" aria-label="Ambulance tracking map" style={{ width: '100%', height: 450, borderRadius: 12, backgroundColor: 'var(--surface-container-low)', border: '1px solid var(--border)', position: 'relative' }}>
-            {/* Live stats overlay */}
+            {/* Live status window */}
             <div style={{
-              position: 'absolute', top: 12, left: 12, zIndex: 1000,
+              position: 'absolute', top: 12, right: 12, zIndex: 1000,
+              width: 250, maxWidth: 'calc(100% - 24px)',
               backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 10,
               border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)',
-              padding: '10px 14px', display: 'flex', gap: 16, flexWrap: 'wrap',
-              pointerEvents: 'none',
+              overflow: 'hidden',
             }}>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('track.eta')}</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-strong)' }}>
-                  {live.driverAssigned ? (live.etaMin != null ? `${live.etaMin} ${t('track.min')}` : '—') : '—'}
-                </div>
+              <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('track.status')}</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: live.stale ? 'var(--error)' : 'var(--status-success)' }}>
+                  {live.driverAssigned ? (live.stale ? t('track.stationary') : t('track.moving')) : '—'}
+                </span>
               </div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('track.distance')}</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-strong)' }}>
-                  {live.driverAssigned ? (live.distanceKm != null ? `${live.distanceKm} km` : '—') : '—'}
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>{t('track.speed')}</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-strong)' }}>
-                  {live.driverAssigned ? (live.speedKmh != null ? `${live.speedKmh} ${t('track.kmh')}` : '—') : '—'}
-                </div>
-              </div>
-            </div>
 
-            {/* Map controls */}
-            <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 1000, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <button
-                onClick={() => setFollowMode((m) => (m === 'both' ? 'driver' : 'both'))}
-                style={{
-                  padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)',
-                  backgroundColor: '#ffffff', color: 'var(--text-strong)', fontSize: 12,
-                  fontWeight: 600, cursor: 'pointer', boxShadow: 'var(--shadow-sm)',
-                }}
-                title={followMode === 'both' ? t('track.followAmbulance') : t('track.showBoth')}
-              >
-                {followMode === 'both' ? '🧭 ' + t('track.showBoth') : '🚑 ' + t('track.followAmbulance')}
-              </button>
-              <button
-                onClick={handleRecenter}
-                style={{
-                  padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)',
-                  backgroundColor: '#ffffff', color: 'var(--text-strong)', fontSize: 12,
-                  fontWeight: 600, cursor: 'pointer', boxShadow: 'var(--shadow-sm)',
-                }}
-              >
-                {t('track.recenter')}
-              </button>
-            </div>
+              <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('track.eta')}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', marginTop: 2 }}>
+                    {live.driverAssigned ? (live.etaMin != null ? `${live.etaMin} ${t('track.min')}` : '—') : '—'}
+                  </div>
+                </div>
+                <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px', borderLeft: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('track.distance')}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', marginTop: 2 }}>
+                    {live.driverAssigned ? (live.distanceKm != null ? `${live.distanceKm} km` : '—') : '—'}
+                  </div>
+                </div>
+                <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px', borderLeft: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('track.speed')}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', marginTop: 2 }}>
+                    {live.driverAssigned ? (live.speedKmh != null ? `${live.speedKmh} ${t('track.kmh')}` : '—') : '—'}
+                  </div>
+                </div>
+              </div>
 
-            {/* Driver status strip */}
-            {live.driverAssigned && (
-              <div style={{
-                position: 'absolute', bottom: 12, left: 12, right: 12, zIndex: 1000,
-                backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 10,
-                border: '1px solid var(--border)', padding: '10px 14px',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ fontSize: 18 }}>{live.moving ? '🚑' : '🅿️'}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-strong)' }}>
+              {live.driverAssigned ? (
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: live.stale ? 'var(--error)' : (live.moving ? 'var(--status-success)' : 'var(--text-muted)'), flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-strong)', flex: 1 }}>
                     {live.moving ? t('track.moving') : t('track.stationary')}
                   </span>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                    {t('track.lastUpdate').replace('{s}', String(lastUpdateAgo))}
+                  </span>
                 </div>
-                <div style={{ fontSize: 12, color: live.stale ? 'var(--error)' : 'var(--text-muted)' }}>
-                  {t('track.lastUpdate').replace('{s}', String(lastUpdateAgo))}
+              ) : (
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center' }}>
+                  {t('track.waitingDriver')}
                 </div>
+              )}
+
+              <div style={{ padding: 8, display: 'flex', gap: 6 }}>
+                <button
+                  onClick={() => setFollowMode((m) => (m === 'both' ? 'driver' : 'both'))}
+                  style={{
+                    flex: 1, padding: '7px 8px', borderRadius: 8, border: '1px solid var(--border)',
+                    backgroundColor: followMode === 'driver' ? 'var(--primary)' : '#ffffff',
+                    color: followMode === 'driver' ? '#ffffff' : 'var(--text-strong)',
+                    fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                  }}
+                  title={followMode === 'both' ? t('track.followAmbulance') : t('track.showBoth')}
+                >
+                  {followMode === 'both' ? '🧭 ' + t('track.showBoth') : '🚑 ' + t('track.followAmbulance')}
+                </button>
+                <button
+                  onClick={handleRecenter}
+                  style={{
+                    padding: '7px 12px', borderRadius: 8, border: '1px solid var(--border)',
+                    backgroundColor: '#ffffff', color: 'var(--text-strong)', fontSize: 11,
+                    fontWeight: 600, cursor: 'pointer',
+                  }}
+                >
+                  {t('track.recenter')}
+                </button>
               </div>
-            )}
-            {!live.driverAssigned && (
-              <div style={{
-                position: 'absolute', bottom: 12, left: 12, right: 12, zIndex: 1000,
-                backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 10,
-                border: '1px solid var(--border)', padding: '10px 14px', textAlign: 'center',
-              }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>{t('track.waitingDriver')}</span>
-              </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -448,33 +444,37 @@ export default function TrackPage() {
           {/* Status Timeline */}
           <div style={{ backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, marginBottom: 24 }}>
             <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 20 }}>{t('track.status')}</h2>
-            {statusSteps.map((step, idx) => {
-              const isActive = idx <= currentStep
-              const isCurrent = idx === currentStep
-              return (
-                <div key={step.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: '50%',
-                      backgroundColor: isActive ? 'var(--status-success)' : 'var(--surface-container)',
-                      color: '#ffffff', fontSize: 14,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontWeight: 700, border: isCurrent ? '3px solid var(--primary)' : 'none',
-                    }}>
-                      {idx + 1}
+            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+              {statusSteps.map((step, idx) => {
+                const isActive = idx <= currentStep
+                const isCurrent = idx === currentStep
+                return (
+                  <div key={step.key} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                      {idx > 0 && (
+                        <div style={{ flex: 1, height: 2, backgroundColor: isActive ? 'var(--status-success)' : 'var(--surface-container)' }} />
+                      )}
+                      <div style={{
+                        width: isCurrent ? 16 : 12, height: isCurrent ? 16 : 12, borderRadius: '50%',
+                        backgroundColor: isActive ? 'var(--status-success)' : 'var(--surface-container)',
+                        border: isCurrent ? '3px solid var(--primary)' : 'none',
+                        boxSizing: 'border-box', flexShrink: 0,
+                      }} />
+                      {idx < statusSteps.length - 1 && (
+                        <div style={{ flex: 1, height: 2, backgroundColor: isActive && idx < currentStep ? 'var(--status-success)' : 'var(--surface-container)' }} />
+                      )}
                     </div>
-                    {idx < statusSteps.length - 1 && (
-                      <div style={{ width: 2, height: 24, backgroundColor: isActive && idx < currentStep ? 'var(--status-success)' : 'var(--surface-container)' }} />
-                    )}
-                  </div>
-                  <div style={{ paddingBottom: idx < statusSteps.length - 1 ? 8 : 0 }}>
-                    <span style={{ fontSize: 14, fontWeight: isCurrent ? 700 : 500, color: isActive ? 'var(--text-strong)' : 'var(--text-muted)' }}>
-                      {step.icon} {steps[idx]}
+                    <span style={{
+                      fontSize: isCurrent ? 13 : 12, fontWeight: isCurrent ? 700 : 500,
+                      color: isActive ? 'var(--text-strong)' : 'var(--text-muted)',
+                      textAlign: 'center', marginTop: 8, lineHeight: 1.3, padding: '0 2px',
+                    }}>
+                      {steps[idx]}
                     </span>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
 
           {/* Patient Info */}

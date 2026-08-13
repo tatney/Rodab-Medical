@@ -1,15 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   getAppointments,
   getConsultations,
   getAmbulanceHistory,
-  dispatchAmbulance,
 } from '../api';
 import { getPrescriptions } from '../api';
 import { extractArray } from '../utils/api-helpers';
-import { getSmartLocation, reverseGeocode } from '../utils/geolocation';
 import EmergencyCta from '../components/EmergencyCta';
 
 const UserDashboard = () => {
@@ -22,18 +20,6 @@ const UserDashboard = () => {
   const [ambulanceHistory, setAmbulanceHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const [emergencyForm, setEmergencyForm] = useState({
-    patientName: '',
-    contactPhone: '',
-    location: '',
-    emergencyLevel: 'medium',
-    condition: '',
-  });
-  const [locating, setLocating] = useState(false);
-  const [dispatching, setDispatching] = useState(false);
-  const [dispatchResult, setDispatchResult] = useState(null);
-  const [dispatchError, setDispatchError] = useState('');
 
   // Auto-open the onboarding wizard for patients who haven't completed or
   // skipped it yet. Once they finish (or skip), they won't be redirected again.
@@ -90,65 +76,6 @@ const UserDashboard = () => {
   const activeAmbulanceRequests = ambulanceHistory.filter(
     (a) => a.status === 'active' || a.status === 'dispatched' || a.status === 'en_route'
   );
-
-  useEffect(() => {
-    if (user) {
-      setEmergencyForm((prev) => ({
-        ...prev,
-        patientName: user.full_name || prev.patientName,
-        contactPhone: user.phone || prev.contactPhone,
-      }));
-    }
-  }, [user]);
-
-  const handleEmergencyChange = (e) => {
-    const { name, value } = e.target;
-    setEmergencyForm((prev) => ({ ...prev, [name]: value }));
-    setDispatchError('');
-    setDispatchResult(null);
-  };
-
-  const handleUseMyLocation = useCallback(async () => {
-    setLocating(true);
-    setDispatchError('');
-    try {
-      const coords = await getSmartLocation();
-      const address = await reverseGeocode(coords.lat, coords.lng);
-      setEmergencyForm((prev) => ({ ...prev, location: address || `${coords.lat}, ${coords.lng}` }));
-    } catch (err) {
-      setDispatchError('Unable to determine your location. Please enter it manually.');
-    } finally {
-      setLocating(false);
-    }
-  }, []);
-
-  const handleEmergencySubmit = async (e) => {
-    e.preventDefault();
-    setDispatchError('');
-    setDispatchResult(null);
-    const { patientName, contactPhone, location, emergencyLevel, condition } = emergencyForm;
-    if (!patientName.trim() || !contactPhone.trim() || !location.trim()) {
-      setDispatchError('Please fill in patient name, contact phone, and location.');
-      return;
-    }
-    setDispatching(true);
-    try {
-      const result = await dispatchAmbulance({
-        pickup_address: location.trim(),
-        destination_address: 'Rodab Medical Hospital',
-        priority: emergencyLevel,
-        notes: condition.trim(),
-        patient_name: patientName.trim(),
-        contact_phone: contactPhone.trim(),
-      });
-      setDispatchResult(result);
-      setEmergencyForm({ patientName: user?.full_name || '', contactPhone: user?.phone || '', location: '', emergencyLevel: 'medium', condition: '' });
-    } catch (err) {
-      setDispatchError(err.message || 'Failed to dispatch ambulance. Please try again.');
-    } finally {
-      setDispatching(false);
-    }
-  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -282,7 +209,7 @@ const UserDashboard = () => {
           <p>Start or continue a consultation</p>
         </Link>
 
-        <Link to="/ambulance" className="quick-action-card">
+        <Link to="/sos" className="quick-action-card">
           <div className="quick-action-icon red">
             <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC3545" strokeWidth="2">
               <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
@@ -290,8 +217,8 @@ const UserDashboard = () => {
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </div>
-          <h3>Request Ambulance</h3>
-          <p>Emergency transport service</p>
+          <h3>Emergency SOS</h3>
+          <p>Dispatch an emergency ambulance now</p>
         </Link>
 
         <Link to="/forms" className="quick-action-card">
@@ -389,161 +316,6 @@ const UserDashboard = () => {
         </section>
       )}
 
-      {/* Emergency Dispatch Form */}
-      <section>
-        <h2 className="dashboard-section-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--error)" strokeWidth="2" aria-hidden="true">
-            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
-          Emergency Dispatch
-        </h2>
-        <div className="card" style={{ padding: 24 }}>
-          {dispatchResult && (
-            <div className="alert alert-success" style={{ marginBottom: 16 }}>
-              <strong>Ambulance dispatched successfully!</strong>
-              {dispatchResult.id && <span> Request ID: <strong>{dispatchResult.id}</strong>.</span>}
-              <div style={{ marginTop: 8 }}>
-                <Link to={`/track/${dispatchResult.id || ''}`} className="btn btn-outline btn-sm">
-                  Track Ambulance
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {dispatchError && (
-            <div className="alert alert-error" role="alert" style={{ marginBottom: 16 }}>
-              <strong>Error:</strong> {dispatchError}
-            </div>
-          )}
-
-          <form onSubmit={handleEmergencySubmit}>
-            <div className="emergency-form-grid">
-              <div className="form-group">
-                <label htmlFor="patientName" className="form-label">Patient Name *</label>
-                <input
-                  id="patientName"
-                  name="patientName"
-                  type="text"
-                  className="form-input"
-                  placeholder="Full name of the patient"
-                  value={emergencyForm.patientName}
-                  onChange={handleEmergencyChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="contactPhone" className="form-label">Contact Phone *</label>
-                <input
-                  id="contactPhone"
-                  name="contactPhone"
-                  type="tel"
-                  className="form-input"
-                  placeholder="Phone number"
-                  value={emergencyForm.contactPhone}
-                  onChange={handleEmergencyChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group full-width">
-                <label htmlFor="location" className="form-label">Location *</label>
-                <div className="location-row">
-                  <input
-                    id="location"
-                    name="location"
-                    type="text"
-                    className="form-input"
-                    placeholder="Address or landmark"
-                    value={emergencyForm.location}
-                    onChange={handleEmergencyChange}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    onClick={handleUseMyLocation}
-                    disabled={locating}
-                    style={{ flexShrink: 0 }}
-                  >
-                    {locating ? (
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <span className="spinner-sm" style={{ width: 14, height: 14, borderWidth: 2 }} /> Locating...
-                      </span>
-                    ) : (
-                      <>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="3" />
-                          <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
-                        </svg>
-                        Use My Location
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="emergencyLevel" className="form-label">Emergency Level *</label>
-                <select
-                  id="emergencyLevel"
-                  name="emergencyLevel"
-                  className="form-select"
-                  value={emergencyForm.emergencyLevel}
-                  onChange={handleEmergencyChange}
-                  required
-                >
-                  <option value="low">Low - Minor issue</option>
-                  <option value="medium">Medium - Needs attention</option>
-                  <option value="high">High - Serious condition</option>
-                  <option value="critical">Critical - Life threatening</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="condition" className="form-label">Condition / Description</label>
-                <textarea
-                  id="condition"
-                  name="condition"
-                  className="form-textarea"
-                  rows="3"
-                  placeholder="Describe the patient's condition (optional)"
-                  value={emergencyForm.condition}
-                  onChange={handleEmergencyChange}
-                  style={{ minHeight: 80 }}
-                />
-              </div>
-
-              <div className="full-width" style={{ marginTop: 8 }}>
-                <button
-                  type="submit"
-                  className="btn btn-emergency"
-                  disabled={dispatching}
-                  style={{ width: '100%', padding: '12px 24px', fontSize: 15, fontWeight: 700 }}
-                >
-                  {dispatching ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <span className="spinner-sm" style={{ width: 16, height: 16, borderWidth: 2, borderTopColor: '#fff' }} />
-                      Dispatching Ambulance...
-                    </span>
-                  ) : (
-                    <>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                        <line x1="12" y1="9" x2="12" y2="13" />
-                        <line x1="12" y1="17" x2="12.01" y2="17" />
-                      </svg>
-                      Dispatch Ambulance Now
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      </section>
     </main>
   );
 };

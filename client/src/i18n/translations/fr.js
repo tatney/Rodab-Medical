@@ -622,6 +622,16 @@ export default {
     couldNotDetect: 'Impossible de détecter la position. Veuillez la saisir manuellement.',
     failedSos: 'Échec de l’envoi du SOS. Veuillez réessayer.',
     cancelConfirm: 'Voulez-vous vraiment annuler cette demande SOS ?',
+    liveAmbulanceMap: 'Carte des ambulances en direct',
+    ambulancesOnline: 'Ambulances en ligne : {count}',
+    moving: 'En mouvement',
+    static: 'À l’arrêt',
+    onRide: 'En intervention',
+    available: 'Disponible',
+    offDuty: 'Hors service',
+    justNow: 'à l’instant',
+    minAgo: 'il y a {count} min',
+    mapFailed: 'Impossible de charger les positions des ambulances.',
   },
 
   track: {

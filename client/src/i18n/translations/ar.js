@@ -618,6 +618,16 @@ export default {
     couldNotDetect: 'تعذر تحديد الموقع. يرجى إدخاله يدوياً.',
     failedSos: 'فشل إرسال نداء الاستغاثة. حاول مرة أخرى.',
     cancelConfirm: 'هل أنت متأكد من رغبتك في إلغاء طلب الاستغاثة هذا؟',
+    liveAmbulanceMap: 'خريطة الإسعاف المباشر',
+    ambulancesOnline: 'سيارات الإسعاف المتصلة: {count}',
+    moving: 'متحركة',
+    static: 'ثابتة',
+    onRide: 'في مهمة',
+    available: 'متاحة',
+    offDuty: 'خارج الخدمة',
+    justNow: 'الآن',
+    minAgo: 'منذ {count} دقيقة',
+    mapFailed: 'تعذر تحميل مواقع سيارات الإسعاف.',
   },
 
   track: {

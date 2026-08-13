@@ -39,7 +39,7 @@ const NotificationBell = () => {
     }
   };
 
-  const safeRoutes = ['/', '/services', '/find-doctor', '/login', '/signup', '/dashboard', '/ambulance', '/appointments', '/consultations', '/forms', '/form-history', '/repeat-prescription', '/illness-certificate', '/fees', '/policies', '/about-us', '/profile', '/super-admin', '/admin', '/doctor', '/driver', '/faqs', '/privacy-policy']
+  const safeRoutes = ['/', '/services', '/find-doctor', '/login', '/signup', '/dashboard', '/sos', '/appointments', '/consultations', '/forms', '/form-history', '/repeat-prescription', '/illness-certificate', '/fees', '/policies', '/about-us', '/profile', '/super-admin', '/admin', '/doctor', '/driver', '/faqs', '/privacy-policy']
 
   const handleNotificationClick = (notification) => {
     if (notification.link && safeRoutes.some(r => notification.link === r || notification.link.startsWith(r + '/'))) {

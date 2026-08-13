@@ -622,6 +622,16 @@ export default {
     couldNotDetect: 'Could not detect location. Please enter it manually.',
     failedSos: 'Failed to send SOS. Please try again.',
     cancelConfirm: 'Are you sure you want to cancel this SOS request?',
+    liveAmbulanceMap: 'Live Ambulance Map',
+    ambulancesOnline: 'Ambulances online: {count}',
+    moving: 'Moving',
+    static: 'Static',
+    onRide: 'On Ride',
+    available: 'Available',
+    offDuty: 'Off Duty',
+    justNow: 'just now',
+    minAgo: '{count} min ago',
+    mapFailed: 'Unable to load live ambulance locations.',
   },
 
   track: {

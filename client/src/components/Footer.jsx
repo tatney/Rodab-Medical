@@ -26,7 +26,7 @@ const JUMP_LINKS = [
       { to: '/consultations', labelKey: 'nav.consultations' },
       { to: '/illness-certificate', labelKey: 'nav.quickIllnessCertificate' },
       { to: '/fees', labelKey: 'nav.quickFees' },
-      { to: '/ambulance', labelKey: 'footer.ambulanceServices' },
+      { to: '/sos', labelKey: 'footer.ambulanceServices' },
     ],
   },
   {
@@ -37,7 +37,7 @@ const JUMP_LINKS = [
       { to: '/services', labelKey: 'footer.generalMedicine' },
       { to: '/services', labelKey: 'footer.cardiology' },
       { to: '/services', labelKey: 'footer.orthopaedics' },
-      { to: '/ambulance', labelKey: 'footer.ambulanceServices' },
+      { to: '/sos', labelKey: 'footer.ambulanceServices' },
       { to: '/services', labelKey: 'footer.diagnostics' },
     ],
   },

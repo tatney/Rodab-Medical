@@ -29,7 +29,7 @@ const STAT_VALUES = ['15+', '50+', '10K+', '24/7']
 const ONLINE_ICONS = ['📋', '🚑', '💬', '💊', '📄', '📋']
 const ONLINE_LINKS = [
   '/appointments',
-  '/ambulance',
+  '/sos',
   '/consultations',
   '/repeat-prescription',
   '/illness-certificate',
