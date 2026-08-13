@@ -21,7 +21,7 @@ const POLL_MS = 5000
 const MOVE_ANIM_MS = 4500
 
 export default function TrackPage() {
-  const { t } = useI18n()
+  const { t, tr } = useI18n()
   const { id } = useParams()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -348,7 +348,7 @@ export default function TrackPage() {
 
   const currentStatus = data?.status || 'pending'
   const currentStep = statusIndex[currentStatus] ?? 0
-  const steps = t('track.statusSteps')
+  const steps = tr('track.statusSteps')
 
   return (
     <main style={{ padding: '48px 24px', maxWidth: 1100, margin: '0 auto' }}>
@@ -362,63 +362,63 @@ export default function TrackPage() {
             {/* Live status window */}
             <div style={{
               position: 'absolute', top: 12, right: 12, zIndex: 1000,
-              width: 250, maxWidth: 'calc(100% - 24px)',
+              width: 200, maxWidth: 'calc(100% - 24px)',
               backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 10,
               border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)',
               overflow: 'hidden',
             }}>
-              <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('track.status')}</span>
-                <span style={{ fontSize: 10, fontWeight: 600, color: live.stale ? 'var(--error)' : 'var(--status-success)' }}>
+              <div style={{ padding: '5px 8px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('track.status')}</span>
+                <span style={{ fontSize: 9, fontWeight: 600, color: live.stale ? 'var(--error)' : 'var(--status-success)' }}>
                   {live.driverAssigned ? (live.stale ? t('track.stationary') : t('track.moving')) : '—'}
                 </span>
               </div>
 
               <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
-                <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px' }}>
-                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('track.eta')}</div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', marginTop: 2 }}>
-                    {live.driverAssigned ? (live.etaMin != null ? `${live.etaMin} ${t('track.min')}` : '—') : '—'}
+                <div style={{ flex: 1, textAlign: 'center', padding: '5px 2px' }}>
+                  <div style={{ fontSize: 8, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{t('track.eta')}</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-strong)', marginTop: 1 }}>
+                    {live.driverAssigned ? (live.etaMin != null ? `${live.etaMin}${t('track.min')}` : '—') : '—'}
                   </div>
                 </div>
-                <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px', borderLeft: '1px solid var(--border)' }}>
-                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('track.distance')}</div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', marginTop: 2 }}>
-                    {live.driverAssigned ? (live.distanceKm != null ? `${live.distanceKm} km` : '—') : '—'}
+                <div style={{ flex: 1, textAlign: 'center', padding: '5px 2px', borderLeft: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 8, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{t('track.distance')}</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-strong)', marginTop: 1 }}>
+                    {live.driverAssigned ? (live.distanceKm != null ? `${live.distanceKm}km` : '—') : '—'}
                   </div>
                 </div>
-                <div style={{ flex: 1, textAlign: 'center', padding: '8px 4px', borderLeft: '1px solid var(--border)' }}>
-                  <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{t('track.speed')}</div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text-strong)', marginTop: 2 }}>
-                    {live.driverAssigned ? (live.speedKmh != null ? `${live.speedKmh} ${t('track.kmh')}` : '—') : '—'}
+                <div style={{ flex: 1, textAlign: 'center', padding: '5px 2px', borderLeft: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 8, fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{t('track.speed')}</div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--text-strong)', marginTop: 1 }}>
+                    {live.driverAssigned ? (live.speedKmh != null ? `${live.speedKmh}${t('track.kmh')}` : '—') : '—'}
                   </div>
                 </div>
               </div>
 
               {live.driverAssigned ? (
-                <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: live.stale ? 'var(--error)' : (live.moving ? 'var(--status-success)' : 'var(--text-muted)'), flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-strong)', flex: 1 }}>
+                <div style={{ padding: '5px 8px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: live.stale ? 'var(--error)' : (live.moving ? 'var(--status-success)' : 'var(--text-muted)'), flexShrink: 0 }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-strong)', flex: 1 }}>
                     {live.moving ? t('track.moving') : t('track.stationary')}
                   </span>
-                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                  <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
                     {t('track.lastUpdate').replace('{s}', String(lastUpdateAgo))}
                   </span>
                 </div>
               ) : (
-                <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center' }}>
+                <div style={{ padding: '5px 8px', borderBottom: '1px solid var(--border)', fontSize: 11, fontWeight: 600, color: 'var(--text-muted)', textAlign: 'center' }}>
                   {t('track.waitingDriver')}
                 </div>
               )}
 
-              <div style={{ padding: 8, display: 'flex', gap: 6 }}>
+              <div style={{ padding: 5, display: 'flex', gap: 4 }}>
                 <button
                   onClick={() => setFollowMode((m) => (m === 'both' ? 'driver' : 'both'))}
                   style={{
-                    flex: 1, padding: '7px 8px', borderRadius: 8, border: '1px solid var(--border)',
+                    flex: 1, padding: '4px 4px', borderRadius: 6, border: '1px solid var(--border)',
                     backgroundColor: followMode === 'driver' ? 'var(--primary)' : '#ffffff',
                     color: followMode === 'driver' ? '#ffffff' : 'var(--text-strong)',
-                    fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                    fontSize: 10, fontWeight: 600, cursor: 'pointer',
                   }}
                   title={followMode === 'both' ? t('track.followAmbulance') : t('track.showBoth')}
                 >
@@ -427,8 +427,8 @@ export default function TrackPage() {
                 <button
                   onClick={handleRecenter}
                   style={{
-                    padding: '7px 12px', borderRadius: 8, border: '1px solid var(--border)',
-                    backgroundColor: '#ffffff', color: 'var(--text-strong)', fontSize: 11,
+                    padding: '4px 8px', borderRadius: 6, border: '1px solid var(--border)',
+                    backgroundColor: '#ffffff', color: 'var(--text-strong)', fontSize: 10,
                     fontWeight: 600, cursor: 'pointer',
                   }}
                 >
