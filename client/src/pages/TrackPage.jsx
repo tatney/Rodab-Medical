@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { trackAmbulance, cancelAmbulanceRequest } from '../api'
+import { subscribeDriverLocation, subscribeAmbulanceRequest } from '../utils/realtime'
 import { getDrivingRoute } from '../utils/routing'
 import { KAMPALA_DEFAULT, haversineKm } from '../utils/geolocation'
 import { useI18n } from '../i18n/I18nContext'
@@ -18,7 +19,7 @@ const statusIndex = {}
 statusSteps.forEach((s, i) => { statusIndex[s.key] = i })
 
 const POLL_MS = 5000
-const MOVE_ANIM_MS = 4500
+const MOVE_ANIM_MS = 2000
 
 export default function TrackPage() {
   const { t, tr } = useI18n()
@@ -79,6 +80,38 @@ export default function TrackPage() {
     const interval = setInterval(handleFetch, POLL_MS)
     return () => clearInterval(interval)
   }, [handleFetch])
+
+  // Realtime: status changes push instantly to the stepper.
+  const requestId = data?.id
+  useEffect(() => {
+    if (!requestId) return
+    const unsubscribe = subscribeAmbulanceRequest(requestId, (row) => {
+      setData((prev) => (prev ? { ...prev, ...row } : prev))
+    })
+    return unsubscribe
+  }, [requestId])
+
+  // Realtime: driver fixes push instantly; the marker glides to each fix.
+  const driverId = data?.driver_id
+  useEffect(() => {
+    if (!driverId) return
+    const unsubscribe = subscribeDriverLocation(driverId, (driver) => {
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              driver_latitude: driver.current_latitude,
+              driver_longitude: driver.current_longitude,
+              driver_last_update: driver.last_location_update,
+              driver_name: driver.full_name || prev.driver_name,
+              driver_phone: driver.phone || prev.driver_phone,
+              vehicle_plate: driver.vehicle_id || prev.vehicle_plate,
+            }
+          : prev
+      )
+    })
+    return unsubscribe
+  }, [driverId])
 
   useEffect(() => {
     if (mapReady || !data) return

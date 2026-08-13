@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Map from './Map';
 import { getActiveEmergencies, getDrivers } from '../api';
+import { subscribeAllDrivers } from '../utils/realtime';
 
 const NEAR_CLIENT_M = 120;
 const NEAR_HOSPITAL_M = 200;
@@ -39,8 +40,45 @@ const LiveMonitor = ({ hospitals = [], mapHeight = '480px' }) => {
   const [error, setError] = useState('');
   const historyRef = useRef({});
 
-  const fetchAll = useCallback(async () => {
+  // Applies a single driver fix to the movement trail, speed and last-update
+  // stats. Shared by the polled snapshot and the realtime subscription.
+  const handleDriverFix = useCallback((key, dr) => {
+    const lat = dr?.current_latitude;
+    const lng = dr?.current_longitude;
+    if (lat == null || lng == null || key == null) return;
+
     const now = Date.now();
+    const hist = historyRef.current[key] || [];
+    hist.push({ lat, lng, ts: now });
+    if (hist.length > MAX_HISTORY) hist.splice(0, hist.length - MAX_HISTORY);
+    historyRef.current[key] = hist;
+
+    let speedKmh = null;
+    let moving = null;
+    const prev = hist[hist.length - 2];
+    if (prev) {
+      const dtSec = (now - prev.ts) / 1000;
+      const distM = haversineMeters(prev.lat, prev.lng, lat, lng) || 0;
+      if (dtSec > 0) {
+        const speedMs = distM / dtSec;
+        speedKmh = Math.round(speedMs * 3.6);
+        moving = speedKmh >= 2;
+      }
+    }
+
+    setStats((prevStats) => ({
+      ...prevStats,
+      [key]: { speedKmh, moving, lastUpdate: dr?.last_location_update || null },
+    }));
+
+    if (hist.length > 1) {
+      const p = hist.map((h) => [h.lat, h.lng]);
+      p.color = '#0b2a57';
+      setPaths((prevPaths) => ({ ...prevPaths, [key]: p }));
+    }
+  }, []);
+
+  const fetchAll = useCallback(async () => {
     const [emRes, drRes] = await Promise.allSettled([getActiveEmergencies(), getDrivers()]);
 
     if (emRes.status === 'fulfilled') {
@@ -52,59 +90,43 @@ const LiveMonitor = ({ hospitals = [], mapHeight = '480px' }) => {
     if (drRes.status === 'fulfilled') {
       const data = drRes.value?.data || {};
       const raw = data.drivers || [];
-      const nextStats = {};
-      const nextPaths = {};
 
       raw.forEach((d) => {
-        const dr = getDriverRow(d);
-        const lat = dr?.current_latitude;
-        const lng = dr?.current_longitude;
-        if (lat == null || lng == null || d.id == null) return;
-
-        const hist = historyRef.current[d.id] || [];
-        hist.push({ lat, lng, ts: now });
-        if (hist.length > MAX_HISTORY) hist.splice(0, hist.length - MAX_HISTORY);
-        historyRef.current[d.id] = hist;
-
-        let speedKmh = null;
-        let moving = null;
-        const prev = hist[hist.length - 2];
-        if (prev) {
-          const dtSec = (now - prev.ts) / 1000;
-          const distM = haversineMeters(prev.lat, prev.lng, lat, lng) || 0;
-          if (dtSec > 0) {
-            const speedMs = distM / dtSec;
-            speedKmh = Math.round(speedMs * 3.6);
-            moving = speedKmh >= 2;
-          }
-        }
-
-        nextStats[d.id] = {
-          speedKmh,
-          moving,
-          lastUpdate: dr?.last_location_update || null,
-        };
-
-        if (hist.length > 1) {
-          const p = hist.map((h) => [h.lat, h.lng]);
-          p.color = '#0b2a57';
-          nextPaths[d.id] = p;
-        }
+        handleDriverFix(d.id, getDriverRow(d));
       });
 
       setDrivers(raw);
-      setStats(nextStats);
-      setPaths(nextPaths);
     }
 
     setLastRefresh(new Date());
-  }, []);
+  }, [handleDriverFix]);
 
   useEffect(() => {
     fetchAll();
-    const iv = setInterval(fetchAll, 5000);
+    const iv = setInterval(fetchAll, 15000);
     return () => clearInterval(iv);
   }, [fetchAll]);
+
+  // Realtime: driver fixes push instantly so markers and trails move live.
+  useEffect(() => {
+    const unsubscribe = subscribeAllDrivers((row) => {
+      const { profile_id, id, current_latitude, current_longitude, last_location_update } = row;
+      if (profile_id == null || current_latitude == null || current_longitude == null) return;
+
+      setDrivers((prev) =>
+        prev.map((p) => {
+          if (p.id !== profile_id) return p;
+          const dr = getDriverRow(p);
+          if (!dr || dr.id !== id) return p;
+          const updated = { ...dr, current_latitude, current_longitude, last_location_update };
+          return { ...p, drivers: Array.isArray(p.drivers) ? [updated] : updated };
+        })
+      );
+
+      handleDriverFix(profile_id, row);
+    });
+    return unsubscribe;
+  }, [handleDriverFix]);
 
   const activeDriverIds = useMemo(() => {
     const s = new Set();

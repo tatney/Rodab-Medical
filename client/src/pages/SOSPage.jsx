@@ -8,6 +8,7 @@ import {
   getAllHospitals,
 } from '../api'
 import { getAccurateLocation, reverseGeocode } from '../utils/geolocation'
+import { subscribeAllDrivers } from '../utils/realtime'
 import LocationSearch from '../components/LocationSearch'
 import Map from '../components/Map'
 import { useAuth } from '../context/AuthContext'
@@ -203,9 +204,47 @@ export default function SOSPage() {
   useEffect(() => {
     if (!user) return
     fetchLive()
-    const iv = setInterval(fetchLive, 5000)
+    const iv = setInterval(fetchLive, 15000)
     return () => clearInterval(iv)
   }, [fetchLive, user])
+
+  // Realtime: driver fixes push instantly so the fleet map moves live.
+  useEffect(() => {
+    const unsubscribe = subscribeAllDrivers((row) => {
+      const { id, profile_id, vehicle_id, is_available, status, current_latitude, current_longitude, last_location_update } = row
+      const latitude = current_latitude
+      const longitude = current_longitude
+      if (id == null || latitude == null || longitude == null) return
+      const available = is_available !== false && status !== 'off_duty'
+
+      setLiveDrivers((prev) =>
+        prev.some((d) => d.id === id)
+          ? prev.map((d) =>
+              d.id === id
+                ? { ...d, latitude, longitude, last_location_update, is_available: available, status }
+                : d
+            )
+          : [{ id, profile_id, vehicle_id, is_available: available, status, latitude, longitude, last_location_update, plate: '', vehicle: null }, ...prev]
+      )
+
+      const now = Date.now()
+      const hist = historyRef.current[id] || []
+      hist.push({ lat: latitude, lng: longitude, ts: now })
+      if (hist.length > MAX_HISTORY) hist.splice(0, hist.length - MAX_HISTORY)
+      historyRef.current[id] = hist
+
+      let moving = null
+      const prevFix = hist[hist.length - 2]
+      if (prevFix) {
+        const dtSec = (now - prevFix.ts) / 1000
+        const distM = haversineMeters(prevFix.lat, prevFix.lng, latitude, longitude) || 0
+        if (dtSec > 0) moving = (distM / dtSec) * 3.6 >= 2
+      }
+
+      setLiveStats((prevStats) => ({ ...prevStats, [id]: { moving, lastUpdate: last_location_update } }))
+    })
+    return unsubscribe
+  }, [])
 
   const activeDriverIds = useMemo(() => {
     const s = new Set()

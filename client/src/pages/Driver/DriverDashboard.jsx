@@ -9,7 +9,7 @@ import {
   getHospitals,
   updateDriverLocation,
 } from '../../api';
-import { getAccurateLocation, watchLocation, clearWatch } from '../../utils/geolocation';
+import { getAccurateLocation, watchLocation, clearWatch, haversineKm } from '../../utils/geolocation';
 import { buildGoogleMapsUrl, buildWazeUrl } from '../../utils/routing';
 import { useToast } from '../../components/ToastContext';
 import EmergencyCta from '../../components/EmergencyCta';
@@ -110,6 +110,7 @@ export default function DriverDashboard() {
   const [followMode, setFollowMode] = useState(false);
 
   const watchIdRef = useRef(null);
+  const lastPersistRef = useRef({ ts: 0, lat: null, lng: null });
 
   const toast = useToast();
 
@@ -143,10 +144,29 @@ export default function DriverDashboard() {
   // Uses GPS watchPosition (accuracy-optimized, continuous) instead of
   // polling getCurrentPosition. Only GPS-grade fixes are persisted to the
   // server so the dispatch map never gets a wrong IP/fallback pin.
+  //
+  // Writes are throttled (min ~3s between updates AND moved >= 20m, or a
+  // max of 10s regardless) to keep DB writes + Realtime events low while
+  // still producing smooth, Faras-like movement on every viewer.
+  const MIN_PERSIST_MS = 3000;
+  const MIN_PERSIST_MOVE_M = 20;
+  const MAX_PERSIST_MS = 10000;
+
   const persistDriverLocation = useCallback((loc) => {
     const driverId = user?.id;
     if (!driverId) return;
     if (loc.source !== 'gps' || (loc.accuracy != null && loc.accuracy > 100)) return;
+
+    const now = Date.now();
+    const last = lastPersistRef.current;
+    const moved =
+      last.lat == null ||
+      haversineKm(last.lat, last.lng, loc.lat, loc.lng) * 1000 >= MIN_PERSIST_MOVE_M;
+    const tooLong = now - last.ts >= MAX_PERSIST_MS;
+    const enoughTime = now - last.ts >= MIN_PERSIST_MS;
+    if (!(tooLong || (moved && enoughTime))) return;
+
+    lastPersistRef.current = { ts: now, lat: loc.lat, lng: loc.lng };
     updateDriverLocation(driverId, { lat: loc.lat, lng: loc.lng }).catch(() => {});
   }, [user]);
 
