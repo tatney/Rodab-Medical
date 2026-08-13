@@ -325,6 +325,8 @@ export const updateConsultation = async (id, data) => {
 
 // ─── Ambulance ────────────────────────────────────────────────────────────────
 
+const isTrackingId = (id) => typeof id === 'string' && /^RDB/i.test(id)
+
 export const dispatchAmbulance = async (data) => {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
@@ -355,7 +357,7 @@ export const dispatchAmbulance = async (data) => {
     .select()
     .single()
   if (error) throw error
-  return ok({ id: result.id, request: result })
+  return ok({ id: result.tracking_id || result.id, tracking_id: result.tracking_id || null, request: result })
 }
 
 export const dispatchAmbulanceGuest = async (data) => {
@@ -391,17 +393,18 @@ export const dispatchAmbulanceGuest = async (data) => {
     .select()
     .single()
   if (error) throw error
-  return ok({ id: result.id, request: result })
+  return ok({ id: result.tracking_id || result.id, tracking_id: result.tracking_id || null, request: result })
 }
 
 export const cancelAmbulanceRequest = async (id) => {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Not authenticated')
 
+  const matchKey = isTrackingId(id) ? 'tracking_id' : 'id'
   const { data, error } = await supabase
     .from('ambulance_requests')
     .update({ status: 'cancelled' })
-    .eq('id', id)
+    .eq(matchKey, id)
     .select()
     .single()
   if (error) throw error
@@ -505,10 +508,11 @@ export const getDriverRides = async (userId) => {
 }
 
 export const trackAmbulance = async (id) => {
+  const matchKey = isTrackingId(id) ? 'tracking_id' : 'id'
   const { data, error } = await supabase
     .from('ambulance_requests')
     .select('*')
-    .eq('id', id)
+    .eq(matchKey, id)
     .single()
   if (error) throw error
 

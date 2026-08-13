@@ -635,7 +635,7 @@ const Navbar = () => {
             <AccessibilityButton variant="mobile" />
 
             <div className="mobile-slideout-section-title">{t('nav.menuNavigation')}</div>
-            {navLinks.map((link) => (
+            {navLinks.filter((link) => link.labelKey !== 'nav.dashboard').map((link) => (
               link.section ? (
                 <button
                   key={link.key}

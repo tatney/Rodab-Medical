@@ -288,7 +288,7 @@ export default function SOSPage() {
         notes: form.condition,
       }
       const res = await dispatchAmbulance(payload)
-      const id = res.data?.id || res.data?.request?.id || res.data?.tracking_id || ''
+      const id = res.data?.tracking_id || res.data?.request?.tracking_id || res.data?.id || res.data?.request?.id || ''
       setTrackingId(id)
       setSuccess(true)
     } catch (err) {

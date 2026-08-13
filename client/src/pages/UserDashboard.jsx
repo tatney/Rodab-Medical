@@ -304,8 +304,8 @@ const UserDashboard = () => {
                   <p style={{ margin: '4px 0', fontSize: 14 }}>
                     <strong>Level:</strong> {amb.emergency_level || amb.emergencyLevel || 'N/A'}
                   </p>
-                  {amb.id && (
-                    <Link to={`/track/${amb.id}`} className="btn btn-outline btn-sm" style={{ marginTop: 8 }}>
+                  {(amb.id || amb.tracking_id) && (
+                    <Link to={`/track/${amb.tracking_id || amb.id}`} className="btn btn-outline btn-sm" style={{ marginTop: 8 }}>
                       Track Ambulance
                     </Link>
                   )}
