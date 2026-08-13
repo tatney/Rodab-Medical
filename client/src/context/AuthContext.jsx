@@ -3,13 +3,27 @@ import supabase from '../supabaseClient'
 
 const AuthContext = createContext(null)
 
+const withTimeout = (promise, ms) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Auth request timed out')), ms)),
+  ])
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
   const fetchProfile = useCallback(async () => {
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
+      let authUser = null
+      try {
+        const { data: { user } } = await withTimeout(supabase.auth.getUser(), 8000)
+        authUser = user
+      } catch {
+        const { data: { session } } = await supabase.auth.getSession()
+        authUser = session?.user ?? null
+      }
+
       if (!authUser) {
         setUser(null)
         setLoading(false)
@@ -21,6 +35,7 @@ export function AuthProvider({ children }) {
         .select('*')
         .eq('id', authUser.id)
         .single()
+        .timeout(8000)
 
       if (profile?.is_flagged) {
         await supabase.auth.signOut()
@@ -64,8 +79,13 @@ export function AuthProvider({ children }) {
     await fetchProfile()
   }
 
+  const applyProfile = useCallback((profile) => {
+    setUser(profile || null)
+    setLoading(false)
+  }, [])
+
   return (
-    <AuthContext.Provider value={{ user, loading, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, loading, logout, refreshUser, applyProfile }}>
       {children}
     </AuthContext.Provider>
   )

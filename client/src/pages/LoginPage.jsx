@@ -6,7 +6,7 @@ import { requestPasswordReset } from '../api'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { refreshUser } = useAuth()
+  const { applyProfile } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -31,14 +31,14 @@ export default function LoginPage() {
         .select('*')
         .eq('id', data.user.id)
         .single()
+        .timeout(8000)
 
       if (profile?.is_flagged) {
         await supabase.auth.signOut()
         throw new Error('Your account has been flagged and access is restricted. Please contact support.')
       }
 
-      await refreshUser()
-      await new Promise(r => setTimeout(r, 0))
+      applyProfile(profile)
 
       const role = profile?.role || ''
 
