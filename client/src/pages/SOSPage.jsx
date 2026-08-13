@@ -326,23 +326,13 @@ export default function SOSPage() {
           padding: 40,
         }}
       >
-        {/* Red header band */}
-        <div
-          style={{
-            backgroundColor: 'var(--error)',
-            color: '#ffffff',
-            padding: 24,
-            borderRadius: 12,
-            textAlign: 'center',
-            marginBottom: 32,
-          }}
-        >
-          <div style={{ fontSize: 48, marginBottom: 8 }} aria-hidden="true">&#128680;</div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>{t('sos.emergencySos')}</h1>
-          <p style={{ fontSize: 14, opacity: 0.9 }}>
-            {t('sos.requestAmbulance')}
-          </p>
-        </div>
+        {/* Small header */}
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--error)', textAlign: 'center', marginBottom: 4 }}>
+          {t('sos.emergencySos')}
+        </h1>
+        <p style={{ fontSize: 14, color: 'var(--text-muted)', textAlign: 'center', marginBottom: 28 }}>
+          {t('sos.requestAmbulance')}
+        </p>
 
         {error && (
           <div
@@ -468,36 +458,49 @@ export default function SOSPage() {
             }}
           />
 
-          <button
-            type="submit"
-            disabled={submitting}
-            style={{
-              width: '100%',
-              padding: '14px 0',
-              backgroundColor: submitting ? 'var(--border)' : 'var(--error)',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: 8,
-              fontSize: 17,
-              fontWeight: 700,
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-            }}
-          >
-            {submitting && (
-              <span
-                style={{
-                  width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)',
-                  borderTop: '2px solid #fff', borderRadius: '50%',
-                  animation: 'spin 0.7s linear infinite', display: 'inline-block',
-                }}
-              />
-            )}
-            {submitting ? t('common.sending') : t('sos.sendSos')}
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+            <button
+              type="submit"
+              disabled={submitting}
+              style={{
+                width: 150,
+                height: 150,
+                borderRadius: '50%',
+                backgroundColor: submitting ? 'var(--border)' : 'var(--emergency-red)',
+                color: '#ffffff',
+                border: 'none',
+                fontSize: 14,
+                fontWeight: 800,
+                lineHeight: 1.35,
+                cursor: submitting ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: submitting ? 'none' : '0 6px 20px rgba(229, 57, 53, 0.4)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!submitting) e.currentTarget.style.transform = 'scale(1.05)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)'
+              }}
+            >
+              {submitting && (
+                <span
+                  style={{
+                    width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)',
+                    borderTop: '2px solid #fff', borderRadius: '50%',
+                    animation: 'spin 0.7s linear infinite', display: 'inline-block',
+                  }}
+                />
+              )}
+              <span style={{ fontSize: 26, lineHeight: 1 }} aria-hidden="true">&#128680;</span>
+              <span style={{ padding: '0 10px' }}>{submitting ? t('common.sending') : t('sos.sendSos')}</span>
+            </button>
+          </div>
         </form>
 
         <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-muted)', marginTop: 16 }}>
