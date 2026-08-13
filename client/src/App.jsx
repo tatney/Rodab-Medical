@@ -25,6 +25,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
 const SOSPage = lazy(() => import('./pages/SOSPage'));
+const EmergenciesPage = lazy(() => import('./pages/EmergenciesPage'));
 const FAQsPage = lazy(() => import('./pages/FAQsPage'));
 const EventsPage = lazy(() => import('./pages/EventsPage'));
 const ProgrammesPage = lazy(() => import('./pages/ProgrammesPage'));
@@ -37,6 +38,7 @@ const AppointmentsPage = lazy(() => import('./pages/AppointmentsPage'));
 const ConsultationsPage = lazy(() => import('./pages/ConsultationsPage'));
 const FormsPage = lazy(() => import('./pages/FormsPage'));
 const FormHistoryPage = lazy(() => import('./pages/FormHistoryPage'));
+const PrescriptionsPage = lazy(() => import('./pages/PrescriptionsPage'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const RepeatPrescriptionPage = lazy(() => import('./pages/RepeatPrescriptionPage'));
 const IllnessCertificatePage = lazy(() => import('./pages/IllnessCertificatePage'));
@@ -161,6 +163,14 @@ function App() {
                     }
                   />
                   <Route
+                    path="/emergencies"
+                    element={
+                      <ProtectedRoute>
+                        <EmergenciesPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/forms"
                     element={
                       <ProtectedRoute>
@@ -173,6 +183,14 @@ function App() {
                     element={
                       <ProtectedRoute>
                         <FormHistoryPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/prescriptions"
+                    element={
+                      <ProtectedRoute>
+                        <PrescriptionsPage />
                       </ProtectedRoute>
                     }
                   />

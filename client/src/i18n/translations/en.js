@@ -678,6 +678,27 @@ export default {
     callDriver: 'Call Driver',
   },
 
+  emergencies: {
+    title: 'Emergencies',
+    subtitle: 'View your SOS request history and track any live requests.',
+    requestNew: 'Request Emergency SOS',
+    loading: 'Loading your emergencies...',
+    failedLoad: 'Failed to load your emergencies. Please try again.',
+    tabLive: 'Live',
+    tabCompleted: 'Completed',
+    tabCancelled: 'Cancelled',
+    tabAll: 'All',
+    emptyLive: 'No active SOS requests.',
+    emptyCompleted: 'No completed SOS requests.',
+    emptyCancelled: 'No cancelled SOS requests.',
+    emptyAll: 'You have no SOS requests yet.',
+    pickup: 'Pickup',
+    destination: 'Destination',
+    level: 'Level',
+    trackingId: 'Tracking ID',
+    noLocation: 'No location provided',
+  },
+
   notFound: {
     title: 'Page Not Found',
     text: "The page you're looking for doesn't exist or has been moved. Please check the URL or navigate back.",

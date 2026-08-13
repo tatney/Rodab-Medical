@@ -1166,6 +1166,25 @@ button.chip-active:hover {
   color: #fff;
 }
 
+.badge-requested,
+.badge-dispatched,
+.badge-in_transit,
+.badge-active {
+  background-color: #ef4444;
+  color: #fff;
+}
+
+.badge-arrived,
+.badge-completed {
+  background-color: var(--status-success);
+  color: #fff;
+}
+
+.badge-cancelled {
+  background-color: #6b7280;
+  color: #fff;
+}
+
 .badge-sm {
   min-width: 16px;
   height: 16px;

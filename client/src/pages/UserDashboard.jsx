@@ -5,10 +5,31 @@ import {
   getAppointments,
   getConsultations,
   getAmbulanceHistory,
+  getPrescriptions,
+  getMyFormSubmissions,
 } from '../api';
-import { getPrescriptions } from '../api';
 import { extractArray } from '../utils/api-helpers';
 import EmergencyCta from '../components/EmergencyCta';
+
+function startOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  const day = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - day);
+  return d;
+}
+
+function isThisWeek(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(`${String(dateStr).slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(d.getTime())) return false;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const sw = startOfWeek(now);
+  const ew = new Date(sw);
+  ew.setDate(sw.getDate() + 7);
+  return d >= sw && d < ew;
+}
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -18,6 +39,7 @@ const UserDashboard = () => {
   const [consultations, setConsultations] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [ambulanceHistory, setAmbulanceHistory] = useState([]);
+  const [formSubmissions, setFormSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -41,19 +63,21 @@ const UserDashboard = () => {
       setLoading(true);
       setError('');
       try {
-        const [apptRes, consulRes, prescRes, ambuRes] = await Promise.allSettled([
+        const [apptRes, consulRes, prescRes, ambuRes, formRes] = await Promise.allSettled([
           getAppointments(),
           getConsultations(),
           getPrescriptions(),
           getAmbulanceHistory(),
+          getMyFormSubmissions(),
         ]);
         if (cancelled) return;
         if (apptRes.status === 'fulfilled') setAppointments(extractArray(apptRes.value, 'appointments'));
         if (consulRes.status === 'fulfilled') setConsultations(extractArray(consulRes.value, 'consultations'));
         if (prescRes.status === 'fulfilled') setPrescriptions(extractArray(prescRes.value, 'prescriptions'));
         if (ambuRes.status === 'fulfilled') setAmbulanceHistory(extractArray(ambuRes.value, 'rides'));
-        const failures = [apptRes, consulRes, prescRes, ambuRes].filter((r) => r.status === 'rejected');
-        if (failures.length === 4) setError('Failed to load dashboard data. Please try again later.');
+        if (formRes.status === 'fulfilled') setFormSubmissions(extractArray(formRes.value, 'submissions'));
+        const failures = [apptRes, consulRes, prescRes, ambuRes, formRes].filter((r) => r.status === 'rejected');
+        if (failures.length === 5) setError('Failed to load dashboard data. Please try again later.');
       } catch (err) {
         if (!cancelled) setError(err.message || 'An unexpected error occurred while loading your dashboard.');
       } finally {
@@ -64,18 +88,75 @@ const UserDashboard = () => {
     return () => { cancelled = true; };
   }, []);
 
-  const todayString = new Date().toISOString().slice(0, 10);
-  const todaysAppointments = appointments.filter((a) => {
-    const apptDate = (a.appointment_date || a.appointmentDate || '').slice(0, 10);
-    return apptDate === todayString;
-  });
-  const pendingConsultations = consultations.filter((c) => c.status === 'pending');
-  const activePrescriptions = prescriptions.filter(
-    (p) => p.status === 'active' || p.repeat === true || p.is_repeat === true || p.type === 'repeat-prescription'
+  const upcomingAppointments = appointments.filter(
+    (a) => a.status === 'pending' || a.status === 'confirmed'
   );
+  const thisWeekAppointments = appointments.filter((a) => isThisWeek(a.appointment_date || a.appointmentDate));
+  const openConsultations = consultations.filter((c) => !c.response);
   const activeAmbulanceRequests = ambulanceHistory.filter(
-    (a) => a.status === 'active' || a.status === 'dispatched' || a.status === 'en_route'
+    (a) => a.status !== 'completed' && a.status !== 'cancelled'
   );
+  const pendingPrescriptions = prescriptions.filter((p) => p.status === 'pending');
+
+  const stats = [
+    { to: '/appointments', label: 'Appointments', count: appointments.length, color: 'blue', icon: 'calendar' },
+    { to: '/consultations', label: 'Consultations', count: consultations.length, color: 'amber', icon: 'chat' },
+    { to: '/prescriptions', label: 'Prescriptions', count: prescriptions.length, color: 'green', icon: 'bookmark' },
+    { to: '/emergencies', label: 'Ambulance Requests', count: ambulanceHistory.length, color: 'red', icon: 'phone' },
+    { to: '/form-history', label: 'Medical Forms', count: formSubmissions.length, color: 'teal', icon: 'doc' },
+  ];
+
+  const activityTiles = [
+    { to: '/appointments', label: 'Appointments this week', count: thisWeekAppointments.length, color: '#3b82f6' },
+    { to: '/appointments', label: 'Upcoming appointments', count: upcomingAppointments.length, color: '#0891b2' },
+    { to: '/consultations', label: 'Open consultations', count: openConsultations.length, color: '#f59e0b' },
+    { to: '/emergencies', label: 'Live SOS requests', count: activeAmbulanceRequests.length, color: '#dc2626' },
+    { to: '/prescriptions', label: 'Prescriptions pending', count: pendingPrescriptions.length, color: '#16a34a' },
+    { to: '/form-history', label: 'Forms submitted', count: formSubmissions.length, color: '#7c3aed' },
+  ];
+
+  const statIcon = (name) => {
+    switch (name) {
+      case 'calendar':
+        return (
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+        );
+      case 'chat':
+        return (
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+          </svg>
+        );
+      case 'bookmark':
+        return (
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#28A745" strokeWidth="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+          </svg>
+        );
+      case 'phone':
+        return (
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC3545" strokeWidth="2">
+            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0122 16.92z" />
+          </svg>
+        );
+      case 'doc':
+        return (
+          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0891b2" strokeWidth="2">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -125,197 +206,36 @@ const UserDashboard = () => {
         </section>
       )}
 
-      {/* Stats Row */}
+      {/* Stats Row — clickable, each shows the total count */}
       <section className="stats-row">
-        <div className="stat-card-hero blue">
-          <div className="stat-icon-wrap blue">
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-          </div>
-          <div className="stat-info">
-            <h3>{todaysAppointments.length}</h3>
-            <p>Appointments Today</p>
-          </div>
-        </div>
-
-        <div className="stat-card-hero amber">
-          <div className="stat-icon-wrap amber">
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-            </svg>
-          </div>
-          <div className="stat-info">
-            <h3>{pendingConsultations.length}</h3>
-            <p>Pending Consultations</p>
-          </div>
-        </div>
-
-        <div className="stat-card-hero green">
-          <div className="stat-icon-wrap green">
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#28A745" strokeWidth="2">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-            </svg>
-          </div>
-          <div className="stat-info">
-            <h3>{activePrescriptions.length}</h3>
-            <p>Active Prescriptions</p>
-          </div>
-        </div>
-
-        <div className="stat-card-hero red">
-          <div className="stat-icon-wrap red">
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#DC3545" strokeWidth="2">
-              <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0122 16.92z" />
-            </svg>
-          </div>
-          <div className="stat-info">
-            <h3>{activeAmbulanceRequests.length}</h3>
-            <p>Ambulance Requests</p>
-          </div>
-        </div>
+        {stats.map((s) => (
+          <Link key={s.label} to={s.to} className={`stat-card-hero ${s.color}`}>
+            <div className={`stat-icon-wrap ${s.color}`}>
+              {statIcon(s.icon)}
+            </div>
+            <div className="stat-info">
+              <h3>{s.count}</h3>
+              <p>{s.label}</p>
+            </div>
+          </Link>
+        ))}
       </section>
 
       {/* Emergency CTA */}
       <EmergencyCta />
 
-      {/* Quick Actions */}
-      <section className="quick-actions-grid">
-        <Link to="/appointments" className="quick-action-card">
-          <div className="quick-action-icon blue">
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-              <line x1="12" y1="14" x2="12" y2="18" />
-              <line x1="10" y1="16" x2="14" y2="16" />
-            </svg>
-          </div>
-          <h3>Book Appointment</h3>
-          <p>Schedule a visit with your doctor</p>
-        </Link>
-
-        <Link to="/consultations" className="quick-action-card">
-          <div className="quick-action-icon teal">
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0891b2" strokeWidth="2">
-              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-            </svg>
-          </div>
-          <h3>Consultation</h3>
-          <p>Start or continue a consultation</p>
-        </Link>
-
-        <Link to="/sos" className="quick-action-card">
-          <div className="quick-action-icon red">
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#DC3545" strokeWidth="2">
-              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </div>
-          <h3>Emergency SOS</h3>
-          <p>Dispatch an emergency ambulance now</p>
-        </Link>
-
-        <Link to="/forms" className="quick-action-card">
-          <div className="quick-action-icon green">
-            <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#28A745" strokeWidth="2">
-              <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
-              <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-              <line x1="8" y1="12" x2="16" y2="12" />
-              <line x1="8" y1="16" x2="12" y2="16" />
-            </svg>
-          </div>
-          <h3>Medical Forms</h3>
-          <p>Fill out and submit medical forms</p>
-        </Link>
+      {/* Health Activity Overview */}
+      <section style={{ marginBottom: 32 }}>
+        <h2 className="dashboard-section-title">Health Activity Overview</h2>
+        <div className="activity-tiles-grid">
+          {activityTiles.map((tile) => (
+            <Link key={tile.label} to={tile.to} className="activity-tile">
+              <span className="activity-tile-count" style={{ color: tile.color }}>{tile.count}</span>
+              <span className="activity-tile-label">{tile.label}</span>
+            </Link>
+          ))}
+        </div>
       </section>
-
-      {/* Today's Appointments */}
-      {todaysAppointments.length > 0 && (
-        <section style={{ marginBottom: 32 }}>
-          <h2 className="dashboard-section-title">
-            Today's Appointments
-            <span className="count">{todaysAppointments.length}</span>
-          </h2>
-          <div className="dashboard-grid">
-            {todaysAppointments.map((appt) => (
-              <div className="card" key={appt.id || appt._id}>
-                <div className="card-body">
-                  <h4 style={{ marginBottom: 8 }}>{appt.doctor_name || appt.doctorName || 'Doctor'}</h4>
-                  <p style={{ margin: '4px 0', fontSize: 14 }}>
-                    <strong>Time:</strong> {appt.appointment_time || appt.appointmentTime || 'N/A'}
-                  </p>
-                  <p style={{ margin: '4px 0', fontSize: 14 }}>
-                    <strong>Type:</strong> {appt.type || appt.visit_type || 'General'}
-                  </p>
-                  {appt.department && <p style={{ margin: '4px 0', fontSize: 14 }}><strong>Dept:</strong> {appt.department}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Pending Consultations */}
-      {pendingConsultations.length > 0 && (
-        <section style={{ marginBottom: 32 }}>
-          <h2 className="dashboard-section-title">
-            Pending Consultations
-            <span className="count">{pendingConsultations.length}</span>
-          </h2>
-          <div className="dashboard-grid">
-            {pendingConsultations.map((cons) => (
-              <div className="card" key={cons.id || cons._id}>
-                <div className="card-body">
-                  <h4 style={{ marginBottom: 8 }}>{cons.title || cons.subject || 'Consultation'}</h4>
-                  <p style={{ margin: '4px 0', fontSize: 14 }}>
-                    <strong>Status:</strong>{' '}
-                    <span className="badge badge-pending">{cons.status}</span>
-                  </p>
-                  {cons.doctor_name && <p style={{ margin: '4px 0', fontSize: 14 }}><strong>Doctor:</strong> {cons.doctor_name}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Active Ambulance Requests */}
-      {activeAmbulanceRequests.length > 0 && (
-        <section style={{ marginBottom: 32 }}>
-          <h2 className="dashboard-section-title">
-            Active Ambulance Requests
-            <span className="count">{activeAmbulanceRequests.length}</span>
-          </h2>
-          <div className="dashboard-grid">
-            {activeAmbulanceRequests.map((amb) => (
-              <div className="card" key={amb.id || amb._id}>
-                <div className="card-body">
-                  <h4 style={{ marginBottom: 8 }}>Ambulance Request</h4>
-                  <p style={{ margin: '4px 0', fontSize: 14 }}>
-                    <strong>Status:</strong>{' '}
-                    <span className="badge badge-pending">{amb.status}</span>
-                  </p>
-                  <p style={{ margin: '4px 0', fontSize: 14 }}>
-                    <strong>Level:</strong> {amb.emergency_level || amb.emergencyLevel || 'N/A'}
-                  </p>
-                  {(amb.id || amb.tracking_id) && (
-                    <Link to={`/track/${amb.tracking_id || amb.id}`} className="btn btn-outline btn-sm" style={{ marginTop: 8 }}>
-                      Track Ambulance
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
     </main>
   );
 };

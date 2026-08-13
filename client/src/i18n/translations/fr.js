@@ -678,6 +678,27 @@ export default {
     callDriver: 'Appeler le chauffeur',
   },
 
+  emergencies: {
+    title: 'Urgences',
+    subtitle: 'Consultez l’historique de vos demandes SOS et suivez les demandes en cours.',
+    requestNew: 'Demander une urgence SOS',
+    loading: 'Chargement de vos urgences...',
+    failedLoad: 'Impossible de charger vos urgences. Veuillez réessayer.',
+    tabLive: 'En cours',
+    tabCompleted: 'Terminées',
+    tabCancelled: 'Annulées',
+    tabAll: 'Toutes',
+    emptyLive: 'Aucune demande SOS en cours.',
+    emptyCompleted: 'Aucune demande SOS terminée.',
+    emptyCancelled: 'Aucune demande SOS annulée.',
+    emptyAll: 'Vous n’avez pas encore de demandes SOS.',
+    pickup: 'Prise en charge',
+    destination: 'Destination',
+    level: 'Niveau',
+    trackingId: 'ID de suivi',
+    noLocation: 'Aucun lieu fourni',
+  },
+
   notFound: {
     title: 'Page introuvable',
     text: "La page que vous recherchez n'existe pas ou a été déplacée. Veuillez vérifier l'URL ou revenir en arrière.",

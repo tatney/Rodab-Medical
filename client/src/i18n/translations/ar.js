@@ -674,6 +674,27 @@ export default {
     callDriver: 'اتصال بالسائق',
   },
 
+  emergencies: {
+    title: 'الطوارئ',
+    subtitle: 'عرض سجل طلباتك للطوارئ وتتبع أي طلبات نشطة.',
+    requestNew: 'طلب طوارئ SOS',
+    loading: 'جارٍ تحميل طلبات الطوارئ...',
+    failedLoad: 'تعذر تحميل طلبات الطوارئ. يرجى المحاولة مرة أخرى.',
+    tabLive: 'نشطة',
+    tabCompleted: 'مكتملة',
+    tabCancelled: 'ملغاة',
+    tabAll: 'الكل',
+    emptyLive: 'لا توجد طلبات طوارئ نشطة.',
+    emptyCompleted: 'لا توجد طلبات طوارئ مكتملة.',
+    emptyCancelled: 'لا توجد طلبات طوارئ ملغاة.',
+    emptyAll: 'لا توجد لديك طلبات طوارئ بعد.',
+    pickup: 'الانطلاق من',
+    destination: 'الوجهة',
+    level: 'المستوى',
+    trackingId: 'معرف التتبع',
+    noLocation: 'لم يتم تقديم الموقع',
+  },
+
   notFound: {
     title: 'الصفحة غير موجودة',
     text: 'الصفحة التي تبحث عنها غير موجودة أو تم نقلها. يرجى التحقق من الرابط أو العودة.',

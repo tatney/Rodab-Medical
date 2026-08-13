@@ -80,6 +80,7 @@ export default function AppointmentsPage() {
   const [availableSlots, setAvailableSlots] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [filter, setFilter] = useState('all')
 
   useEffect(() => {
     loadData()
@@ -157,6 +158,21 @@ export default function AppointmentsPage() {
     (a) => a.status === 'pending' || a.status === 'confirmed'
   ).length
   const completedCount = appointments.filter((a) => a.status === 'completed').length
+  const cancelledCount = appointments.filter((a) => a.status === 'cancelled').length
+
+  const filteredAppointments = appointments.filter((a) => {
+    if (filter === 'upcoming') return a.status === 'pending' || a.status === 'confirmed'
+    if (filter === 'completed') return a.status === 'completed'
+    if (filter === 'cancelled') return a.status === 'cancelled'
+    return true
+  })
+
+  const filterTabs = [
+    { key: 'all', label: `All (${totalAppointments})` },
+    { key: 'upcoming', label: `Upcoming (${upcomingCount})` },
+    { key: 'completed', label: `Completed (${completedCount})` },
+    { key: 'cancelled', label: `Cancelled (${cancelledCount})` },
+  ]
 
   return (
     <div style={{ padding: '48px 24px', maxWidth: 1100, margin: '0 auto' }}>
@@ -563,6 +579,32 @@ export default function AppointmentsPage() {
         </div>
       )}
 
+      {/* Filter Tabs */}
+      {!loading && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+          {filterTabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setFilter(tab.key)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 999,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: 'pointer',
+                backgroundColor: filter === tab.key ? colors.primary : colors.white,
+                color: filter === tab.key ? colors.white : colors.gray700,
+                border: `1px solid ${filter === tab.key ? colors.primary : colors.gray300}`,
+                fontFamily: 'Barlow, sans-serif',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Appointment List */}
       {loading ? (
         <div
@@ -579,7 +621,7 @@ export default function AppointmentsPage() {
         >
           Loading appointments...
         </div>
-      ) : appointments.length === 0 ? (
+      ) : filteredAppointments.length === 0 ? (
         <div
           style={{
             backgroundColor: colors.white,
@@ -599,7 +641,9 @@ export default function AppointmentsPage() {
               fontFamily: 'Barlow, sans-serif',
             }}
           >
-            No appointments yet. Click "New Appointment" to book one.
+            {appointments.length === 0
+              ? 'No appointments yet. Click "New Appointment" to book one.'
+              : `No ${filter === 'upcoming' ? 'upcoming' : filter} appointments.`}
           </p>
           <button
             onClick={() => setFormOpen(true)}
@@ -615,12 +659,12 @@ export default function AppointmentsPage() {
               fontFamily: 'Barlow, sans-serif',
             }}
           >
-            + Book Your First Appointment
+            {appointments.length === 0 ? '+ Book Your First Appointment' : '+ New Appointment'}
           </button>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {appointments.map((apt) => {
+          {filteredAppointments.map((apt) => {
             const status = statusStyles[apt.status] || statusStyles.pending
             return (
               <div
