@@ -89,7 +89,6 @@ a:focus-visible {
   --sticky-nav-height: 72px;
   --topbar-height: 48px;
   --main-nav-height: 64px;
-  --fab-size: 64px;
   --dashboard-max-width: 1440px;
 
   /* Z-Index Scale */
@@ -1436,40 +1435,6 @@ button.chip-active:hover {
 
 .notification-item:last-child {
   border-bottom: none;
-}
-
-/* ================================================================
-   SOS FAB
-   ================================================================ */
-.sos-fab {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: var(--fab-size);
-  height: var(--fab-size);
-  border-radius: var(--radius-full);
-  background-color: var(--emergency-red);
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  font-weight: 700;
-   z-index: var(--z-sos, 9000);
-   box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  animation: fab-pulse 2.5s ease-in-out infinite;
-}
-
-.sos-fab:hover {
-  transform: scale(1.08);
-  box-shadow: 0 8px 28px rgba(229, 57, 53, 0.5);
-}
-
-.sos-fab:active {
-  transform: scale(0.95);
 }
 
 /* ================================================================
@@ -3189,18 +3154,6 @@ button.chip-active:hover {
   }
 }
 
-@keyframes fab-pulse {
-  0% {
-    box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
-  }
-  50% {
-    box-shadow: 0 6px 30px rgba(229, 57, 53, 0.65);
-  }
-  100% {
-    box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
-  }
-}
-
 @keyframes emergency-flash-critical {
   0%, 100% {
     opacity: 1;
@@ -3435,13 +3388,6 @@ button.chip-active:hover {
 
   .ud-main-grid {
     grid-template-columns: 1fr;
-  }
-
-  .sos-fab {
-    bottom: 1.25rem;
-    right: 1.25rem;
-    width: 56px;
-    height: 56px;
   }
 
   .hero-carousel {

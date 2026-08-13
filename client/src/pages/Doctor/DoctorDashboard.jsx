@@ -13,6 +13,7 @@ import {
   updateConsultation,
 } from '../../api';
 import { extractArray } from '../../utils/api-helpers';
+import EmergencyCta from '../../components/EmergencyCta';
 import { useToast } from '../../components/ToastContext';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -343,6 +344,8 @@ export default function DoctorDashboard() {
           </div>
         ))}
       </div>
+
+      <EmergencyCta />
 
       {/* Recent Activity */}
       <div style={cardStyle}>

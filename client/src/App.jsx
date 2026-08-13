@@ -8,7 +8,6 @@ import { LANDING_MODE } from './config';
 // Layout Components
 import Navbar from './components/Navbar';
 import EmergencyAlertOverlay from './components/EmergencyAlertOverlay';
-import SOSButton from './components/SOSButton';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import CookieConsent from './components/CookieConsent';
@@ -298,7 +297,6 @@ function App() {
           </Suspense>
         </main>
 
-        <SOSButton />
         <Footer />
         <CookieConsent />
       </div>

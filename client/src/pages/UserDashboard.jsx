@@ -10,6 +10,7 @@ import {
 import { getPrescriptions } from '../api';
 import { extractArray } from '../utils/api-helpers';
 import { getSmartLocation, reverseGeocode } from '../utils/geolocation';
+import EmergencyCta from '../components/EmergencyCta';
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -250,6 +251,9 @@ const UserDashboard = () => {
           </div>
         </div>
       </section>
+
+      {/* Emergency CTA */}
+      <EmergencyCta />
 
       {/* Quick Actions */}
       <section className="quick-actions-grid">

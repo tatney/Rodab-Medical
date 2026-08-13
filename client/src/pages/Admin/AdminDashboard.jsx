@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Sidebar, { roleConfig } from '../../components/Sidebar';
 import Map from '../../components/Map';
 import LiveMonitor from '../../components/LiveMonitor';
+import EmergencyCta from '../../components/EmergencyCta';
 import NotificationBell from '../../components/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -637,6 +638,7 @@ const AdminDashboard = () => {
           <StatCard label="Messages" value={a.totalMessages} color="#6366f1" />
           <StatCard label="Repeat Prescriptions" value={a.totalRepeatPrescriptions} color="#84cc16" />
         </div>
+        <EmergencyCta />
         <h3>Appointment Status</h3>
         <div className="progress-section">
           <ProgressBar label="Pending" count={a.appointmentStatus?.pending || 0} total={totalAppts} color="#f59e0b" />

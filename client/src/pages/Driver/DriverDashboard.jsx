@@ -12,6 +12,7 @@ import {
 import { getAccurateLocation, watchLocation, clearWatch } from '../../utils/geolocation';
 import { buildGoogleMapsUrl, buildWazeUrl } from '../../utils/routing';
 import { useToast } from '../../components/ToastContext';
+import EmergencyCta from '../../components/EmergencyCta';
 
 const STATUS_FLOW = {
   dispatched: { next: 'in_transit', label: 'Set Off', color: '#2563eb', bg: '#dbeafe' },
@@ -333,6 +334,8 @@ export default function DriverDashboard() {
 
   const renderRides = () => (
     <div>
+      <EmergencyCta />
+
       {/* Live map preview at top */}
       {patientMarkers.length > 0 && (
         <div style={{ marginBottom: 24 }}>

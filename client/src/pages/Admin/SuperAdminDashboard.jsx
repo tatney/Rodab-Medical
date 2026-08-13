@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Sidebar, { roleConfig } from '../../components/Sidebar';
 import Map from '../../components/Map';
 import LiveMonitor from '../../components/LiveMonitor';
+import EmergencyCta from '../../components/EmergencyCta';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ToastContext';
 import {
@@ -859,6 +860,8 @@ const SuperAdminDashboard = () => {
           <StatCard label="Messages" value={a.totalMessages} color="#6366f1" />
           <StatCard label="Repeat Prescriptions" value={a.totalRepeatPrescriptions} color="#84cc16" />
         </div>
+
+        <EmergencyCta />
 
         {/* ── Appointment Status ── */}
         <h3>Appointment Status</h3>
