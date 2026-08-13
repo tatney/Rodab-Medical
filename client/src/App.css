@@ -2507,29 +2507,6 @@ button.chip-active:hover {
   animation: slideDown 0.2s ease;
 }
 
-.main-nav-sos {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-   padding: 0 20px;
-   height: 44px;
-   background-color: var(--error);
-  color: #fff;
-  border-radius: var(--radius-full);
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 0.2s;
-  margin-left: 16px;
-  white-space: nowrap;
-}
-
-.main-nav-sos:hover {
-  background-color: #c82333;
-  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.35);
-  color: #fff;
-}
-
 /* ── Premium Dropdown ── */
 .premium-dropdown {
   position: absolute;
@@ -3572,12 +3549,6 @@ button.chip-active:hover {
     display: none;
   }
 
-  .main-nav:has(.main-nav-sos) {
-    display: block;
-    position: sticky;
-    top: 52px;
-  }
-
   .main-nav-inner {
     padding: 0 12px;
     justify-content: space-between;
@@ -3585,10 +3556,6 @@ button.chip-active:hover {
 
   .main-nav-links {
     display: none;
-  }
-
-  .main-nav-sos {
-    margin-left: auto;
   }
 
   /* Dashboard responsive */
@@ -4885,11 +4852,6 @@ button.chip-active:hover {
 /* ================================================================
    RTL refinements
    ================================================================ */
-[dir='rtl'] .main-nav-sos {
-  margin-left: 0;
-  margin-right: 16px;
-}
-
 [dir='rtl'] .carousel-arrow.prev {
   left: auto;
   right: 1rem;

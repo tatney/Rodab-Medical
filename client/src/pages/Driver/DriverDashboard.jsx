@@ -9,7 +9,8 @@ import {
   getHospitals,
   updateDriverLocation,
 } from '../../api';
-import { getSmartLocation } from '../../utils/geolocation';
+import { getAccurateLocation, watchLocation, clearWatch } from '../../utils/geolocation';
+import { buildGoogleMapsUrl, buildWazeUrl } from '../../utils/routing';
 import { useToast } from '../../components/ToastContext';
 
 const STATUS_FLOW = {
@@ -52,6 +53,42 @@ const btnStyle = (color, bg) => ({
   transition: 'all 0.2s',
 });
 
+const STEP_INSTRUCTIONS = {
+  depart: 'Depart',
+  turn: 'Turn',
+  'new name': 'Continue onto',
+  merge: 'Merge',
+  onramp: 'Take the ramp',
+  offramp: 'Exit the ramp',
+  fork: 'Keep',
+  'end of road': 'End of road,',
+  continue: 'Continue straight',
+  roundabout: 'Enter the roundabout',
+  rotary: 'Enter the roundabout',
+  'exit roundabout': 'Exit the roundabout',
+  'exit rotary': 'Exit the roundabout',
+  'turn left': 'Turn left onto',
+  'turn right': 'Turn right onto',
+  'turn slight left': 'Slight left onto',
+  'turn slight right': 'Slight right onto',
+  'turn sharp left': 'Sharp left onto',
+  'turn sharp right': 'Sharp right onto',
+  uturn: 'Make a U-turn',
+  'arrive': 'Arrive at',
+  'arrive left': 'Arrive (left side) at',
+  'arrive right': 'Arrive (right side) at',
+};
+
+const stepLabel = (s) => {
+  const base = STEP_INSTRUCTIONS[s.instruction] || STEP_INSTRUCTIONS.turn;
+  return `${base}${s.name ? ` ${s.name}` : ''}`;
+};
+
+const formatStepDistance = (m) => {
+  if (m < 1000) return `${Math.round(m)} m`;
+  return `${(m / 1000).toFixed(1)} km`;
+};
+
 export default function DriverDashboard() {
   const { user } = useAuth();
   const { tab } = useParams();
@@ -65,10 +102,13 @@ export default function DriverDashboard() {
   const [rides, setRides] = useState([]);
   const [hospitals, setHospitals] = useState([]);
   const [driverLocation, setDriverLocation] = useState(null);
+  const [locSource, setLocSource] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
   const [navTarget, setNavTarget] = useState(null);
+  const [navInfo, setNavInfo] = useState(null);
+  const [followMode, setFollowMode] = useState(false);
 
-  const locationTimerRef = useRef(null);
+  const watchIdRef = useRef(null);
 
   const toast = useToast();
 
@@ -99,25 +139,49 @@ export default function DriverDashboard() {
   }, [user, loadAll]);
 
   // ── Live location tracking ──────────────────────────────
-  const updateLocation = useCallback(async () => {
-    try {
-      const loc = await getSmartLocation();
-      setDriverLocation({ lat: loc.lat, lng: loc.lng, name: user?.full_name || 'Driver' });
-
-      const driverId = user?.id;
-      if (driverId) {
-        updateDriverLocation(driverId, { lat: loc.lat, lng: loc.lng }).catch(() => {});
-      }
-    } catch {
-      // silently fail
-    }
+  // Uses GPS watchPosition (accuracy-optimized, continuous) instead of
+  // polling getCurrentPosition. Only GPS-grade fixes are persisted to the
+  // server so the dispatch map never gets a wrong IP/fallback pin.
+  const persistDriverLocation = useCallback((loc) => {
+    const driverId = user?.id;
+    if (!driverId) return;
+    if (loc.source !== 'gps' || (loc.accuracy != null && loc.accuracy > 100)) return;
+    updateDriverLocation(driverId, { lat: loc.lat, lng: loc.lng }).catch(() => {});
   }, [user]);
 
+  const applyLocation = useCallback((loc) => {
+    setDriverLocation({ lat: loc.lat, lng: loc.lng, name: user?.full_name || 'Driver', source: loc.source });
+    setLocSource(loc.source);
+    persistDriverLocation(loc);
+  }, [user, persistDriverLocation]);
+
   useEffect(() => {
-    updateLocation();
-    locationTimerRef.current = setInterval(updateLocation, 5000);
-    return () => clearInterval(locationTimerRef.current);
-  }, [updateLocation]);
+    let mounted = true;
+
+    // Seed the map immediately with the best fix we can get.
+    getAccurateLocation()
+      .then((loc) => {
+        if (mounted) applyLocation(loc);
+      })
+      .catch(() => {
+        if (mounted) setLocSource(null);
+      });
+
+    // Continuous high-accuracy tracking.
+    watchIdRef.current = watchLocation({
+      onUpdate: (loc) => {
+        if (mounted) applyLocation(loc);
+      },
+      onError: () => {
+        if (mounted) setLocSource(null);
+      },
+    });
+
+    return () => {
+      mounted = false;
+      clearWatch(watchIdRef.current);
+    };
+  }, [applyLocation]);
 
   // ── Derived data ────────────────────────────────────────
   const activeRides = rides.filter((r) => ['dispatched', 'in_transit', 'arrived'].includes(r.status));
@@ -187,6 +251,8 @@ export default function DriverDashboard() {
         ? `Patient: ${ride.patient_name || 'Unknown'}`
         : `Hospital: ${hosp?.name || 'Nearest hospital'}`,
     });
+    setNavInfo(null);
+    setFollowMode(false);
     if (activeTab !== 'map') navigate('/driver/map');
   };
 
@@ -196,6 +262,32 @@ export default function DriverDashboard() {
       : null;
 
   // ── Handlers ────────────────────────────────────────────
+  const handleCall = (phone) => {
+    if (!phone) {
+      toast.error('No contact phone available.');
+      return;
+    }
+    window.location.href = `tel:${phone}`;
+  };
+
+  const toggleFollow = () => setFollowMode((v) => !v);
+
+  const handleClearNav = () => {
+    setNavTarget(null);
+    setNavInfo(null);
+    setFollowMode(false);
+  };
+
+  const openInGoogleMaps = () => {
+    if (!navTarget) return;
+    window.open(buildGoogleMapsUrl(driverLocation, { lat: navTarget.lat, lng: navTarget.lng }), '_blank');
+  };
+
+  const openInWaze = () => {
+    if (!navTarget) return;
+    window.open(buildWazeUrl(driverLocation, { lat: navTarget.lat, lng: navTarget.lng }), '_blank');
+  };
+
   const handleStatusUpdate = async (rideId, newStatus) => {
     setUpdatingId(rideId);
     try {
@@ -332,6 +424,14 @@ export default function DriverDashboard() {
                   </div>
 
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16, paddingTop: 16, borderTop: '1px solid #f3f4f6' }}>
+                    {ride.contact_phone && (
+                      <button
+                        onClick={() => handleCall(ride.contact_phone)}
+                        style={btnStyle('#1d4ed8', '#dbeafe')}
+                      >
+                        📞 Call Patient
+                      </button>
+                    )}
                     {ride.latitude && ride.longitude && (
                       <button
                         onClick={() => handleNavigate(ride, 'patient')}
@@ -403,6 +503,16 @@ export default function DriverDashboard() {
           })}
           {activeRides.map((ride) => (
             <button
+              key={`call-${ride.id}`}
+              onClick={() => handleCall(ride.contact_phone)}
+              disabled={!ride.contact_phone}
+              style={btnStyle('#1d4ed8', '#dbeafe')}
+            >
+              📞 Call {ride.patient_name || 'Patient'}
+            </button>
+          ))}
+          {activeRides.map((ride) => (
+            <button
               key={`nav-${ride.id}`}
               onClick={() => handleNavigate(ride, 'patient')}
               disabled={!ride.latitude || !ride.longitude}
@@ -423,18 +533,64 @@ export default function DriverDashboard() {
         </div>
       )}
 
-      {/* Full page map */}
+      {/* Navigation header */}
       {navTarget && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 10, backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 15 }}>🧭</span>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1e3a8a' }}>Navigating to:</span>
-          <span style={{ fontSize: 13, color: '#3730a3', flex: 1 }}>{navTarget.label}</span>
+          <span style={{ fontSize: 13, color: '#3730a3', flex: 1, minWidth: 160 }}>{navTarget.label}</span>
+          {navInfo && (
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#0b2a57', backgroundColor: '#dbeafe', padding: '4px 10px', borderRadius: 999, whiteSpace: 'nowrap' }}>
+              {navInfo.distance} km · {navInfo.duration} min
+            </span>
+          )}
           <button
-            onClick={() => setNavTarget(null)}
-            style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #c7d2fe', backgroundColor: 'white', color: '#1e3a8a', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+            onClick={openInGoogleMaps}
+            title="Open in Google Maps"
+            style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #c7d2fe', backgroundColor: 'white', color: '#1e3a8a', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
-            Clear route
+            Google Maps
           </button>
+          <button
+            onClick={openInWaze}
+            title="Open in Waze"
+            style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #c7d2fe', backgroundColor: '#1e3a8a', color: 'white', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            Waze
+          </button>
+          <button
+            onClick={toggleFollow}
+            title={followMode ? 'Stop following driver' : 'Follow driver while moving'}
+            style={{
+              padding: '6px 12px', borderRadius: 8, border: '1px solid #c7d2fe',
+              backgroundColor: followMode ? '#0b2a57' : 'white',
+              color: followMode ? 'white' : '#1e3a8a',
+              fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+            }}
+          >
+            {followMode ? '⏹ Stop following' : '🎯 Follow me'}
+          </button>
+          <button
+            onClick={handleClearNav}
+            style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #fecaca', backgroundColor: '#fee2e2', color: '#b91c1c', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+          >
+            ✕ Clear route
+          </button>
+        </div>
+      )}
+
+      {/* Turn-by-turn steps */}
+      {navInfo && navInfo.steps && navInfo.steps.length > 0 && (
+        <div style={{ marginTop: 10, borderRadius: 10, border: '1px solid #e5e7eb', backgroundColor: 'white', padding: '12px 16px' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#374151', marginBottom: 8 }}>Turn-by-turn directions</div>
+          <ol style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {navInfo.steps.map((s, i) => (
+              <li key={i} style={{ fontSize: 13, color: '#4b5563' }}>
+                {stepLabel(s)}
+                {s.distance ? <span style={{ color: '#9ca3af' }}> · {formatStepDistance(s.distance)}</span> : null}
+              </li>
+            ))}
+          </ol>
         </div>
       )}
 
@@ -447,6 +603,8 @@ export default function DriverDashboard() {
           driverLocation={driverLocation}
           routeDestination={routeDestination}
           showRoute={activeRides.length > 0}
+          onRoute={setNavInfo}
+          followDriver={followMode}
           height="100%"
         />
       </div>
@@ -459,7 +617,7 @@ export default function DriverDashboard() {
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>Your Location</div>
               <div style={{ fontSize: 12, color: '#6b7280' }}>
-                {driverLocation.lat.toFixed(5)}, {driverLocation.lng.toFixed(5)} - Updates every 5s
+                {driverLocation.lat.toFixed(5)}, {driverLocation.lng.toFixed(5)} · {locSource === 'gps' ? 'GPS' : locSource === 'cached' ? 'Last known' : locSource === 'ip' ? 'Approximate (IP)' : 'Locating...'}
               </div>
             </div>
           </div>
@@ -515,6 +673,16 @@ export default function DriverDashboard() {
                   {ride.destination && <div>🏥 Destination: {ride.destination}</div>}
                   {ride.assigned_at && <div>🕐 Assigned: {new Date(ride.assigned_at).toLocaleString()}</div>}
                 </div>
+                {ride.contact_phone && (
+                  <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #fef3c7' }}>
+                    <button
+                      onClick={() => handleCall(ride.contact_phone)}
+                      style={btnStyle('#1d4ed8', '#dbeafe')}
+                    >
+                      📞 Call Patient Now
+                    </button>
+                  </div>
+                )}
               </div>
             );
           })}

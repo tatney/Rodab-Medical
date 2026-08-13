@@ -473,7 +473,27 @@ export const trackAmbulance = async (id) => {
     .eq('id', id)
     .single()
   if (error) throw error
-  return ok({ tracking: data, request: data })
+
+  const tracking = { ...data }
+
+  if (data?.driver_id) {
+    const { data: driver, error: driverErr } = await supabase
+      .from('drivers')
+      .select('id, full_name, phone, current_latitude, current_longitude, last_location_update, vehicle_id')
+      .eq('id', data.driver_id)
+      .maybeSingle()
+
+    if (!driverErr && driver) {
+      tracking.driver_name = driver.full_name
+      tracking.driver_phone = driver.phone
+      tracking.driver_latitude = driver.current_latitude
+      tracking.driver_longitude = driver.current_longitude
+      tracking.driver_last_update = driver.last_location_update
+      tracking.vehicle_plate = driver.vehicle_id || data.vehicle_plate || null
+    }
+  }
+
+  return ok({ tracking, request: tracking })
 }
 
 export const assignDriver = async (rideId, driverId) => {

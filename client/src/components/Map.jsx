@@ -17,12 +17,18 @@ const Map = ({
   driverLocation = null,
   routeDestination = null,
   onMapClick = null,
+  fitKey = null,
+  onRoute = null,
+  followDriver = false,
 }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersLayerRef = useRef(null);
   const routeLayerRef = useRef(null);
   const pathsLayerRef = useRef(null);
+  const userMovedRef = useRef(false);
+  const lastFitKeyRef = useRef(null);
+  const lastRouteRef = useRef(null);
   const [mapMode, setMapMode] = useState('map');
   const [mapReady, setMapReady] = useState(false);
   const [L, setL] = useState(null);
@@ -49,7 +55,7 @@ const Map = ({
     const map = L.map(mapRef.current, {
       center,
       zoom,
-      zoomControl: true,
+      zoomControl: false,
       attributionControl: true,
     });
 
@@ -83,6 +89,20 @@ const Map = ({
       mapInstanceRef.current = null;
     };
   }, [L]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Remember when the user manually pans/zooms so we never fight them.
+  useEffect(() => {
+    if (!L || !mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+    const onDrag = () => { userMovedRef.current = true; };
+    const onZoom = () => { userMovedRef.current = true; };
+    map.on('dragend', onDrag);
+    map.on('zoomend', onZoom);
+    return () => {
+      map.off('dragend', onDrag);
+      map.off('zoomend', onZoom);
+    };
+  }, [L, mapReady]);
 
   // Switch tile layer on mode change
   useEffect(() => {
@@ -133,6 +153,47 @@ const Map = ({
       iconAnchor: [size / 2, size * 1.4],
       popupAnchor: [0, -size * 1.4],
     });
+  };
+
+  // A new fitKey (e.g. a navigation start) overrides user interaction once.
+  useEffect(() => {
+    if (fitKey !== lastFitKeyRef.current) {
+      lastFitKeyRef.current = fitKey;
+      userMovedRef.current = false;
+    }
+  }, [fitKey]);
+
+  // Uber-style follow mode: keep the driver centred on screen as they move,
+  // preserving whatever zoom the driver has chosen.
+  useEffect(() => {
+    if (!L || !mapReady || !mapInstanceRef.current || !followDriver || !driverLocation) return;
+    userMovedRef.current = false;
+    mapInstanceRef.current.panTo([driverLocation.lat, driverLocation.lng], {
+      animate: true,
+      duration: 0.4,
+    });
+  }, [driverLocation, followDriver, L, mapReady]);
+
+  const handleZoomIn = () => {
+    if (!mapInstanceRef.current) return;
+    userMovedRef.current = true;
+    mapInstanceRef.current.zoomIn();
+  };
+
+  const handleZoomOut = () => {
+    if (!mapInstanceRef.current) return;
+    userMovedRef.current = true;
+    mapInstanceRef.current.zoomOut();
+  };
+
+  const handleRecenter = () => {
+    const target = driverLocation
+      ? [driverLocation.lat, driverLocation.lng]
+      : center;
+    if (target && mapInstanceRef.current) {
+      userMovedRef.current = false;
+      mapInstanceRef.current.setView(target, Math.max(zoom, 14));
+    }
   };
 
   // Update markers
@@ -229,11 +290,14 @@ const Map = ({
       }
     }
 
-    // Auto-fit bounds
-    if (bounds.length > 1) {
-      mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
-    } else if (bounds.length === 1) {
-      mapInstanceRef.current.setView(bounds[0], zoom);
+    // Auto-fit bounds — but only while the user hasn't taken control of the
+    // map, and never while follow mode is active (it would fight panTo).
+    if (!userMovedRef.current && !followDriver) {
+      if (bounds.length > 1) {
+        mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
+      } else if (bounds.length === 1) {
+        mapInstanceRef.current.setView(bounds[0], zoom);
+      }
     }
   }, [markers, hospitals, drivers, driverLocation, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -259,6 +323,14 @@ const Map = ({
   useEffect(() => {
     if (!L || !mapReady || !mapInstanceRef.current) return;
 
+    const emitRoute = (info) => {
+      const sig = info ? `${Math.round(info.distance)}|${Math.round(info.duration)}` : null;
+      if (sig !== lastRouteRef.current) {
+        lastRouteRef.current = sig;
+        if (onRoute) onRoute(info);
+      }
+    };
+
     routeLayerRef.current.clearLayers();
 
     if (showRoute && driverLocation && (routeDestination || markers.length >= 1)) {
@@ -278,7 +350,7 @@ const Map = ({
 
       const url = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat}${
         waypoints ? ';' + waypoints : ''
-      };${destination.lng},${destination.lat}?overview=full&geometries=geojson`;
+      };${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=true`;
 
       fetch(url, { signal: AbortSignal.timeout(10000) })
         .then((res) => res.json())
@@ -305,11 +377,26 @@ const Map = ({
                 </div>`
               )
               .openOn(mapInstanceRef.current);
+
+            const steps = (data.routes[0].legs?.[0]?.steps || []).map((s) => ({
+              instruction: s.maneuver?.type || 'straight',
+              modifier: s.maneuver?.modifier || '',
+              name: s.name || '',
+              distance: s.distance,
+              duration: s.duration,
+            }));
+
+            emitRoute({ distance, duration, coordinates: coords, steps });
+          } else {
+            emitRoute(null);
           }
         })
         .catch((err) => {
           console.error('Route fetch error:', err);
+          emitRoute(null);
         });
+    } else {
+      emitRoute(null);
     }
   }, [showRoute, markers, driverLocation, routeDestination, mapReady, L]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -346,6 +433,45 @@ const Map = ({
             <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
           </svg>
           Satellite
+        </button>
+      </div>
+
+      {/* Recenter control */}
+      <button
+        onClick={handleRecenter}
+        title="Recenter map"
+        aria-label="Recenter map"
+        style={styles.recenterBtn}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+        </svg>
+      </button>
+
+      {/* Uber-style zoom controls */}
+      <div style={styles.zoomControls}>
+        <button
+          onClick={handleZoomIn}
+          title="Zoom in"
+          aria-label="Zoom in"
+          style={styles.zoomBtn}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </button>
+        <div style={styles.zoomDivider} />
+        <button
+          onClick={handleZoomOut}
+          title="Zoom out"
+          aria-label="Zoom out"
+          style={styles.zoomBtn}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
         </button>
       </div>
 
@@ -483,6 +609,53 @@ const styles = {
   toggleBtnActive: {
     backgroundColor: '#0b2a57',
     color: 'white',
+  },
+  recenterBtn: {
+    position: 'absolute',
+    top: '68px',
+    right: '12px',
+    zIndex: 1000,
+    width: 40,
+    height: 40,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+    color: '#374151',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+  },
+  zoomControls: {
+    position: 'absolute',
+    bottom: '12px',
+    right: '12px',
+    zIndex: 1000,
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+  },
+  zoomBtn: {
+    width: 40,
+    height: 40,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'white',
+    border: 'none',
+    color: '#374151',
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+  },
+  zoomDivider: {
+    height: 1,
+    backgroundColor: '#e5e7eb',
+    margin: '0 6px',
   },
   legend: {
     position: 'absolute',
