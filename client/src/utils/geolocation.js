@@ -171,18 +171,22 @@ export async function reverseGeocode(lat, lng) {
 /**
  * Geocode a free-text search into a list of selectable places.
  * Uses OpenStreetMap Nominatim (free, no API key required).
+ * Results are restricted to Uganda (the region served) via countrycodes
+ * and a viewbox, and ranked by distance from `near` when provided.
  */
-export async function searchPlaces(query) {
+export async function searchPlaces(query, { countryCodes = 'ug', viewbox = '29.57,-1.48,35.03,4.23', near } = {}) {
   const q = String(query || '').trim()
   if (q.length < 3) return []
   const url =
-    `https://nominatim.openstreetmap.org/search?format=json&limit=6&accept-language=en` +
-    `&q=${encodeURIComponent(q)}`
+    `https://nominatim.openstreetmap.org/search?format=json&limit=8&accept-language=en` +
+    `&q=${encodeURIComponent(q)}` +
+    `&countrycodes=${encodeURIComponent(countryCodes)}` +
+    `&viewbox=${encodeURIComponent(viewbox)}`
   try {
     const res = await fetch(url)
     if (!res.ok) return []
     const data = await res.json()
-    return (Array.isArray(data) ? data : [])
+    const items = (Array.isArray(data) ? data : [])
       .filter((d) => d && d.lat != null && d.lon != null)
       .map((d) => ({
         id: d.place_id,
@@ -190,6 +194,12 @@ export async function searchPlaces(query) {
         lat: Number(d.lat),
         lng: Number(d.lon),
       }))
+    if (near && typeof near.lat === 'number' && typeof near.lng === 'number') {
+      items.sort((a, b) =>
+        haversineKm(near.lat, near.lng, a.lat, a.lng) - haversineKm(near.lat, near.lng, b.lat, b.lng)
+      )
+    }
+    return items
   } catch {
     return []
   }

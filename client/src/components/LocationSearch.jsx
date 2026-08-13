@@ -9,7 +9,7 @@ import { searchPlaces } from '../utils/geolocation'
  *   onPick({ label, lat, lng })   - fires when a search result is selected
  *   placeholder, name, id, style  - passed through to the input
  */
-export default function LocationSearch({ value, onChange, onPick, placeholder, name, id, style }) {
+export default function LocationSearch({ value, onChange, onPick, placeholder, name, id, style, near }) {
   const [results, setResults] = useState([])
   const [open, setOpen] = useState(false)
   const [searching, setSearching] = useState(false)
@@ -38,7 +38,7 @@ export default function LocationSearch({ value, onChange, onPick, placeholder, n
     setSearching(true)
     debounceRef.current = setTimeout(async () => {
       const seq = ++seqRef.current
-      const res = await searchPlaces(q)
+      const res = await searchPlaces(q, { near })
       if (seq === seqRef.current) {
         setResults(res)
         setOpen(true)

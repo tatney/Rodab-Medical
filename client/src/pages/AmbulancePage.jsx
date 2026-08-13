@@ -427,6 +427,7 @@ export default function AmbulancePage() {
               value={form.location}
               onChange={handleChange}
               onPick={handlePickLocation}
+              near={coords}
               placeholder={locSource === 'gps' ? 'Your location detected — search to change it' : 'Type to search for a location'}
               style={{ ...inputStyle, flex: 1, width: '100%' }}
             />

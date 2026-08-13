@@ -25,6 +25,8 @@ export default function SOSPage() {
     contactPhone: '',
     location: '',
     destination: '',
+    emergencyLevel: 'critical',
+    condition: '',
   })
   const [coords, setCoords] = useState(null)
   const [locating, setLocating] = useState(false)
@@ -78,7 +80,8 @@ export default function SOSPage() {
         destination_address: form.destination || 'Rodab Medical Hospital',
         latitude: coords?.lat,
         longitude: coords?.lng,
-        emergency_level: 'urgent',
+        emergency_level: form.emergencyLevel,
+        notes: form.condition,
       }
       const res = await dispatchAmbulanceGuest(payload)
       const id = res.data?.id || res.data?.request?.id || res.data?.tracking_id || ''
@@ -412,6 +415,7 @@ export default function SOSPage() {
               value={form.location}
               onChange={handleChange}
               onPick={handlePickLocation}
+              near={coords}
               placeholder={locating ? t('common.locating') : t('sos.searchPlaceholder')}
               style={{
                 flex: 1,
@@ -452,9 +456,62 @@ export default function SOSPage() {
               backgroundColor: 'var(--surface-card)',
               color: 'var(--text-body)',
               fontSize: 15,
+              marginBottom: 16,
+              outline: 'none',
+              boxSizing: 'border-box',
+            }}
+          />
+
+          <label htmlFor="emergencyLevel" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+            {t('sos.emergencyLevel')}
+          </label>
+          <select
+            id="emergencyLevel"
+            name="emergencyLevel"
+            value={form.emergencyLevel}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              borderRadius: 8,
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface-card)',
+              color: 'var(--text-body)',
+              fontSize: 15,
+              marginBottom: 16,
+              outline: 'none',
+              boxSizing: 'border-box',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="critical">{t('sos.levelCritical')}</option>
+            <option value="urgent">{t('sos.levelUrgent')}</option>
+            <option value="normal">{t('sos.levelNormal')}</option>
+          </select>
+
+          <label htmlFor="condition" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
+            {t('sos.describeEmergency')}
+          </label>
+          <textarea
+            id="condition"
+            name="condition"
+            value={form.condition}
+            onChange={handleChange}
+            placeholder={t('sos.describeEmergencyPlaceholder')}
+            rows={3}
+            style={{
+              width: '100%',
+              padding: '12px 14px',
+              borderRadius: 8,
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface-card)',
+              color: 'var(--text-body)',
+              fontSize: 15,
               marginBottom: 28,
               outline: 'none',
               boxSizing: 'border-box',
+              resize: 'vertical',
+              fontFamily: 'inherit',
             }}
           />
 
@@ -463,13 +520,14 @@ export default function SOSPage() {
               type="submit"
               disabled={submitting}
               style={{
-                width: 150,
-                height: 150,
+                width: 200,
+                height: 200,
                 borderRadius: '50%',
                 backgroundColor: submitting ? 'var(--border)' : 'var(--emergency-red)',
+                backgroundImage: submitting ? 'none' : 'linear-gradient(180deg, #ef4444 0%, #b91c1c 100%)',
                 color: '#ffffff',
-                border: 'none',
-                fontSize: 14,
+                border: '5px solid rgba(255,255,255,0.85)',
+                fontSize: 16,
                 fontWeight: 800,
                 lineHeight: 1.35,
                 cursor: submitting ? 'not-allowed' : 'pointer',
@@ -477,12 +535,15 @@ export default function SOSPage() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 8,
-                boxShadow: submitting ? 'none' : '0 6px 20px rgba(229, 57, 53, 0.4)',
+                gap: 10,
+                boxShadow: submitting ? 'none' : '0 10px 34px rgba(229, 57, 53, 0.5), 0 0 0 0 rgba(229, 57, 53, 0.4)',
+                position: 'relative',
+                zIndex: 1,
                 transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+                animation: 'sos-pulse-ring 2.2s ease-out infinite',
               }}
               onMouseEnter={(e) => {
-                if (!submitting) e.currentTarget.style.transform = 'scale(1.05)'
+                if (!submitting) e.currentTarget.style.transform = 'scale(1.06)'
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = 'scale(1)'
@@ -491,14 +552,14 @@ export default function SOSPage() {
               {submitting && (
                 <span
                   style={{
-                    width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)',
+                    width: 20, height: 20, border: '2px solid rgba(255,255,255,0.3)',
                     borderTop: '2px solid #fff', borderRadius: '50%',
                     animation: 'spin 0.7s linear infinite', display: 'inline-block',
                   }}
                 />
               )}
-              <span style={{ fontSize: 26, lineHeight: 1 }} aria-hidden="true">&#128680;</span>
-              <span style={{ padding: '0 10px' }}>{submitting ? t('common.sending') : t('sos.sendSos')}</span>
+              <span style={{ fontSize: 34, lineHeight: 1 }} aria-hidden="true">&#128680;</span>
+              <span style={{ padding: '0 18px' }}>{submitting ? t('common.sending') : t('sos.sendSos')}</span>
             </button>
           </div>
         </form>
