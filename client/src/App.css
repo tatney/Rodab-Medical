@@ -5602,3 +5602,44 @@ button.chip-active:hover {
   }
 }
 
+/* ─── Track status stepper ───────────────────────────────────────────
+   One horizontal row on desktop; wraps into 2 rows of 3 on mobile. */
+.track-status-steps {
+  display: flex;
+  align-items: flex-start;
+}
+
+.track-status-step {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.track-status-connector {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+  .track-status-steps {
+    flex-wrap: wrap;
+  }
+
+  .track-status-step {
+    flex: 1 1 33.333%;
+    margin-bottom: 18px;
+  }
+
+  .track-status-step:last-child {
+    margin-bottom: 0;
+  }
+
+  .track-status-connector {
+    display: none;
+  }
+}
+
+

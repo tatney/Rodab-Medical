@@ -444,30 +444,32 @@ export default function TrackPage() {
           {/* Status Timeline */}
           <div style={{ backgroundColor: 'var(--surface-card)', borderRadius: 12, border: '1px solid var(--border)', padding: 24, marginBottom: 24 }}>
             <h2 style={{ fontSize: 17, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 20 }}>{t('track.status')}</h2>
-            <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            <div className="track-status-steps">
               {statusSteps.map((step, idx) => {
-                const isActive = idx <= currentStep
+                const isDone = idx < currentStep
                 const isCurrent = idx === currentStep
+                const isActive = idx <= currentStep
                 return (
-                  <div key={step.key} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div key={step.key} className="track-status-step">
                     <div style={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                       {idx > 0 && (
-                        <div style={{ flex: 1, height: 2, backgroundColor: isActive ? 'var(--status-success)' : 'var(--surface-container)' }} />
+                        <div className="track-status-connector" style={{ backgroundColor: isActive ? 'var(--status-success)' : 'var(--surface-container)' }} />
                       )}
                       <div style={{
-                        width: isCurrent ? 16 : 12, height: isCurrent ? 16 : 12, borderRadius: '50%',
-                        backgroundColor: isActive ? 'var(--status-success)' : 'var(--surface-container)',
-                        border: isCurrent ? '3px solid var(--primary)' : 'none',
+                        width: isCurrent ? 18 : 14, height: isCurrent ? 18 : 14, borderRadius: '50%',
+                        backgroundColor: isCurrent ? 'var(--primary)' : (isActive ? 'var(--status-success)' : 'var(--surface-container)'),
+                        border: isCurrent ? '3px solid #ffffff' : (isActive ? 'none' : '1px solid var(--border)'),
+                        boxShadow: isCurrent ? '0 0 0 3px var(--primary)' : 'none',
                         boxSizing: 'border-box', flexShrink: 0,
                       }} />
                       {idx < statusSteps.length - 1 && (
-                        <div style={{ flex: 1, height: 2, backgroundColor: isActive && idx < currentStep ? 'var(--status-success)' : 'var(--surface-container)' }} />
+                        <div className="track-status-connector" style={{ backgroundColor: isDone ? 'var(--status-success)' : 'var(--surface-container)' }} />
                       )}
                     </div>
                     <span style={{
                       fontSize: isCurrent ? 13 : 12, fontWeight: isCurrent ? 700 : 500,
-                      color: isActive ? 'var(--text-strong)' : 'var(--text-muted)',
-                      textAlign: 'center', marginTop: 8, lineHeight: 1.3, padding: '0 2px',
+                      color: isCurrent ? 'var(--primary)' : (isActive ? 'var(--text-strong)' : 'var(--text-muted)'),
+                      textAlign: 'center', marginTop: 8, lineHeight: 1.35, padding: '0 4px', letterSpacing: '0.01em',
                     }}>
                       {steps[idx]}
                     </span>
