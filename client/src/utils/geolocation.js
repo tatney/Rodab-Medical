@@ -167,3 +167,45 @@ export async function reverseGeocode(lat, lng) {
     return 'Unknown location'
   }
 }
+
+/**
+ * Geocode a free-text search into a list of selectable places.
+ * Uses OpenStreetMap Nominatim (free, no API key required).
+ */
+export async function searchPlaces(query) {
+  const q = String(query || '').trim()
+  if (q.length < 3) return []
+  const url =
+    `https://nominatim.openstreetmap.org/search?format=json&limit=6&accept-language=en` +
+    `&q=${encodeURIComponent(q)}`
+  try {
+    const res = await fetch(url)
+    if (!res.ok) return []
+    const data = await res.json()
+    return (Array.isArray(data) ? data : [])
+      .filter((d) => d && d.lat != null && d.lon != null)
+      .map((d) => ({
+        id: d.place_id,
+        label: d.display_name || '',
+        lat: Number(d.lat),
+        lng: Number(d.lon),
+      }))
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Great-circle distance between two coordinates in kilometres.
+ */
+export function haversineKm(lat1, lng1, lat2, lng2) {
+  const R = 6371
+  const toRad = (deg) => (deg * Math.PI) / 180
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLng / 2) * Math.sin(dLng / 2)
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+}

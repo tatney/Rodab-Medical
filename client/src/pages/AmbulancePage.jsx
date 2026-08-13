@@ -1,7 +1,8 @@
 ﻿import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { dispatchAmbulance, cancelAmbulanceRequest, getAmbulanceHistory, getActiveEmergencies } from '../api'
-import { getSmartLocation, reverseGeocode } from '../utils/geolocation'
+import { getSmartLocation, reverseGeocode, KAMPALA_DEFAULT } from '../utils/geolocation'
+import LocationSearch from '../components/LocationSearch'
 import { useAuth } from '../context/AuthContext'
 import SEO from '../components/SEO'
 
@@ -56,6 +57,7 @@ export default function AmbulancePage() {
     longitude: '',
   })
   const [coords, setCoords] = useState(null)
+  const [locSource, setLocSource] = useState('')
   const [locating, setLocating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -64,6 +66,7 @@ export default function AmbulancePage() {
   const [cancelling, setCancelling] = useState(false)
   const [cancelled, setCancelled] = useState(false)
   const autoLocationDone = useRef(false)
+  const pickupMarkerRef = useRef(null)
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -91,6 +94,7 @@ export default function AmbulancePage() {
           latitude: String(pos.lat),
           longitude: String(pos.lng),
         }))
+        setLocSource(pos.source === 'gps' ? 'gps' : pos.source === 'ip' ? 'ip' : 'cached')
         const addr = await reverseGeocode(pos.lat, pos.lng)
         setForm((prev) => ({ ...prev, location: addr }))
       })
@@ -98,23 +102,16 @@ export default function AmbulancePage() {
       .finally(() => setLocating(false))
   }, [user])
 
-  const handleUseLocation = async () => {
-    setLocating(true)
-    try {
-      const pos = await getSmartLocation()
-      setCoords({ lat: pos.lat, lng: pos.lng })
-      setForm((prev) => ({
-        ...prev,
-        latitude: String(pos.lat),
-        longitude: String(pos.lng),
-      }))
-      const addr = await reverseGeocode(pos.lat, pos.lng)
-      setForm((prev) => ({ ...prev, location: addr }))
-    } catch {
-      setError('Could not detect location. Please enter coordinates manually.')
-    } finally {
-      setLocating(false)
-    }
+  const handlePickLocation = async (item) => {
+    if (!item || item.lat == null || item.lng == null) return
+    setCoords({ lat: item.lat, lng: item.lng })
+    setLocSource('search')
+    setForm((prev) => ({
+      ...prev,
+      location: item.label,
+      latitude: String(item.lat),
+      longitude: String(item.lng),
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -177,7 +174,7 @@ export default function AmbulancePage() {
   }, [])
 
   useEffect(() => {
-    if (mapReady || activeRequests.length === 0) return
+    if (mapReady) return
     loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js').then(() => {
       loadCSS('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css')
       const tryInit = (attempts) => {
@@ -190,7 +187,7 @@ export default function AmbulancePage() {
       }
       setTimeout(() => tryInit(5), 300)
     })
-  }, [activeRequests, mapReady])
+  }, [mapReady])
 
   function loadScript(src) {
     return new Promise((resolve) => {
@@ -214,13 +211,29 @@ export default function AmbulancePage() {
     if (map || !window.L) return
     const container = document.getElementById('ambulance-map')
     if (!container) return
-    const m = window.L.map(container).setView([33.8938, 35.5018], 11)
+    const start = coords || KAMPALA_DEFAULT
+    const m = window.L.map(container).setView([start.lat, start.lng], 14)
     window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap',
     }).addTo(m)
     setMap(m)
     setMapReady(true)
   }
+
+  // Patient pickup pin: center the map on the picked location and drop a marker.
+  useEffect(() => {
+    if (!map || !coords) return
+    map.setView([coords.lat, coords.lng], 14, { animate: true })
+    if (pickupMarkerRef.current) map.removeLayer(pickupMarkerRef.current)
+    const icon = window.L.divIcon({
+      html: '<div style="background:#dc2626;width:18px;height:18px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);"></div>',
+      className: '',
+      iconSize: [18, 18],
+    })
+    pickupMarkerRef.current = window.L.marker([coords.lat, coords.lng], { icon })
+      .addTo(map)
+      .bindPopup('<strong>Pickup Location</strong>')
+  }, [map, coords])
 
   useEffect(() => {
     if (!map) return
@@ -404,13 +417,28 @@ export default function AmbulancePage() {
           <label htmlFor="ambulance-contact-phone" style={labelStyle}>Contact Phone</label>
           <input id="ambulance-contact-phone" name="contactPhone" type="tel" required value={form.contactPhone} onChange={handleChange} placeholder="+256 7XX XXX XXX" style={{ ...inputStyle, marginBottom: 16 }} />
 
-          <label htmlFor="ambulance-location" style={labelStyle}>Location</label>
+          <label htmlFor="ambulance-location" style={labelStyle}>
+            Location {locating && <span style={{ color: colors.gray500, fontSize: 12, fontWeight: 400 }}>(Detecting automatically…)</span>}
+          </label>
           <div className="location-row">
-              <input id="ambulance-location" name="location" type="text" required value={form.location} onChange={handleChange} placeholder="Pickup address" style={{ ...inputStyle, flex: 1 }} />
-            <button type="button" onClick={handleUseLocation} disabled={locating} style={{ padding: '12px 14px', borderRadius: 8, border: `1px solid ${colors.primary}`, backgroundColor: '#dbeafe', color: colors.primary, fontSize: 12, fontWeight: 600, cursor: locating ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              {locating ? '...' : 'Use My Location'}
-            </button>
+            <LocationSearch
+              id="ambulance-location"
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              onPick={handlePickLocation}
+              placeholder={locSource === 'gps' ? 'Your location detected — search to change it' : 'Type to search for a location'}
+              style={{ ...inputStyle, flex: 1, width: '100%' }}
+            />
           </div>
+          {locSource && (
+            <p style={{ fontSize: 12, color: colors.gray500, margin: '6px 0 16px' }}>
+              {locSource === 'gps' ? '📍 Using your current location' :
+               locSource === 'ip' ? '📍 Approximate location (IP) — search to set an exact one' :
+               locSource === 'cached' ? '📍 Using last known location' :
+               '📍 Picked from search'}
+            </p>
+          )}
 
           <label htmlFor="ambulance-destination" style={labelStyle}>Destination Hospital</label>
           <input id="ambulance-destination" name="destination" type="text" value={form.destination} onChange={handleChange} placeholder="Preferred hospital" style={{ ...inputStyle, marginBottom: 16 }} />

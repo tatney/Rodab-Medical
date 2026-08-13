@@ -1,7 +1,8 @@
-﻿import React, { useState } from 'react'
+﻿import React, { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { dispatchAmbulanceGuest, cancelAmbulanceRequest } from '../api'
-import { getSmartLocation, reverseGeocode } from '../utils/geolocation'
+import { getAccurateLocation, reverseGeocode } from '../utils/geolocation'
+import LocationSearch from '../components/LocationSearch'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n/I18nContext'
 
@@ -27,29 +28,42 @@ export default function SOSPage() {
   })
   const [coords, setCoords] = useState(null)
   const [locating, setLocating] = useState(false)
+  const [locSource, setLocSource] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [trackingId, setTrackingId] = useState('')
   const [error, setError] = useState('')
   const [cancelling, setCancelling] = useState(false)
   const [cancelled, setCancelled] = useState(false)
+  const autoLocationDone = useRef(false)
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const handleUseLocation = async () => {
+  // Auto-detect the patient location on page load (no button press needed).
+  useEffect(() => {
+    if (autoLocationDone.current) return
+    autoLocationDone.current = true
     setLocating(true)
-    try {
-      const pos = await getSmartLocation()
-      setCoords({ lat: pos.lat, lng: pos.lng })
-      const addr = await reverseGeocode(pos.lat, pos.lng)
-      setForm((prev) => ({ ...prev, location: addr }))
-    } catch {
-      setError(t('sos.couldNotDetect'))
-    } finally {
-      setLocating(false)
-    }
+    getAccurateLocation()
+      .then(async (pos) => {
+        setCoords({ lat: pos.lat, lng: pos.lng })
+        setLocSource(pos.source === 'gps' ? 'gps' : 'cached')
+        const addr = await reverseGeocode(pos.lat, pos.lng)
+        setForm((prev) => ({ ...prev, location: addr }))
+      })
+      .catch(() => {
+        setLocSource('')
+      })
+      .finally(() => setLocating(false))
+  }, [])
+
+  const handlePickLocation = (item) => {
+    if (!item || item.lat == null || item.lng == null) return
+    setCoords({ lat: item.lat, lng: item.lng })
+    setLocSource('search')
+    setForm((prev) => ({ ...prev, location: item.label }))
   }
 
   const handleSubmit = async (e) => {
@@ -402,14 +416,13 @@ export default function SOSPage() {
             {t('sos.pickupLocation')}
           </label>
           <div className="location-row">
-            <input
+            <LocationSearch
               id="location"
               name="location"
-              type="text"
-              required
               value={form.location}
               onChange={handleChange}
-              placeholder={t('sos.pickupPlaceholder')}
+              onPick={handlePickLocation}
+              placeholder={locating ? t('common.locating') : t('sos.searchPlaceholder')}
               style={{
                 flex: 1,
                 padding: '12px 14px',
@@ -419,28 +432,17 @@ export default function SOSPage() {
                 color: 'var(--text-body)',
                 fontSize: 15,
                 outline: 'none',
+                width: '100%',
               }}
             />
-            <button
-              type="button"
-              onClick={handleUseLocation}
-              disabled={locating}
-              style={{
-                padding: '12px 16px',
-                borderRadius: 8,
-                border: '1px solid var(--error)',
-                backgroundColor: 'var(--error-soft)',
-                color: 'var(--error)',
-                fontSize: 13,
-                fontWeight: 600,
-                cursor: locating ? 'not-allowed' : 'pointer',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              {locating ? t('common.locating') : t('sos.useMyLocation')}
-            </button>
           </div>
+          {locSource && (
+            <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '6px 0 16px' }}>
+              {locSource === 'gps' ? t('sos.usingCurrentLocation') :
+               locSource === 'cached' ? t('sos.usingLastKnown') :
+               t('sos.pickedFromSearch')}
+            </p>
+          )}
 
           <label htmlFor="destination" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 600, color: 'var(--text-body)' }}>
             {t('sos.destinationHospital')}
