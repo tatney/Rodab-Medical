@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { getFormTemplates, saveOnboarding, updateProfile } from '../api'
+import { getFormTemplates, saveOnboarding, updateProfile, uploadAvatar, deleteAvatar } from '../api'
 import { extractArray } from '../utils/api-helpers'
 import { buildInitialValues, validateFields, flattenMedicalProfile } from '../utils/form-utils'
 import { renderField } from '../utils/form-renderer'
@@ -34,6 +34,10 @@ export default function OnboardingPage() {
   const [entries, setEntries] = useState([])
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState(user?.avatar_url || null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
+  const photoInputRef = useRef(null)
 
   useEffect(() => {
     let cancelled = false
@@ -57,7 +61,9 @@ export default function OnboardingPage() {
     return () => { cancelled = true }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const current = entries[stepIndex]
+  const totalSteps = entries.length + 1
+  const isPhotoStep = stepIndex === 0
+  const current = isPhotoStep ? null : entries[stepIndex - 1]
 
   const handleChange = (key, val) => {
     setEntries((prev) => prev.map((entry, i) => {
@@ -82,8 +88,13 @@ export default function OnboardingPage() {
   }
 
   const handleNext = () => {
+    if (isPhotoStep) {
+      setError('')
+      setStepIndex((i) => Math.min(i + 1, totalSteps - 1))
+      return
+    }
     if (!validateStep()) return
-    setStepIndex((i) => Math.min(i + 1, entries.length - 1))
+    setStepIndex((i) => Math.min(i + 1, totalSteps - 1))
   }
 
   const handleBack = () => {
@@ -99,6 +110,45 @@ export default function OnboardingPage() {
       console.error('Failed to skip onboarding:', err)
     }
     navigate('/dashboard', { replace: true })
+  }
+
+  const handleAvatarPick = async (file) => {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setAvatarError('Please choose an image file (JPG or PNG).')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError('Photo must be 5 MB or smaller.')
+      return
+    }
+    setAvatarError('')
+    setAvatarUploading(true)
+    try {
+      const url = await uploadAvatar(file)
+      await updateProfile({ avatar_url: url })
+      setAvatarPreview(url)
+    } catch (err) {
+      console.error('Avatar upload failed:', err)
+      setAvatarError(err.message || 'Failed to upload photo. Please try again.')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
+  const handleAvatarRemove = async () => {
+    setAvatarError('')
+    setAvatarUploading(true)
+    try {
+      await deleteAvatar()
+      await updateProfile({ avatar_url: null })
+      setAvatarPreview(null)
+    } catch (err) {
+      console.error('Avatar remove failed:', err)
+      setAvatarError(err.message || 'Failed to remove photo. Please try again.')
+    } finally {
+      setAvatarUploading(false)
+    }
   }
 
   const handleFinish = async () => {
@@ -209,8 +259,9 @@ export default function OnboardingPage() {
   }
 
   /* ── Wizard ── */
-  const progress = ((stepIndex + 1) / entries.length) * 100
-  const isLast = stepIndex === entries.length - 1
+  const progress = ((stepIndex + 1) / totalSteps) * 100
+  const isLast = stepIndex === totalSteps - 1
+  const stepTitle = isPhotoStep ? 'Profile Photo' : current?.tpl.title
 
   return (
     <div style={{ padding: '40px 24px', maxWidth: 820, margin: '0 auto' }}>
@@ -218,7 +269,7 @@ export default function OnboardingPage() {
         <div>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: colors.gray900, margin: 0 }}>Medical Profile</h1>
           <p style={{ fontSize: 14, color: colors.gray500, margin: '4px 0 0' }}>
-            Step {stepIndex + 1} of {entries.length} · {current?.tpl.title}
+            Step {stepIndex + 1} of {totalSteps} · {stepTitle}
           </p>
         </div>
         <button onClick={handleSkip} style={{ background: 'none', border: 'none', fontSize: 14, color: colors.gray500, cursor: 'pointer', textDecoration: 'underline' }}>
@@ -227,7 +278,7 @@ export default function OnboardingPage() {
       </div>
 
       {/* Progress bar */}
-      <div role="progressbar" aria-valuenow={stepIndex + 1} aria-valuemin={1} aria-valuemax={entries.length} style={{ height: 8, borderRadius: 999, backgroundColor: colors.gray200, marginBottom: 28, overflow: 'hidden' }}>
+      <div role="progressbar" aria-valuenow={stepIndex + 1} aria-valuemin={1} aria-valuemax={totalSteps} style={{ height: 8, borderRadius: 999, backgroundColor: colors.gray200, marginBottom: 28, overflow: 'hidden' }}>
         <div style={{ height: '100%', width: `${progress}%`, backgroundColor: colors.primary, transition: 'width 0.3s ease' }} />
       </div>
 
@@ -238,25 +289,110 @@ export default function OnboardingPage() {
       )}
 
       <div style={{ backgroundColor: colors.white, borderRadius: 14, border: `1px solid ${colors.gray200}`, padding: 32 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-          <span style={{ fontSize: 28 }} aria-hidden="true">{current?.tpl.icon}</span>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.gray900, margin: 0 }}>{current?.tpl.title}</h2>
-        </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: colors.gray500, marginBottom: 20 }}>
-          {current?.tpl.form_code && <span>Form Code: <strong>{current?.tpl.form_code}</strong></span>}
-          {current?.tpl.revision && <span>Revision: <strong>{current?.tpl.revision}</strong></span>}
-        </div>
-        <p style={{ fontSize: 14, color: colors.gray600, lineHeight: 1.6, marginBottom: 24 }}>
-          {current?.tpl.description}
-        </p>
-
-        <div className="grid-form-fields" style={{ gap: 16 }}>
-          {(current?.tpl.fields || []).map((field) => (
-            <div key={field.key} style={field.full ? { gridColumn: '1 / -1' } : {}}>
-              {renderField(field, current.values[field.key], handleChange, current.errors)}
+        {isPhotoStep ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: '50%',
+                backgroundColor: colors.gray100,
+                border: `3px solid ${colors.gray200}`,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                marginBottom: 20,
+              }}
+            >
+              {avatarUploading ? (
+                <div className="spinner" style={{ width: 30, height: 30 }} aria-label="Uploading" />
+              ) : avatarPreview ? (
+                <img src={avatarPreview} alt="Profile photo preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <span style={{ fontSize: 48, color: colors.gray400 }} aria-hidden="true">👤</span>
+              )}
             </div>
-          ))}
-        </div>
+
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: colors.gray900, margin: '0 0 6px' }}>Add a profile photo</h3>
+            <p style={{ fontSize: 14, color: colors.gray500, margin: '0 0 24px', maxWidth: 430, lineHeight: 1.6 }}>
+              Optional — add a clear photo so our staff can recognize you. You can skip this or change it later from your profile.
+            </p>
+
+            {avatarError && (
+              <div role="alert" style={{ padding: '10px 14px', borderRadius: 8, backgroundColor: colors.dangerLight, border: `1px solid ${colors.dangerBorder}`, color: colors.danger, fontSize: 14, marginBottom: 20, maxWidth: 430 }}>
+                {avatarError}
+              </div>
+            )}
+
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={(e) => { handleAvatarPick(e.target.files?.[0]); e.target.value = '' }}
+            />
+
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                disabled={avatarUploading}
+                style={{
+                  padding: '12px 24px',
+                  backgroundColor: avatarUploading ? colors.gray300 : colors.primary,
+                  color: colors.white,
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: avatarUploading ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {avatarUploading ? 'Uploading...' : avatarPreview ? 'Change Photo' : 'Upload Photo'}
+              </button>
+              {avatarPreview && (
+                <button
+                  onClick={handleAvatarRemove}
+                  disabled={avatarUploading}
+                  style={{
+                    padding: '12px 20px',
+                    backgroundColor: colors.gray100,
+                    color: colors.gray700,
+                    border: `1px solid ${colors.gray300}`,
+                    borderRadius: 8,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    cursor: avatarUploading ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  Remove Photo
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
+              <span style={{ fontSize: 28 }} aria-hidden="true">{current?.tpl.icon}</span>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.gray900, margin: 0 }}>{current?.tpl.title}</h2>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: colors.gray500, marginBottom: 20 }}>
+              {current?.tpl.form_code && <span>Form Code: <strong>{current?.tpl.form_code}</strong></span>}
+              {current?.tpl.revision && <span>Revision: <strong>{current?.tpl.revision}</strong></span>}
+            </div>
+            <p style={{ fontSize: 14, color: colors.gray600, lineHeight: 1.6, marginBottom: 24 }}>
+              {current?.tpl.description}
+            </p>
+
+            <div className="grid-form-fields" style={{ gap: 16 }}>
+              {(current?.tpl.fields || []).map((field) => (
+                <div key={field.key} style={field.full ? { gridColumn: '1 / -1' } : {}}>
+                  {renderField(field, current.values[field.key], handleChange, current.errors)}
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 24, flexWrap: 'wrap', gap: 12 }}>

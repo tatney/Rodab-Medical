@@ -109,9 +109,27 @@ export default function AccessibilityButton({ variant = 'utility', onNavigate })
 
   if (variant === 'mobile') {
     return (
-      <div className="mobile-a11y" ref={panelRef}>
-        <div className="mobile-slideout-section-title">{t('a11y.button')}</div>
-        {controls}
+      <div className="mobile-util" ref={panelRef}>
+        <button
+          type="button"
+          className="mobile-util-trigger"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label={t('a11y.button')}
+          title={t('a11y.button')}
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          <AccessibilityIcon />
+        </button>
+
+        {open && (
+          <div className="mobile-a11y-panel" role="dialog" aria-label={t('a11y.panelTitle')}>
+            <div className="mobile-a11y-panel-title">
+              <AccessibilityIcon /> {t('a11y.panelTitle')}
+            </div>
+            {controls}
+          </div>
+        )}
       </div>
     )
   }

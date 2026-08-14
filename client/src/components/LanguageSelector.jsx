@@ -59,21 +59,40 @@ export default function LanguageSelector({ variant = 'utility', onNavigate }) {
 
   if (variant === 'mobile') {
     return (
-      <div className="mobile-lang-selector" ref={ref}>
-        <div className="mobile-slideout-section-title">{t('lang.label')}</div>
-        <div className="mobile-lang-options" role="group" aria-label={t('lang.label')}>
-          {LANGUAGES.map((l) => (
-            <button
-              key={l.code}
-              type="button"
-              className={`mobile-lang-option ${l.code === lang ? 'active' : ''}`}
-              aria-pressed={l.code === lang}
-              onClick={() => select(l.code)}
-            >
-              {l.native}
-            </button>
-          ))}
-        </div>
+      <div className="mobile-util" ref={ref}>
+        <button
+          type="button"
+          className="mobile-util-trigger"
+          aria-label={t('lang.label')}
+          aria-haspopup="listbox"
+          aria-expanded={open}
+          title={t('lang.label')}
+          onClick={() => setOpen((prev) => !prev)}
+        >
+          <GlobeIcon />
+        </button>
+
+        {open && (
+          <div className="mobile-lang-dropdown" role="listbox" aria-label={t('lang.label')}>
+            {LANGUAGES.map((l) => (
+              <button
+                key={l.code}
+                type="button"
+                role="option"
+                aria-selected={l.code === lang}
+                className={`mobile-lang-dropdown-item ${l.code === lang ? 'active' : ''}`}
+                onClick={() => select(l.code)}
+              >
+                <span>{l.native}</span>
+                {l.code === lang && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     )
   }

@@ -229,6 +229,13 @@ const Navbar = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const AvatarContent = () =>
+    user?.avatar_url ? (
+      <img className="avatar-img" src={user.avatar_url} alt="" />
+    ) : (
+      getInitials(user.full_name)
+    );
+
   const scrollToSection = useCallback((id) => {
     setMobileOpen(false);
     setDropdownOpen(false);
@@ -347,7 +354,7 @@ const Navbar = () => {
                     className="utility-profile-avatar"
                     style={roleColor ? { backgroundColor: roleColor.bg, color: roleColor.text } : {}}
                   >
-                    {getInitials(user.full_name)}
+                    <AvatarContent />
                   </div>
                   <span className="utility-profile-name">{user.full_name || t('nav.roleUser')}</span>
                   <svg className={`utility-profile-chevron ${dropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
@@ -370,7 +377,7 @@ const Navbar = () => {
                         className="avatar"
                         style={roleColor ? { backgroundColor: roleColor.bg, color: roleColor.text } : {}}
                       >
-                        {getInitials(user.full_name)}
+                        <AvatarContent />
                       </div>
                       <div className="info">
                         <div className="name">{user.full_name || t('nav.roleUser')}</div>
@@ -605,20 +612,13 @@ const Navbar = () => {
                     className="utility-profile-avatar"
                     style={{ width: 44, height: 44, fontSize: 16, backgroundColor: roleColor?.bg, color: roleColor?.text }}
                   >
-                    {getInitials(user.full_name)}
+                    <AvatarContent />
                   </div>
                   <div>
                     <div style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>{user.full_name || t('nav.roleUser')}</div>
                     <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{user.email}</div>
                   </div>
                 </div>
-                <span style={{
-                  display: 'inline-block', padding: '3px 10px', borderRadius: 20,
-                  fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 0.5,
-                  backgroundColor: roleColor?.bg, color: roleColor?.text,
-                }}>
-                  {t(ROLE_LABEL_KEYS[user.role] || 'nav.roleUser')}
-                </span>
               </div>
             )}
 
@@ -631,10 +631,11 @@ const Navbar = () => {
               </>
             )}
 
-            <LanguageSelector variant="mobile" onNavigate={() => setMobileOpen(false)} />
-            <AccessibilityButton variant="mobile" />
+            <div className="mobile-slideout-utils">
+              <LanguageSelector variant="mobile" onNavigate={() => setMobileOpen(false)} />
+              <AccessibilityButton variant="mobile" />
+            </div>
 
-            <div className="mobile-slideout-section-title">{t('nav.menuNavigation')}</div>
             {navLinks.filter((link) => link.labelKey !== 'nav.dashboard').map((link) => (
               link.section ? (
                 <button

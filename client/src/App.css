@@ -2391,6 +2391,14 @@ button.chip-active:hover {
   font-weight: 700;
   font-size: 11px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
 }
 
 .utility-profile-name {
@@ -2560,6 +2568,7 @@ button.chip-active:hover {
   font-weight: 800;
   font-size: 16px;
   flex-shrink: 0;
+  overflow: hidden;
 }
 
 .premium-dropdown-user .info {
@@ -4741,89 +4750,129 @@ button.chip-active:hover {
 }
 
 /* ================================================================
-   MOBILE SLIDE-OUT - language + accessibility variants
+   MOBILE SLIDE-OUT - compact language + accessibility utilities
    ================================================================ */
-.mobile-lang-selector {
-  margin-top: 8px;
-}
-
-.mobile-lang-options {
+.mobile-slideout-utils {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 12px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 12px;
 }
 
-.mobile-lang-option {
-  flex: 1;
-  min-width: 78px;
-  padding: 10px 12px;
+.mobile-util-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   background-color: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.85);
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
   cursor: pointer;
-  min-height: 44px;
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.mobile-lang-option:hover {
+.mobile-util-trigger:hover,
+.mobile-util-trigger[aria-expanded='true'] {
   background-color: rgba(255, 255, 255, 0.15);
-}
-
-.mobile-lang-option.active {
-  background-color: var(--accent);
-  border-color: var(--accent);
   color: #fff;
 }
 
-.mobile-a11y {
+.mobile-lang-dropdown {
   margin-top: 8px;
-}
-
-.mobile-a11y .a11y-controls {
-  margin: 0 12px;
-  padding: 12px;
+  width: 100%;
+  max-width: 200px;
+  padding: 6px;
   border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  animation: fadeIn 0.15s ease;
 }
 
-.mobile-a11y .a11y-section-label {
+.mobile-lang-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.mobile-lang-dropdown-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.mobile-lang-dropdown-item.active {
+  color: var(--accent);
+}
+
+.mobile-a11y-panel {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 300px;
+  padding: 14px;
+  border-radius: 12px;
+  background-color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  animation: fadeIn 0.15s ease;
+}
+
+.mobile-a11y-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 12px;
+}
+
+.mobile-a11y-panel .a11y-section-label {
   color: rgba(255, 255, 255, 0.55);
 }
 
-.mobile-a11y .a11y-theme-toggle {
+.mobile-a11y-panel .a11y-theme-toggle {
   background-color: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.15);
   color: #fff;
 }
 
-.mobile-a11y .a11y-theme-toggle:hover {
+.mobile-a11y-panel .a11y-theme-toggle:hover {
   border-color: var(--accent);
 }
 
-.mobile-a11y .a11y-theme-icon {
+.mobile-a11y-panel .a11y-theme-icon {
   color: var(--accent);
 }
 
-.mobile-a11y .a11y-font-btn,
-.mobile-a11y .a11y-font-reset {
+.mobile-a11y-panel .a11y-font-btn,
+.mobile-a11y-panel .a11y-font-reset {
   background-color: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.15);
   color: #fff;
 }
 
-.mobile-a11y .a11y-font-btn:hover:not(:disabled),
-.mobile-a11y .a11y-font-reset:hover:not(:disabled) {
+.mobile-a11y-panel .a11y-font-btn:hover:not(:disabled),
+.mobile-a11y-panel .a11y-font-reset:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
 }
 
-.mobile-a11y .a11y-font-value {
+.mobile-a11y-panel .a11y-font-value {
   color: rgba(255, 255, 255, 0.75);
 }
 

@@ -1610,6 +1610,34 @@ export const uploadImage = async (file, folder = 'programmes') => {
 
 export const uploadProgrammeImage = async (file) => uploadImage(file, 'programmes')
 
+// Upload a profile avatar to the public 'avatars' bucket under the user's own folder.
+export const uploadAvatar = async (file) => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  const ext = (file.name || 'jpg').split('.').pop().toLowerCase()
+  const path = `${user.id}/${crypto.randomUUID()}.${ext}`
+  const { error } = await supabase.storage
+    .from('avatars')
+    .upload(path, file, { contentType: file.type || 'image/jpeg', cacheControl: '3600', upsert: true })
+  if (error) throw error
+  const { data } = supabase.storage.from('avatars').getPublicUrl(path)
+  return data.publicUrl
+}
+
+// Delete every avatar file in the current user's folder.
+export const deleteAvatar = async () => {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  const { data: list, error: listError } = await supabase.storage.from('avatars').list(user.id)
+  if (listError) throw listError
+  const paths = (list || []).filter((f) => f.name).map((f) => `${user.id}/${f.name}`)
+  if (paths.length > 0) {
+    const { error } = await supabase.storage.from('avatars').remove(paths)
+    if (error) throw error
+  }
+  return ok({ message: 'Avatar removed' })
+}
+
 // Delete uploaded programme images from storage.
 export const deleteProgrammeImages = async (urls = []) => {
   const prefix = `${SUPABASE_URL}/storage/v1/object/public/images/`
@@ -1799,6 +1827,8 @@ const api = {
   uploadImage,
   uploadProgrammeImage,
   deleteProgrammeImages,
+  uploadAvatar,
+  deleteAvatar,
   getPartners,
   getPartnersAdmin,
   createPartner,
