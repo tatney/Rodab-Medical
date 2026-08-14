@@ -571,6 +571,35 @@ export const updateRideStatus = async (id, data) => {
   return ok({ request: result })
 }
 
+// Submit a star rating (1-5) + optional comment for a completed ambulance
+// request. One rating per request: duplicates are silently ignored.
+export const submitRating = async (requestId, { rating, comment = '' } = {}) => {
+  if (!requestId) throw new Error('Missing request id')
+  if (!rating || rating < 1 || rating > 5) throw new Error('Rating must be between 1 and 5')
+
+  const { data, error } = await supabase
+    .from('ambulance_request_ratings')
+    .insert({ request_id: requestId, rating, comment: comment || null })
+    .onConflict('request_id')
+    .ignoreDuplicates()
+    .select()
+    .single()
+  if (error) throw error
+  return ok({ rating: data })
+}
+
+// Fetch an existing rating for a request (or null if not rated yet).
+export const getRequestRating = async (requestId) => {
+  if (!requestId) return null
+  const { data, error } = await supabase
+    .from('ambulance_request_ratings')
+    .select('*')
+    .eq('request_id', requestId)
+    .maybeSingle()
+  if (error) throw error
+  return data || null
+}
+
 // ─── Drivers ──────────────────────────────────────────────────────────────────
 
 export const getDrivers = async (params) => {
@@ -1829,6 +1858,8 @@ const api = {
   deleteProgrammeImages,
   uploadAvatar,
   deleteAvatar,
+  submitRating,
+  getRequestRating,
   getPartners,
   getPartnersAdmin,
   createPartner,

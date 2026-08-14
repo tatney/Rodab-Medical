@@ -678,6 +678,21 @@ export default {
     callDriver: 'Call Driver',
   },
 
+  rate: {
+    title: 'Response Completed!',
+    thankYou: 'Thank you for using our service — please rate your experience',
+    prompt: 'How would you rate this service?',
+    commentsLabel: 'Additional comments (Optional)',
+    commentPlaceholder: 'Tell us about your experience...',
+    submit: 'Submit Review',
+    submitting: 'Submitting...',
+    skip: 'Skip',
+    thanksTitle: 'Thank you!',
+    thanksSubtitle: 'Your feedback has been submitted. We appreciate your time.',
+    done: 'Done',
+    errorSubmit: 'Failed to submit your review. Please try again.',
+  },
+
   emergencies: {
     title: 'Emergencies',
     subtitle: 'View your SOS request history and track any live requests.',

@@ -1,10 +1,11 @@
 ﻿import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { useParams } from 'react-router-dom'
-import { trackAmbulance, cancelAmbulanceRequest } from '../api'
+import { useParams, useNavigate } from 'react-router-dom'
+import { trackAmbulance, cancelAmbulanceRequest, submitRating, getRequestRating } from '../api'
 import { subscribeDriverLocation, subscribeAmbulanceRequest } from '../utils/realtime'
 import { getDrivingRoute } from '../utils/routing'
 import { KAMPALA_DEFAULT, haversineKm } from '../utils/geolocation'
 import { useI18n } from '../i18n/I18nContext'
+import { useAuth } from '../context/AuthContext'
 
 const statusSteps = [
   { key: 'requested' },
@@ -15,6 +16,18 @@ const statusSteps = [
   { key: 'cancelled' },
 ]
 
+const StarIcon = ({ filled = false }) => (
+  <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true">
+    <path
+      d="M12 2l2.9 6.26 6.6.56-5 4.4 1.52 6.45L12 16.9 5.98 19.67 7.5 13.22l-5-4.4 6.6-.56z"
+      fill={filled ? '#f59e0b' : 'none'}
+      stroke={filled ? '#f59e0b' : 'currentColor'}
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
 const statusIndex = {}
 statusSteps.forEach((s, i) => { statusIndex[s.key] = i })
 
@@ -23,6 +36,8 @@ const MOVE_ANIM_MS = 2000
 
 export default function TrackPage() {
   const { t, tr } = useI18n()
+  const { user } = useAuth()
+  const navigate = useNavigate()
   const { id } = useParams()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -38,6 +53,12 @@ export default function TrackPage() {
     moving: false,
     stale: false,
   })
+  const [rateStatus, setRateStatus] = useState('none') // 'none' | 'form' | 'thanks'
+  const [stars, setStars] = useState(0)
+  const [hover, setHover] = useState(0)
+  const [comment, setComment] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [rateError, setRateError] = useState('')
 
   const mapRef = useRef(null)
   const patientMarkerRef = useRef(null)
@@ -112,6 +133,41 @@ export default function TrackPage() {
     })
     return unsubscribe
   }, [driverId])
+
+  // When the response completes, show the rating screen once.
+  const rateCheckedRef = useRef(false)
+  useEffect(() => {
+    if (data?.status !== 'completed' || !requestId || rateCheckedRef.current) return
+    let active = true
+    getRequestRating(requestId)
+      .then((existing) => {
+        if (!active) return
+        rateCheckedRef.current = true
+        setRateStatus(existing ? 'thanks' : 'form')
+      })
+      .catch(() => {
+        if (!active) return
+        rateCheckedRef.current = true
+        setRateStatus('form')
+      })
+    return () => { active = false }
+  }, [data?.status, requestId])
+
+  const handleSubmitRating = async () => {
+    if (stars < 1 || submitting) return
+    setSubmitting(true)
+    setRateError('')
+    try {
+      await submitRating(data.id, { rating: stars, comment })
+      setRateStatus('thanks')
+    } catch (err) {
+      setRateError(err.message || t('rate.errorSubmit'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleLeave = () => navigate(user ? '/dashboard' : '/')
 
   useEffect(() => {
     if (mapReady || !data) return
@@ -376,6 +432,70 @@ export default function TrackPage() {
         <p style={{ fontSize: 18, color: 'var(--error)', marginBottom: 8 }}>{t('track.failedLoad')}</p>
         <p style={{ fontSize: 14, color: 'var(--text-muted)' }}>{error}</p>
       </div>
+    )
+  }
+
+  if (data?.status === 'completed' && rateStatus !== 'none') {
+    return (
+      <main className="rate-screen">
+        <div className="rate-card">
+          {rateStatus === 'thanks' ? (
+            <>
+              <div className="rate-check" aria-hidden="true">&#10003;</div>
+              <h1 className="rate-title">{t('rate.thanksTitle')}</h1>
+              <p className="rate-subtitle">{t('rate.thanksSubtitle')}</p>
+              <button type="button" className="rate-submit" onClick={handleLeave}>
+                {t('rate.done')}
+              </button>
+            </>
+          ) : (
+            <>
+              <div className="rate-check" aria-hidden="true">&#10003;</div>
+              <h1 className="rate-title">{t('rate.title')}</h1>
+              <p className="rate-subtitle">{t('rate.thankYou')}</p>
+
+              <div className="rate-prompt">{t('rate.prompt')}</div>
+              <div className="rate-stars" role="radiogroup" aria-label={t('rate.prompt')}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    role="radio"
+                    aria-checked={stars >= n}
+                    aria-label={String(n)}
+                    className={`rate-star ${stars >= n ? 'active' : ''}`}
+                    onMouseEnter={() => setHover(n)}
+                    onMouseLeave={() => setHover(0)}
+                    onClick={() => setStars(n)}
+                  >
+                    <StarIcon filled={n <= (hover || stars)} />
+                  </button>
+                ))}
+              </div>
+
+              <label className="rate-label" htmlFor="rate-comment">{t('rate.commentsLabel')}</label>
+              <textarea
+                id="rate-comment"
+                className="rate-textarea"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder={t('rate.commentPlaceholder')}
+                rows={4}
+                maxLength={1000}
+              />
+
+              {rateError && <p className="rate-error" role="alert">{rateError}</p>}
+
+              <button type="button" className="rate-submit" onClick={handleSubmitRating} disabled={stars < 1 || submitting}>
+                {submitting ? t('rate.submitting') : t('rate.submit')}
+              </button>
+              <button type="button" className="rate-skip" onClick={handleLeave}>
+                {t('rate.skip')}
+              </button>
+            </>
+          )}
+        </div>
+      </main>
     )
   }
 

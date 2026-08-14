@@ -4895,6 +4895,168 @@ button.chip-active:hover {
 }
 
 /* ================================================================
+   Response rating screen (post-completion)
+   ================================================================ */
+.rate-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  background: linear-gradient(180deg, var(--surface-soft) 0%, var(--surface-container-lowest) 100%);
+}
+
+.rate-card {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  padding: 40px 32px;
+  text-align: center;
+  animation: fadeIn 0.25s ease;
+}
+
+.rate-check {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background-color: var(--status-success);
+  color: #fff;
+  font-size: 32px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rate-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+
+.rate-subtitle {
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+.rate-prompt {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 14px;
+}
+
+.rate-stars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.rate-star {
+  border: none;
+  background: none;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--surface-container-high);
+  line-height: 0;
+  transition: transform 0.12s ease, color 0.12s ease;
+  border-radius: 8px;
+}
+
+.rate-star:hover {
+  transform: scale(1.12);
+}
+
+.rate-star.active {
+  color: transparent;
+}
+
+.rate-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-body);
+  text-align: start;
+  margin-bottom: 8px;
+}
+
+.rate-textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background-color: var(--surface-soft);
+  color: var(--text-strong);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.rate-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.rate-error {
+  font-size: 13px;
+  color: var(--error);
+  margin-bottom: 12px;
+}
+
+.rate-submit {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background-color: var(--primary);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 48px;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.rate-submit:active {
+  transform: scale(0.99);
+}
+
+.rate-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rate-skip {
+  display: block;
+  margin: 14px auto 0;
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.rate-skip:hover {
+  color: var(--text-strong);
+}
+
+/* ================================================================
    DARK THEME - shared chrome refinements
    ================================================================ */
 [data-theme='dark'] .main-nav {

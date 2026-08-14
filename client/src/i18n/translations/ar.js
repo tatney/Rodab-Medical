@@ -674,6 +674,21 @@ export default {
     callDriver: 'اتصال بالسائق',
   },
 
+  rate: {
+    title: 'اكتمل الرد!',
+    thankYou: 'شكراً لاستخدامك خدمتنا — يرجى تقييم تجربتك',
+    prompt: 'كيف تقيّم هذه الخدمة؟',
+    commentsLabel: 'تعليقات إضافية (اختياري)',
+    commentPlaceholder: 'أخبرنا عن تجربتك...',
+    submit: 'إرسال التقييم',
+    submitting: 'جارٍ الإرسال...',
+    skip: 'تخطي',
+    thanksTitle: 'شكراً لك!',
+    thanksSubtitle: 'تم إرسال ملاحظاتك. نقدر وقتك.',
+    done: 'تم',
+    errorSubmit: 'فشل إرسال تقييمك. يرجى المحاولة مرة أخرى.',
+  },
+
   emergencies: {
     title: 'الطوارئ',
     subtitle: 'عرض سجل طلباتك للطوارئ وتتبع أي طلبات نشطة.',

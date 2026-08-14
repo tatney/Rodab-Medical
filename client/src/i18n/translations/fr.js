@@ -678,6 +678,21 @@ export default {
     callDriver: 'Appeler le chauffeur',
   },
 
+  rate: {
+    title: 'Réponse terminée !',
+    thankYou: 'Merci d’avoir utilisé notre service — veuillez évaluer votre expérience',
+    prompt: 'Comment évaluez-vous ce service ?',
+    commentsLabel: 'Commentaires supplémentaires (facultatif)',
+    commentPlaceholder: 'Parlez-nous de votre expérience...',
+    submit: 'Envoyer l’avis',
+    submitting: 'Envoi en cours...',
+    skip: 'Passer',
+    thanksTitle: 'Merci !',
+    thanksSubtitle: 'Votre avis a été envoyé. Merci de votre temps.',
+    done: 'Terminé',
+    errorSubmit: 'Échec de l’envoi de votre avis. Veuillez réessayer.',
+  },
+
   emergencies: {
     title: 'Urgences',
     subtitle: 'Consultez l’historique de vos demandes SOS et suivez les demandes en cours.',
