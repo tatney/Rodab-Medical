@@ -3054,6 +3054,89 @@ button.chip-active:hover {
   border-radius: var(--radius-full);
 }
 
+.activity-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 16px;
+}
+
+.activity-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: var(--surface-card);
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.25s, transform 0.25s, border-color 0.25s;
+}
+
+.activity-tile:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  border-color: var(--tile-color);
+}
+
+.activity-tile::after {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background-color: var(--tile-soft);
+  pointer-events: none;
+  transition: transform 0.25s;
+}
+
+.activity-tile:hover::after {
+  transform: scale(1.15);
+}
+
+.activity-tile-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background-color: var(--tile-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.activity-tile-count {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--tile-color);
+  position: relative;
+  z-index: 1;
+}
+
+.activity-tile-label {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
+}
+
+.activity-tile.blue { --tile-color: #3b82f6; --tile-soft: #eff6ff; }
+.activity-tile.cyan { --tile-color: #0891b2; --tile-soft: #ecfeff; }
+.activity-tile.amber { --tile-color: #f59e0b; --tile-soft: #fffbeb; }
+.activity-tile.red { --tile-color: #dc2626; --tile-soft: #fef2f2; }
+.activity-tile.green { --tile-color: #16a34a; --tile-soft: #f0fdf4; }
+.activity-tile.purple { --tile-color: #7c3aed; --tile-soft: #f5f3ff; }
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
