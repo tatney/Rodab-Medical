@@ -4755,8 +4755,17 @@ button.chip-active:hover {
 .mobile-slideout-utils {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 4px 12px 12px;
+}
+
+.mobile-util {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .mobile-util-trigger {
@@ -4859,11 +4868,20 @@ button.chip-active:hover {
   color: var(--accent);
 }
 
+.mobile-a11y-panel .a11y-font-row {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
 .mobile-a11y-panel .a11y-font-btn,
 .mobile-a11y-panel .a11y-font-reset {
   background-color: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.15);
   color: #fff;
+}
+
+.mobile-a11y-panel .a11y-font-reset {
+  flex: 1 1 100%;
 }
 
 .mobile-a11y-panel .a11y-font-btn:hover:not(:disabled),
