@@ -176,31 +176,31 @@ export default {
       { label: 'Patients in Year One (Goal)' },
       { label: 'Emergency Care (Planned)' },
     ],
-    onlineServices: {
-      heading: 'Online Services',
-      sub: 'Access healthcare services from anywhere, anytime',
-      items: [
-        { title: 'Book Appointment', desc: 'Schedule a visit with our specialists.' },
-        { title: 'Request Ambulance', desc: 'Emergency ambulance dispatch service.' },
-        { title: 'Online Consultation', desc: 'Virtual consultation with doctors.' },
-        { title: 'Repeat Prescription', desc: 'Request prescription refills online.' },
-        { title: 'Illness Certificate', desc: 'Request medical certificates.' },
-        { title: 'Medical Forms', desc: 'Submit referrals and records requests.' },
-      ],
-    },
-    medicalServices: {
-      heading: 'Our Medical Services',
-      sub: 'Comprehensive healthcare tailored to your needs',
-      items: [
-        { title: 'Emergency Medicine', desc: 'Immediate life-saving care around the clock.' },
-        { title: 'Cardiology', desc: 'Comprehensive heart care and diagnostics.' },
-        { title: 'Neurology', desc: 'Expert brain and nervous system treatment.' },
-        { title: 'Orthopedics', desc: 'Bone, joint, and musculoskeletal care.' },
-        { title: 'Pediatrics', desc: 'Specialized healthcare for children.' },
-        { title: 'Diagnostic Imaging', desc: 'Advanced MRI, CT, and X-ray services.' },
-      ],
-      viewAll: 'View All Services',
-    },
+onlineServices: {
+  heading: 'Online Services — Coming Soon',
+  sub: "We're building a digital healthcare platform so you can book appointments, consult doctors, and manage prescriptions from anywhere.",
+  items: [
+    { title: 'Book Appointment', desc: 'Schedule a visit with our specialists.' },
+    { title: 'Request Ambulance', desc: 'Emergency ambulance dispatch service.' },
+    { title: 'Online Consultation', desc: 'Virtual consultation with doctors.' },
+    { title: 'Repeat Prescription', desc: 'Request prescription refills online.' },
+    { title: 'Illness Certificate', desc: 'Request medical certificates.' },
+    { title: 'Medical Forms', desc: 'Submit referrals and records requests.' },
+  ],
+},
+medicalServices: {
+  heading: 'Our Medical Services — Coming Soon',
+  sub: 'World-class departments are being established to serve Uganda with emergency medicine, cardiology, neurology, and more.',
+  items: [
+    { title: 'Emergency Medicine', desc: 'Immediate life-saving care around the clock.' },
+    { title: 'Cardiology', desc: 'Comprehensive heart care and diagnostics.' },
+    { title: 'Neurology', desc: 'Expert brain and nervous system treatment.' },
+    { title: 'Orthopedics', desc: 'Bone, joint, and musculoskeletal care.' },
+    { title: 'Pediatrics', desc: 'Specialized healthcare for children.' },
+    { title: 'Diagnostic Imaging', desc: 'Advanced MRI, CT, and X-ray services.' },
+  ],
+  viewAll: 'View All Services',
+},
     features: {
       heading: 'Why Choose Rodab Medical?',
       items: [
@@ -218,8 +218,8 @@ export default {
     },
     story: {
       heading: 'Our Story',
-      p1: 'Rodab Medical Hospital is preparing to open its doors with a mission to provide accessible, world-class healthcare to our community. Our journey began with a simple belief: every patient deserves compassionate, quality care.',
-      p2: 'Today, we are investing in cutting-edge technology, recruiting top medical talent, and designing our services to meet the evolving needs of our community from day one.',
+      p1: 'RODAB Medical was founded in response to a critical gap in emergency healthcare access. In many rural and peri-urban areas of Uganda, long distances, poor road infrastructure, and limited transportation mean that critically ill or injured people often cannot reach hospitals in time, leading to preventable deaths and permanent disability. Although we have recently opened our doors, we currently operate with limited resources and require support to scale our impact.',
+      p2: 'Our mission is simple but vital: to provide timely, safe, and affordable emergency medical transport and pre-hospital care to communities that have been overlooked by mainstream health services. We aim to reduce response times from hours to minutes, save lives during accidents, childbirth emergencies, and severe illnesses, connect rural patients to specialized care in major hospitals, and provide compassionate care regardless of a patient\'s financial situation.',
       learnMore: 'Learn More About Us',
     },
     testimonials: {

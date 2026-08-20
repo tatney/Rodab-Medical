@@ -176,31 +176,31 @@ export default {
       { label: 'Patients en première année (objectif)' },
       { label: 'Soins d’urgence (prévus)' },
     ],
-    onlineServices: {
-      heading: 'Services en ligne',
-      sub: 'Accédez aux services de santé où que vous soyez, à tout moment',
-      items: [
-        { title: 'Prendre rendez-vous', desc: 'Planifiez une visite avec nos spécialistes.' },
-        { title: 'Demander une ambulance', desc: 'Service de dépêche d’ambulance d’urgence.' },
-        { title: 'Consultation en ligne', desc: 'Consultation virtuelle avec des médecins.' },
-        { title: 'Ordonnance renouvelée', desc: 'Demandez le renouvellement de vos ordonnances en ligne.' },
-        { title: 'Certificat médical', desc: 'Demandez des certificats médicaux.' },
-        { title: 'Formulaires médicaux', desc: 'Soumettez des demandes de références et de dossiers.' },
-      ],
-    },
-    medicalServices: {
-      heading: 'Nos services médicaux',
-      sub: 'Des soins de santé complets adaptés à vos besoins',
-      items: [
-        { title: 'Médecine d’urgence', desc: 'Des soins vitaux immédiats, jour et nuit.' },
-        { title: 'Cardiologie', desc: 'Soins cardiaques complets et diagnostics.' },
-        { title: 'Neurologie', desc: 'Traitement expert du cerveau et du système nerveux.' },
-        { title: 'Orthopédie', desc: 'Soins des os, articulations et muscles.' },
-        { title: 'Pédiatrie', desc: 'Soins de santé spécialisés pour les enfants.' },
-        { title: 'Imagerie diagnostique', desc: 'Services avancés d’IRM, de scanner et de radiologie.' },
-      ],
-      viewAll: 'Voir tous les services',
-    },
+onlineServices: {
+  heading: 'Services en ligne — Bientôt disponible',
+  sub: 'Nous construisons une plateforme de santé numérique pour que vous puissiez prendre rendez-vous, consulter des médecins et gérer vos ordonnances de partout.',
+  items: [
+    { title: 'Prendre rendez-vous', desc: 'Planifiez une visite avec nos spécialistes.' },
+    { title: 'Demander une ambulance', desc: 'Service de dépêche d\'ambulance d\'urgence.' },
+    { title: 'Consultation en ligne', desc: 'Consultation virtuelle avec des médecins.' },
+    { title: 'Ordonnance renouvelée', desc: 'Demandez le renouvellement de vos ordonnances en ligne.' },
+    { title: 'Certificat médical', desc: 'Demandez des certificats médicaux.' },
+    { title: 'Formulaires médicaux', desc: 'Soumettez des demandes de références et de dossiers.' },
+  ],
+},
+medicalServices: {
+  heading: 'Nos services médicaux — Bientôt disponible',
+  sub: 'Des départements de classe mondiale sont en cours de création pour servir l\'Ouganda avec la médecine d\'urgence, la cardiologie, la neurologie et plus encore.',
+  items: [
+    { title: 'Médecine d\'urgence', desc: 'Des soins vitaux immédiats, jour et nuit.' },
+    { title: 'Cardiologie', desc: 'Soins cardiaques complets et diagnostics.' },
+    { title: 'Neurologie', desc: 'Traitement expert du cerveau et du système nerveux.' },
+    { title: 'Orthopédie', desc: 'Soins des os, articulations et muscles.' },
+    { title: 'Pédiatrie', desc: 'Soins de santé spécialisés pour les enfants.' },
+    { title: 'Imagerie diagnostique', desc: 'Services avancés d\'IRM, de scanner et de radiologie.' },
+  ],
+  viewAll: 'Voir tous les services',
+},
     features: {
       heading: 'Pourquoi choisir Rodab Medical ?',
       items: [
@@ -218,8 +218,8 @@ export default {
     },
     story: {
       heading: 'Notre histoire',
-      p1: 'L’hôpital Rodab Medical se prépare à ouvrir ses portes avec la mission d’offrir des soins de santé accessibles et de classe mondiale à notre communauté. Notre parcours a commencé avec une conviction simple : chaque patient mérite des soins compatissants et de qualité.',
-      p2: 'Aujourd’hui, nous investissons dans des technologies de pointe, recrutons les meilleurs talents médicaux et concevons nos services pour répondre aux besoins évolutifs de notre communauté dès le premier jour.',
+      p1: 'RODAB Medical a été fondée en réponse à un manque critique d\'accès aux soins d\'urgence. Dans de nombreuses zones rurales et périurbaines d\'Ouganda, les longues distances, les mauvaises infrastructures routières et le manque de transport signifient que les personnes gravement malades ou blessées n\'arrivent souvent pas à temps à l\'hôpital, entraînant des décès évitables et des handicaps permanents. Bien que nous ayons récemment ouvert nos portes, nous opérons actuellement avec des ressources limitées et avons besoin de soutien pour amplifier notre impact.',
+      p2: 'Notre mission est simple mais essentielle : fournir un transport médical d\'urgence et des soins pré-hospitaliers rapides, sûrs et abordables aux communautés négligées par les services de santé traditionnels. Nous visons à réduire les temps de réponse de plusieurs minutes, à sauver des vies lors d\'accidents, d\'urgences obstétricales et de maladies graves, à connecter les patients ruraux aux soins spécialisés dans les grands hôpitaux, et à offrir des soins compatissants quelle que soit la situation financière du patient.',
       learnMore: 'En savoir plus sur nous',
     },
     testimonials: {
