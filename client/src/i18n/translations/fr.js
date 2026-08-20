@@ -143,7 +143,7 @@ export default {
       'Rodab Medical ouvrira bientôt à Entebbe, en Ouganda. Un nouvel hôpital apportant des soins compatissants : urgences, cardiologie, neurologie, orthopédie et plus encore.',
     slides: [
       {
-        title: 'Des soins avec compassion',
+        title: 'Des soins avec compassion, Bientôt disponible',
         subtitle:
           'Nous nous préparons à offrir des soins médicaux avancés, prodigués avec compassion et excellence par des spécialistes de renommée mondiale.',
         cta: 'Nos services',

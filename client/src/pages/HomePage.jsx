@@ -16,7 +16,7 @@ import { scrollToSection } from '../utils/scrollToSection'
 const B = `${SUPABASE_URL}/storage/v1/object/public/images`
 
 const SLIDE_IMAGES = [
-  `${B}/Hero%20Image%205.avif`,
+  `${B}/Rodabmedical.webp`,
   `${B}/CT%20Scan.webp`,
   `${B}/Hero%20Image%201.jpg`,
   `${B}/Hero%20Image%202.jpeg`,

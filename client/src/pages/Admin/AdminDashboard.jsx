@@ -361,7 +361,7 @@ const AdminDashboard = () => {
       setAvailForm({ doctorId: "", day_of_week: "Monday", start_time: "09:00", end_time: "17:00" });
       fetchAvailability();
       toast.success("Availability slot created.");
-    } catch (err) { toast.error(err?.response?.data?.message || "Failed to create availability."); }
+    } catch (err) { toast.error(err?.message || "Failed to create availability."); }
     finally { setAvailSubmitting(false); }
   };
 

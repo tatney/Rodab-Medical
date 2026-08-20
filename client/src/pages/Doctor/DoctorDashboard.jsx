@@ -256,7 +256,7 @@ export default function DoctorDashboard() {
       setAvailEnd('12:00');
     } catch (err) {
       console.error('Failed to add slot:', err);
-      toast.error(err.response?.data?.message || 'Failed to add availability slot.');
+      toast.error(err?.message || 'Failed to add availability slot.');
     } finally {
       setAddingSlot(false);
     }
