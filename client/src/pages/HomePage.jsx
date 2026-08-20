@@ -185,7 +185,7 @@ export default function HomePage() {
             <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%)' }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', zIndex: 2 }}>
               <div style={{ maxWidth: 640, marginLeft: '8%', marginRight: '8%', color: '#fff', padding: '0 16px', textAlign: 'start' }}>
-                <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)', fontWeight: 800, marginBottom: 16, lineHeight: 1.1 }}>
+                <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 3rem)', fontWeight: 800, marginBottom: 16, lineHeight: 1.1, color: '#C9A249' }}>
                   {slide.title}
                 </h1>
                 <p style={{ fontSize: 'clamp(0.9rem, 2vw, 1.25rem)', marginBottom: 32, lineHeight: 1.6, opacity: 0.9 }}>

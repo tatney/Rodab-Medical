@@ -145,7 +145,7 @@ export default {
       {
         title: 'Compassionate Healthcare, Coming Soon',
         subtitle:
-          "We're preparing to bring advanced medical care to Entebbe — delivered with compassion and excellence by world-class specialists.",
+          "We're preparing to bring advanced medical care to Uganda — delivered with compassion and excellence by world-class specialists.",
         cta: 'Our Services',
       },
       {
