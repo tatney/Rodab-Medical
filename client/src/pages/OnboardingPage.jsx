@@ -6,6 +6,7 @@ import { buildInitialValues, validateFields, flattenMedicalProfile } from '../ut
 import { renderField } from '../utils/form-renderer'
 import { useAuth } from '../context/AuthContext'
 import colors from '../utils/colors'
+import { AppIcon, FormIcon } from '../components/AppIcon'
 
 const ONBOARDING_CODES = ['FM-001', 'FM-002', 'FM-007']
 
@@ -211,7 +212,7 @@ export default function OnboardingPage() {
     return (
       <div style={{ padding: '56px 24px', maxWidth: 680, margin: '0 auto' }}>
         <div style={{ backgroundColor: colors.white, borderRadius: 16, border: `1px solid ${colors.gray200}`, padding: 40, textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }} aria-hidden="true">🩺</div>
+          <div style={{ marginBottom: 16 }} aria-hidden="true"><AppIcon name="doctor" size={48} /></div>
           <h1 style={{ fontSize: 28, fontWeight: 800, color: colors.gray900, marginBottom: 12 }}>Complete Your Medical Profile</h1>
           <p style={{ fontSize: 15, color: colors.gray500, lineHeight: 1.7, marginBottom: 28 }}>
             Fill in your health details once — it takes about 3 minutes. Your answers are stored in your secure digital
@@ -226,7 +227,7 @@ export default function OnboardingPage() {
                 </div>
                 <div>
                   <h3 style={{ fontSize: 15, fontWeight: 700, color: colors.gray900, margin: '0 0 4px' }}>
-                    {entry.tpl.icon || ''} {entry.tpl.title}
+                    {entry.tpl.icon ? <FormIcon value={entry.tpl.icon} size={16} /> : null} {entry.tpl.title}
                   </h3>
                   <p style={{ fontSize: 13, color: colors.gray500, margin: 0, lineHeight: 1.5 }}>
                     {STEP_SUMMARIES[entry.tpl.form_code] || entry.tpl.description}
@@ -373,7 +374,7 @@ export default function OnboardingPage() {
         ) : (
           <>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-              <span style={{ fontSize: 28 }} aria-hidden="true">{current?.tpl.icon}</span>
+              <span aria-hidden="true">{current?.tpl.icon ? <FormIcon value={current.tpl.icon} size={28} /> : null}</span>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: colors.gray900, margin: 0 }}>{current?.tpl.title}</h2>
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: colors.gray500, marginBottom: 20 }}>
@@ -427,7 +428,7 @@ export default function OnboardingPage() {
               cursor: saving ? 'not-allowed' : 'pointer',
             }}
           >
-            {saving ? 'Saving...' : '✓ Save & Finish'}
+            {saving ? 'Saving...' : <><AppIcon name="check" size={14} /> Save & Finish</>}
           </button>
         ) : (
           <button onClick={handleNext} style={{ padding: '13px 32px', backgroundColor: colors.primary, color: colors.white, border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>

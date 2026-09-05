@@ -2,8 +2,9 @@
 import { SUPABASE_URL } from '../config'
 import SEO from '../components/SEO'
 import { useI18n } from '../i18n/I18nContext'
+import { AppIcon } from '../components/AppIcon'
 
-const VALUE_ICONS = ['🎯', '❤️', '🤝', '🔬', '👥', '🛡️']
+const VALUE_ICONS = ['target', 'heart', 'handshake', 'microscope', 'users', 'shield']
 
 const MILESTONE_YEARS = ['Foundation', 'Phase 1', 'Phase 2', 'Phase 3', 'Phase 4', 'Phase 5']
 
@@ -54,7 +55,7 @@ export default function AboutUsPage() {
           <div className="grid-3-col" style={{ gap: 24 }}>
             {values.map((v, index) => (
               <div key={index} style={{ backgroundColor: 'var(--surface-card)', borderRadius: 12, padding: 28, border: '1px solid var(--border)', textAlign: 'center' }}>
-                <div style={{ fontSize: 36, marginBottom: 12 }} aria-hidden="true">{VALUE_ICONS[index]}</div>
+                <div style={{ marginBottom: 12 }} aria-hidden="true"><AppIcon name={VALUE_ICONS[index]} size={36} /></div>
                 <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{v.title}</h3>
                 <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{v.desc}</p>
               </div>

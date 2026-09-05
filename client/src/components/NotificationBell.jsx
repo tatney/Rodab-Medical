@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getNotifications } from '../api';
+import { AppIcon } from './AppIcon';
 
 const NotificationBell = () => {
   const navigate = useNavigate();
@@ -80,10 +81,7 @@ const NotificationBell = () => {
       <button onClick={handleToggle} style={styles.bellButton} aria-label="Notifications" aria-haspopup="true" aria-expanded={open}
         onKeyDown={(e) => { if (e.key === 'Escape' && open) { setOpen(false); } }}
       >
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2" aria-hidden="true">
-          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 01-3.46 0" />
-        </svg>
+        <AppIcon name="bell" size={22} color="#374151" />
       </button>
 
       {/* Dropdown */}
@@ -124,10 +122,7 @@ const NotificationBell = () => {
               </div>
             ) : notifications.length === 0 ? (
               <div style={styles.emptyState} role="status" aria-live="polite">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1.5" aria-hidden="true">
-                  <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                  <path d="M13.73 21a2 2 0 01-3.46 0" />
-                </svg>
+                <AppIcon name="bell" size={40} color="#d1d5db" strokeWidth={1.5} />
                 <span style={{ color: '#9ca3af', fontSize: '14px' }}>No notifications</span>
               </div>
             ) : (

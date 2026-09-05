@@ -5,6 +5,7 @@ import { getActiveEmergencies, getDriverActiveRides, getAvailableDrivers, assign
 import supabase from '../supabaseClient';
 import { useToast } from './ToastContext';
 import { startPremiumAlert } from '../utils/alertSound';
+import { AppIcon } from './AppIcon';
 
 const EmergencyAlertOverlay = () => {
   const { user } = useAuth();
@@ -303,11 +304,7 @@ const EmergencyAlertOverlay = () => {
         {/* Header */}
         <div style={{ ...styles.header, backgroundColor: priorityStyle.bg, borderBottom: `3px solid ${priorityStyle.border}` }}>
           <div style={styles.alertIconContainer}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={priorityStyle.text} strokeWidth="2" aria-hidden="true">
-              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
+            <AppIcon name="emergency" size={40} color={priorityStyle.text} />
           </div>
           <div>
             <h2 style={styles.alertTitle}>EMERGENCY ALERT</h2>
@@ -348,10 +345,7 @@ const EmergencyAlertOverlay = () => {
           <div style={styles.section}>
             <h4 style={styles.sectionTitle}>Location</h4>
             <div style={styles.locationBox}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" aria-hidden="true">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
+              <AppIcon name="map-pin" size={16} color="#dc2626" />
               <span style={styles.locationText}>{emergency.location || 'Location not specified'}</span>
             </div>
             {(emergency.latitude || emergency.pickup_lat) && (
@@ -378,10 +372,7 @@ const EmergencyAlertOverlay = () => {
               <h4 style={styles.sectionTitle}>Assign Driver</h4>
               {assignSuccess ? (
                 <div style={styles.successBox}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" aria-hidden="true">
-                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                    <polyline points="22 4 12 14.01 9 11.01" />
-                  </svg>
+                  <AppIcon name="success" size={20} color="#16a34a" />
                   <span style={{ color: '#16a34a', fontWeight: '600' }}>Driver assigned successfully!</span>
                 </div>
               ) : (
@@ -431,10 +422,7 @@ const EmergencyAlertOverlay = () => {
         {/* Actions */}
         <div style={styles.actions}>
           <button onClick={handleGoToEmergency} style={styles.viewBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
+            <AppIcon name="eye" size={16} />
             {user?.role === 'driver' ? 'View Assignment' : 'Go to Emergency'}
           </button>
           {(user?.role === 'admin' || user?.role === 'super_admin') && (

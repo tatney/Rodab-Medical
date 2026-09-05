@@ -12,6 +12,7 @@ import { getFormTemplates, getEvents } from '../api'
 import { extractArray } from '../utils/api-helpers'
 import { downloadFormPdf } from '../utils/pdf'
 import { scrollToSection } from '../utils/scrollToSection'
+import { AppIcon } from '../components/AppIcon'
 
 const B = `${SUPABASE_URL}/storage/v1/object/public/images`
 
@@ -26,7 +27,7 @@ const SLIDE_LINKS = ['/services', '/about-us', '/sos', '/find-doctor']
 
 const STAT_VALUES = ['15+', '50+', '10K+', '24/7']
 
-const ONLINE_ICONS = ['📋', '🚑', '💬', '💊', '📄', '📋']
+const ONLINE_ICONS = ['forms', 'ambulance', 'chat', 'pill', 'document', 'forms']
 const ONLINE_LINKS = [
   '/appointments',
   '/sos',
@@ -36,9 +37,9 @@ const ONLINE_LINKS = [
   '/forms',
 ]
 
-const MEDICAL_ICONS = ['🚑', '❤️', '🧠', '🦴', '👶', '🔬']
+const MEDICAL_ICONS = ['ambulance', 'heart', 'brain', 'bone', 'baby', 'microscope']
 
-const FEATURE_ICONS = ['⏰', '🏗️', '👨‍⚕️', '💰']
+const FEATURE_ICONS = ['clock', 'hardhat', 'doctor', 'fees']
 
 export default function HomePage() {
   const { t, tr } = useI18n()
@@ -258,7 +259,7 @@ export default function HomePage() {
                       onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'translateY(0)' }}
                     >
-                      <div style={{ fontSize: 36, marginBottom: 12 }}>{ONLINE_ICONS[index]}</div>
+                      <div style={{ marginBottom: 12 }}><AppIcon name={ONLINE_ICONS[index]} size={36} /></div>
                       <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 6 }}>{svc.title}</h3>
                       <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>{svc.desc}</p>
                     </Link>
@@ -291,7 +292,7 @@ export default function HomePage() {
                       onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'translateY(0)' }}
                     >
-                      <div style={{ fontSize: 40, marginBottom: 12 }}>{MEDICAL_ICONS[index]}</div>
+                      <div style={{ marginBottom: 12 }}><AppIcon name={MEDICAL_ICONS[index]} size={40} /></div>
                       <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{svc.title}</h3>
                       <p style={{ fontSize: 15, color: 'var(--text-muted)', lineHeight: 1.6 }}>{svc.desc}</p>
                     </div>
@@ -325,7 +326,7 @@ export default function HomePage() {
                 <div key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
                   {features.items.map((feat, index) => (
                     <div key={index} className="marquee-card">
-                      <div style={{ fontSize: 48, marginBottom: 16 }}>{FEATURE_ICONS[index]}</div>
+                      <div style={{ marginBottom: 16 }}><AppIcon name={FEATURE_ICONS[index]} size={48} /></div>
                       <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{feat.title}</h3>
                       <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{feat.desc}</p>
                     </div>
@@ -528,10 +529,7 @@ export default function HomePage() {
                 onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" aria-hidden="true">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
+                  <AppIcon name="document" size={20} color="#dc2626" />
                   <span style={{ fontSize: 14, fontWeight: 500 }}>{form.title}</span>
                 </div>
                 <span style={{ fontSize: 12, fontWeight: 600, color: '#dc2626', backgroundColor: '#fef2f2', padding: '4px 10px', borderRadius: 6, flexShrink: 0 }}>
@@ -563,7 +561,7 @@ export default function HomePage() {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-container-low)')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <AppIcon name="document" size={16} />
               {more.policies}
             </Link>
             <div style={{ position: 'relative' }}>
@@ -574,9 +572,9 @@ export default function HomePage() {
                 onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-container-low)')}
                 onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                <AppIcon name="forms" size={16} />
                 {more.formsDownloads}
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginLeft: 'auto', transform: formsOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                <AppIcon name="chevDown" size={12} style={{ marginLeft: 'auto', transform: formsOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
               </button>
               {formsOpen && (
                 <div style={{ position: 'absolute', left: '100%', top: 0, marginLeft: 4, backgroundColor: 'var(--surface-card)', borderRadius: 10, boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)', padding: 6, minWidth: 240, maxHeight: 320, overflowY: 'auto' }}>
@@ -613,7 +611,7 @@ export default function HomePage() {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-container-low)')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <AppIcon name="help" size={16} />
               {more.faqs}
             </Link>
             <Link
@@ -623,7 +621,7 @@ export default function HomePage() {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-container-low)')}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <AppIcon name="lock" size={16} />
               {more.privacyPolicy}
             </Link>
           </div>

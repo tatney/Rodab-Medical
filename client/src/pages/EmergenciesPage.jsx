@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { getAmbulanceHistory } from '../api'
 import { useAuth } from '../context/AuthContext'
 import { useI18n } from '../i18n/I18nContext'
+import { AppIcon } from '../components/AppIcon'
 
 const POLL_MS = 15000
 
@@ -195,7 +196,7 @@ export default function EmergenciesPage() {
 
         {isEmpty ? (
           <div style={{ ...cardStyle, textAlign: 'center', padding: '48px 24px' }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }} aria-hidden="true">🚑</div>
+            <div style={{ marginBottom: 12 }} aria-hidden="true"><AppIcon name="ambulance" size={40} /></div>
             <p style={{ fontSize: 15, color: 'var(--text-muted)', margin: 0 }}>{emptyLabel}</p>
           </div>
         ) : (

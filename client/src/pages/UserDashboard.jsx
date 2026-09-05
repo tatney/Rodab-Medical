@@ -8,6 +8,7 @@ import {
   getPrescriptions,
   getMyFormSubmissions,
 } from '../api';
+import { AppIcon } from '../components/AppIcon';
 import { extractArray } from '../utils/api-helpers';
 import EmergencyCta from '../components/EmergencyCta';
 
@@ -124,56 +125,18 @@ const UserDashboard = () => {
     { to: '/form-history', label: 'Forms submitted', count: formSubmissions.length, color: 'purple', icon: 'doc' },
   ];
 
-  const statIcon = (name, color) => {
-    const stroke = (fallback) => color || fallback;
-    switch (name) {
-      case 'calendar':
-        return (
-          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={stroke('#3b82f6')} strokeWidth="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        );
-      case 'clock':
-        return (
-          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={stroke('#0891b2')} strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-        );
-      case 'chat':
-        return (
-          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={stroke('#f59e0b')} strokeWidth="2">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-          </svg>
-        );
-      case 'bookmark':
-        return (
-          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={stroke('#28A745')} strokeWidth="2">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-          </svg>
-        );
-      case 'phone':
-        return (
-          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={stroke('#DC3545')} strokeWidth="2">
-            <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.362 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.574 2.81.7A2 2 0 0122 16.92z" />
-          </svg>
-        );
-      case 'doc':
-        return (
-          <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={stroke('#0891b2')} strokeWidth="2">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-            <line x1="16" y1="13" x2="8" y2="13" />
-            <line x1="16" y1="17" x2="8" y2="17" />
-          </svg>
-        );
-      default:
-        return null;
-    }
+  const statIconNames = {
+    calendar: 'calendar',
+    clock: 'clock',
+    chat: 'chat',
+    bookmark: 'rx',
+    phone: 'ambulance',
+    doc: 'document',
   };
+
+  const statIcon = (name, color) => (
+    <AppIcon name={statIconNames[name] || 'calendar'} size={24} color={color || '#3b82f6'} />
+  );
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -209,7 +172,7 @@ const UserDashboard = () => {
       {user?.role === 'user' && user?.onboarding_status === 'skipped' && (
         <section className="card" style={{ padding: '20px 24px', marginBottom: 24, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderLeft: '4px solid var(--primary)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <span style={{ fontSize: 28 }} aria-hidden="true">🩺</span>
+            <span aria-hidden="true"><AppIcon name="doctor" size={28} /></span>
             <div>
               <h3 style={{ margin: '0 0 4px', fontSize: 16 }}>Complete your medical profile</h3>
               <p style={{ margin: 0, fontSize: 14, color: 'var(--text-secondary)' }}>

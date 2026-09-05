@@ -15,6 +15,7 @@ import { getAccurateLocation, watchLocation, clearWatch, haversineKm } from '../
 import { buildGoogleMapsUrl, buildWazeUrl } from '../../utils/routing';
 import { useToast } from '../../components/ToastContext';
 import EmergencyCta from '../../components/EmergencyCta';
+import { AppIcon } from '../../components/AppIcon';
 
 const STATUS_FLOW = {
   dispatched: { next: 'in_transit', label: 'Set Off', color: '#2563eb', bg: '#dbeafe' },
@@ -406,7 +407,7 @@ export default function DriverDashboard() {
         </h3>
         {activeRides.length === 0 ? (
           <div style={{ ...cardStyle, textAlign: 'center' }}>
-            <div style={{ fontSize: 40, marginBottom: 8 }}>🚑</div>
+            <div style={{ marginBottom: 8 }}><AppIcon name="ambulance" size={40} /></div>
             <p style={{ color: '#6b7280', fontSize: 14 }}>No active rides. You are on standby.</p>
           </div>
         ) : (
@@ -476,7 +477,7 @@ export default function DriverDashboard() {
                         onClick={() => handleCall(ride.contact_phone)}
                         style={btnStyle('#1d4ed8', '#dbeafe')}
                       >
-                        📞 Call Patient
+                        <AppIcon name="phone" size={14} /> Call Patient
                       </button>
                     )}
                     {ride.latitude && ride.longitude && (
@@ -484,14 +485,14 @@ export default function DriverDashboard() {
                         onClick={() => handleNavigate(ride, 'patient')}
                         style={btnStyle('#0b2a57', '#e0e7ff')}
                       >
-                        🧭 Navigate to Patient
+                        <AppIcon name="navigate" size={14} /> Navigate to Patient
                       </button>
                     )}
                     <button
                       onClick={() => handleNavigate(ride, 'hospital')}
                       style={btnStyle('#166534', '#dcfce7')}
                     >
-                      🏥 Navigate to Hospital
+                      <AppIcon name="hospital" size={14} /> Navigate to Hospital
                     </button>
                   </div>
                 </div>
@@ -555,7 +556,7 @@ export default function DriverDashboard() {
               disabled={!ride.contact_phone}
               style={btnStyle('#1d4ed8', '#dbeafe')}
             >
-              📞 Call {ride.patient_name || 'Patient'}
+              <AppIcon name="phone" size={14} /> Call {ride.patient_name || 'Patient'}
             </button>
           ))}
           {activeRides.map((ride) => (
@@ -565,7 +566,7 @@ export default function DriverDashboard() {
               disabled={!ride.latitude || !ride.longitude}
               style={btnStyle('#0b2a57', '#e0e7ff')}
             >
-              🧭 Navigate: {ride.patient_name || 'Patient'}
+              <AppIcon name="navigate" size={14} /> Navigate: {ride.patient_name || 'Patient'}
             </button>
           ))}
           {activeRides.map((ride) => (
@@ -574,7 +575,7 @@ export default function DriverDashboard() {
               onClick={() => handleNavigate(ride, 'hospital')}
               style={btnStyle('#166534', '#dcfce7')}
             >
-              🏥 To Hospital
+              <AppIcon name="hospital" size={14} /> To Hospital
             </button>
           ))}
         </div>
@@ -583,7 +584,7 @@ export default function DriverDashboard() {
       {/* Navigation header */}
       {navTarget && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 10, backgroundColor: '#eef2ff', border: '1px solid #c7d2fe', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 15 }}>🧭</span>
+          <span style={{ display: 'flex', flexShrink: 0 }}><AppIcon name="navigate" size={15} color="#1e3a8a" /></span>
           <span style={{ fontSize: 13, fontWeight: 600, color: '#1e3a8a' }}>Navigating to:</span>
           <span style={{ fontSize: 13, color: '#3730a3', flex: 1, minWidth: 160 }}>{navTarget.label}</span>
           {navInfo && (
@@ -615,13 +616,13 @@ export default function DriverDashboard() {
               fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
             }}
           >
-            {followMode ? '⏹ Stop following' : '🎯 Follow me'}
+            {followMode ? <><AppIcon name="square" size={14} /> Stop following</> : <><AppIcon name="target" size={14} /> Follow me</>}
           </button>
           <button
             onClick={handleClearNav}
             style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid #fecaca', backgroundColor: '#fee2e2', color: '#b91c1c', fontSize: 12, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
-            ✕ Clear route
+            <AppIcon name="close" size={12} /> Clear route
           </button>
         </div>
       )}
@@ -699,8 +700,8 @@ export default function DriverDashboard() {
             return (
               <div key={ride.id} style={{ ...cardStyle, borderLeft: `4px solid ${ec.color}`, backgroundColor: '#fffbeb' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: ec.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                    🚑
+<div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: ec.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <AppIcon name="ambulance" size={18} color={ec.color} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 15, fontWeight: 700, color: '#111827' }}>
@@ -715,10 +716,10 @@ export default function DriverDashboard() {
                   </span>
                 </div>
                 <div style={{ fontSize: 13, color: '#374151', lineHeight: 1.6 }}>
-                  <div>📞 {ride.contact_phone || 'No phone'}</div>
-                  <div>📍 {ride.location || 'Location not available'}</div>
-                  {ride.destination && <div>🏥 Destination: {ride.destination}</div>}
-                  {ride.assigned_at && <div>🕐 Assigned: {new Date(ride.assigned_at).toLocaleString()}</div>}
+                  <div><AppIcon name="phone" size={13} /> {ride.contact_phone || 'No phone'}</div>
+                  <div><AppIcon name="map-pin" size={13} /> {ride.location || 'Location not available'}</div>
+                  {ride.destination && <div><AppIcon name="hospital" size={13} /> Destination: {ride.destination}</div>}
+                  {ride.assigned_at && <div><AppIcon name="clock" size={13} /> Assigned: {new Date(ride.assigned_at).toLocaleString()}</div>}
                 </div>
                 {ride.contact_phone && (
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #fef3c7' }}>
@@ -726,7 +727,7 @@ export default function DriverDashboard() {
                       onClick={() => handleCall(ride.contact_phone)}
                       style={btnStyle('#1d4ed8', '#dbeafe')}
                     >
-                      📞 Call Patient Now
+                      <AppIcon name="phone" size={14} /> Call Patient Now
                     </button>
                   </div>
                 )}
@@ -739,7 +740,7 @@ export default function DriverDashboard() {
       {/* Info note */}
       <div style={{ ...cardStyle, marginTop: 20, backgroundColor: '#f0f9ff', border: '1px solid #bae6fd' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>ℹ️</span>
+          <span style={{ display: 'flex', flexShrink: 0 }}><AppIcon name="info" size={18} color="#0369a1" /></span>
           <div style={{ fontSize: 13, color: '#0369a1', lineHeight: 1.6 }}>
             <strong>How Alerts Work:</strong> When a patient requests an ambulance, the system dispatches the nearest available driver. Your location is tracked in real-time. Update your ride status as you respond to the emergency to keep the patient and hospital informed.
           </div>

@@ -7,6 +7,7 @@ import { buildInitialValues, validateFields } from '../utils/form-utils'
 import { renderField } from '../utils/form-renderer'
 import { useAuth } from '../context/AuthContext'
 import colors from '../utils/colors'
+import { FormIcon } from '../components/AppIcon'
 
 export default function FormsPage() {
   const { user } = useAuth()
@@ -145,7 +146,7 @@ export default function FormsPage() {
         </button>
         <div style={{ backgroundColor: colors.white, borderRadius: 12, border: `1px solid ${colors.gray200}`, padding: 36 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-            <span style={{ fontSize: 32 }} aria-hidden="true">{selected.icon}</span>
+            <span aria-hidden="true">{selected.icon ? <FormIcon value={selected.icon} size={32} /> : null}</span>
             <h2 style={{ fontSize: 22, fontWeight: 700, color: colors.gray900 }}>{selected.title}</h2>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, fontSize: 13, color: colors.gray500, marginBottom: 24 }}>
@@ -264,7 +265,7 @@ export default function FormsPage() {
               onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)' }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                <span style={{ fontSize: 36 }} aria-hidden="true">{tpl.icon}</span>
+                <span aria-hidden="true">{tpl.icon ? <FormIcon value={tpl.icon} size={36} /> : null}</span>
                 <div>
                   <h3 style={{ fontSize: 17, fontWeight: 700, color: colors.gray900, margin: 0 }}>{tpl.title}</h3>
                   {tpl.form_code && <span style={{ fontSize: 12, color: colors.gray500 }}>{tpl.form_code}</span>}

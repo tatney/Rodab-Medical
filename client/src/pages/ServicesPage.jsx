@@ -2,8 +2,9 @@
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import { useI18n } from '../i18n/I18nContext'
+import { AppIcon } from '../components/AppIcon'
 
-const SERVICE_ICONS = ['🚑', '❤️', '🧠', '🦴', '👶', '🎗️', '🤰', '🔬', '🏥']
+const SERVICE_ICONS = ['ambulance', 'heart', 'brain', 'bone', 'baby', 'ribbon', 'baby', 'microscope', 'hospital']
 
 const SERVICE_COLORS = [
   '#dc2626', '#e11d48', '#7c3aed', '#2563eb', '#16a34a', '#9333ea', '#ec4899', '#0891b2', '#ea580c',
@@ -69,7 +70,7 @@ export default function ServicesPage() {
                 backgroundColor: SERVICE_COLORS[index],
               }}
             />
-            <div style={{ fontSize: 44, marginBottom: 16 }} aria-hidden="true">{SERVICE_ICONS[index]}</div>
+            <div style={{ marginBottom: 16 }} aria-hidden="true"><AppIcon name={SERVICE_ICONS[index]} size={44} /></div>
             <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 10 }}>
               {svc.title}
             </h3>

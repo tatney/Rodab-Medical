@@ -6,6 +6,7 @@ import LiveMonitor from '../../components/LiveMonitor';
 import EmergencyCta from '../../components/EmergencyCta';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/ToastContext';
+import { AppIcon } from '../../components/AppIcon';
 import {
   getAnalytics,
   getAdminUsers,
@@ -1298,7 +1299,7 @@ const SuperAdminDashboard = () => {
                     <strong>{u.full_name || u.fullName || "—"}</strong>
                     {u.is_flagged && u.flag_reason && (
                       <div className="muted" style={{ fontSize: 12, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={u.flag_reason}>
-                        ⚠ {u.flag_reason}
+                        <AppIcon name="warning" size={12} style={{ verticalAlign: 'middle' }} /> {u.flag_reason}
                       </div>
                     )}
                   </td>
@@ -1981,7 +1982,7 @@ const SuperAdminDashboard = () => {
                   style={{ position: "absolute", top: 4, right: 4, padding: "2px 8px" }}
                   onClick={() => removeExistingEventImage(url)}
                 >
-                  ✕
+                  <AppIcon name="close" size={12} />
                 </button>
               </div>
             ))}
@@ -1994,7 +1995,7 @@ const SuperAdminDashboard = () => {
                   style={{ position: "absolute", top: 4, right: 4, padding: "2px 8px" }}
                   onClick={() => removePendingEventFile(i)}
                 >
-                  ✕
+                  <AppIcon name="close" size={12} />
                 </button>
               </div>
             ))}
@@ -2141,7 +2142,7 @@ const SuperAdminDashboard = () => {
                   style={{ position: "absolute", top: 4, right: 4, padding: "2px 8px" }}
                   onClick={() => removeExistingProgrammeImage(url)}
                 >
-                  ✕
+                  <AppIcon name="close" size={12} />
                 </button>
               </div>
             ))}
@@ -2154,7 +2155,7 @@ const SuperAdminDashboard = () => {
                   style={{ position: "absolute", top: 4, right: 4, padding: "2px 8px" }}
                   onClick={() => removePendingProgrammeFile(i)}
                 >
-                  ✕
+                  <AppIcon name="close" size={12} />
                 </button>
               </div>
             ))}

@@ -15,6 +15,7 @@ import {
 import { extractArray } from '../../utils/api-helpers';
 import EmergencyCta from '../../components/EmergencyCta';
 import { useToast } from '../../components/ToastContext';
+import { AppIcon } from '../../components/AppIcon';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -356,7 +357,7 @@ export default function DoctorDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {activityLog.map((item, idx) => (
               <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 8, backgroundColor: item.type === 'appointment' ? '#f5f3ff' : '#f0fdf4', border: '1px solid', borderColor: item.type === 'appointment' ? '#ede9fe' : '#dcfce7' }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>{item.type === 'appointment' ? '📅' : '💬'}</span>
+                <span style={{ display: 'flex', flexShrink: 0 }}><AppIcon name={item.type === 'appointment' ? 'calendar' : 'chat'} size={18} color={item.type === 'appointment' ? '#7c3aed' : '#16a34a'} /></span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, color: '#111827', fontWeight: 500 }}>{item.text}</div>
                   <div style={{ fontSize: 12, color: '#9ca3af' }}>{item.date} {item.time ? `at ${item.time}` : ''}</div>
@@ -493,8 +494,8 @@ export default function DoctorDashboard() {
                         <span style={{ fontSize: 14, fontWeight: 500, color: '#5b21b6' }}>
                           {slot.start_time} - {slot.end_time}
                         </span>
-                        <button onClick={() => handleDeleteSlot(slot.id)} style={{ ...btnDanger, padding: '8px 12px', fontSize: 12, minHeight: 36 }} title="Remove slot" aria-label="Remove time slot">
-                          ✕
+<button onClick={() => handleDeleteSlot(slot.id)} style={{ ...btnDanger, padding: '8px 12px', fontSize: 12, minHeight: 36, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }} title="Remove slot" aria-label="Remove time slot">
+                          <AppIcon name="close" size={12} />
                         </button>
                       </div>
                     ))}

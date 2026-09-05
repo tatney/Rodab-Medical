@@ -6,6 +6,7 @@ import { getDrivingRoute } from '../utils/routing'
 import { KAMPALA_DEFAULT, haversineKm } from '../utils/geolocation'
 import { useI18n } from '../i18n/I18nContext'
 import { useAuth } from '../context/AuthContext'
+import { AppIcon } from '../components/AppIcon'
 
 const statusSteps = [
   { key: 'requested' },
@@ -17,15 +18,13 @@ const statusSteps = [
 ]
 
 const StarIcon = ({ filled = false }) => (
-  <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true">
-    <path
-      d="M12 2l2.9 6.26 6.6.56-5 4.4 1.52 6.45L12 16.9 5.98 19.67 7.5 13.22l-5-4.4 6.6-.56z"
-      fill={filled ? '#f59e0b' : 'none'}
-      stroke={filled ? '#f59e0b' : 'currentColor'}
-      strokeWidth="1.5"
-      strokeLinejoin="round"
-    />
-  </svg>
+  <AppIcon
+    name="star"
+    size={40}
+    fill={filled ? '#f59e0b' : 'none'}
+    stroke={filled ? '#f59e0b' : 'currentColor'}
+    strokeWidth={1.5}
+  />
 )
 
 const statusIndex = {}
@@ -575,7 +574,11 @@ export default function TrackPage() {
                   }}
                   title={followMode === 'both' ? t('track.followAmbulance') : t('track.showBoth')}
                 >
-                  {followMode === 'both' ? '🧭 ' + t('track.showBoth') : '🚑 ' + t('track.followAmbulance')}
+                  {followMode === 'both' ? (
+                    <><AppIcon name="navigate" size={14} style={{ verticalAlign: 'middle' }} /> {t('track.showBoth')}</>
+                  ) : (
+                    <><AppIcon name="ambulance" size={14} style={{ verticalAlign: 'middle' }} /> {t('track.followAmbulance')}</>
+                  )}
                 </button>
                 <button
                   onClick={handleRecenter}
@@ -664,7 +667,7 @@ export default function TrackPage() {
                       backgroundColor: 'var(--primary)', color: '#ffffff', fontSize: 13, fontWeight: 700,
                     }}
                   >
-                    📞 {t('track.callDriver')}
+                    <AppIcon name="phone" size={14} style={{ verticalAlign: 'middle' }} /> {t('track.callDriver')}
                   </a>
                 )}
               </div>

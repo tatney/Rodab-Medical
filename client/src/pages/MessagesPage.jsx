@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import SEO from '../components/SEO'
 import colors from '../utils/colors'
+import { AppIcon } from '../components/AppIcon'
 
 const conversations = [
   {
@@ -230,10 +231,7 @@ export default function MessagesPage() {
                     padding: '0 12px',
                   }}
                 >
-                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={colors.gray400} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                  </svg>
+                  <AppIcon name="search" size={16} color={colors.gray400} style={{ flexShrink: 0 }} />
                   <input
                     type="text"
                     placeholder="Search conversations..."
@@ -399,9 +397,7 @@ export default function MessagesPage() {
                           minWidth: 44,
                         }}
                       >
-                        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="15 18 9 12 15 6" />
-                        </svg>
+                        <AppIcon name="chevUp" size={20} />
                       </button>
                     )}
                     <div
@@ -563,10 +559,7 @@ export default function MessagesPage() {
                         flexShrink: 0,
                       }}
                     >
-                      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="22" y1="2" x2="11" y2="13" />
-                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                      </svg>
+                      <AppIcon name="send" size={18} />
                     </button>
                   </div>
                 </>
@@ -581,9 +574,7 @@ export default function MessagesPage() {
                     color: colors.gray400,
                   }}
                 >
-                  <svg aria-hidden="true" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke={colors.gray300} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 16 }}>
-                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-                  </svg>
+                  <AppIcon name="chat" size={64} color={colors.gray300} strokeWidth={1.5} style={{ marginBottom: 16 }} />
                   <p style={{ fontSize: 16, fontWeight: 600, margin: 0, fontFamily: "'Barlow', sans-serif" }}>
                     Select a conversation
                   </p>

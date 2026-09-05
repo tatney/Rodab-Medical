@@ -24,6 +24,7 @@ import {
 } from '../../api';
 import { useToast } from '../../components/ToastContext';
 import { downloadMedicalRecordPdf } from '../../utils/pdf';
+import { FormIcon } from '../../components/AppIcon';
 /* Shared UI helpers */
 const StatCard = ({ label, value, icon, color }) => (
   <div className="stat-card" style={{ borderLeft: `4px solid ${color || "#4f46e5"}` }}>
@@ -1351,7 +1352,7 @@ const AdminDashboard = () => {
           <tbody>
             {formTemplates.map((f) => (
               <tr key={f.id || f._id}>
-                <td>{f.icon || "📄"} {f.title}</td>
+                <td>{f.icon ? <FormIcon value={f.icon} size={20} /> : <FormIcon value="📄" size={20} />} {f.title}</td>
                 <td>{f.form_code || "—"}</td>
                 <td>{f.category || "—"}</td>
                 <td>{Array.isArray(f.fields) ? f.fields.length : 0}</td>

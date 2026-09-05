@@ -6,6 +6,7 @@ import { useI18n } from '../i18n/I18nContext';
 import LanguageSelector from './LanguageSelector';
 import AccessibilityButton from './AccessibilityButton';
 import { scrollToSection as scrollToSectionUtil } from '../utils/scrollToSection';
+import { AppIcon } from './AppIcon';
 
 const NAV_ITEMS = [
   { to: '/dashboard', labelKey: 'nav.dashboard' },
@@ -79,30 +80,24 @@ const ROLE_LABEL_KEYS = {
   user: 'nav.roleUser',
 };
 
-const DropdownIcon = ({ d }) => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    {d.split(',').map((seg, i) => <path key={i} d={seg.trim()} />)}
-  </svg>
-);
-
 const ICONS = {
-  dashboard: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
-  calendar: 'M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18',
-  chat: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
-  ambulance: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z',
-  rx: 'M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z',
-  forms: 'M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M8 2h8v4H8z',
-  billing: 'M21 4H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zM1 10h22',
-  support: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01',
-  home: 'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 22V12h6v10',
-  user: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8z',
-  settings: 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
-  help: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01',
-  bell: 'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0',
-  chevDown: 'M6 9l6 6 6-6',
-  signout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9',
-  policy: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8',
-  terms: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M12 18v-6M9 15h6',
+  dashboard: 'dashboard',
+  calendar: 'calendar',
+  chat: 'chat',
+  ambulance: 'ambulance',
+  rx: 'rx',
+  forms: 'forms',
+  settings: 'settings',
+  billing: 'billing',
+  support: 'support',
+  help: 'help',
+  home: 'home',
+  user: 'user',
+  bell: 'bell',
+  chevDown: 'chevDown',
+  signout: 'signout',
+  policy: 'policy',
+  terms: 'terms',
 };
 
 const Navbar = () => {
@@ -310,25 +305,19 @@ const Navbar = () => {
 
             {/* Notifications */}
             <button className="utility-item" aria-label={t('nav.notifications')} title={t('nav.notifications')}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d={ICONS.bell} />
-              </svg>
+              <AppIcon name={ICONS.bell} size={16} />
             </button>
 
             {/* Help */}
             <Link to="/faqs" className="utility-item" title={t('nav.helpCenter')}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d={ICONS.help} />
-              </svg>
+              <AppIcon name={ICONS.help} size={16} />
               {t('nav.help')}
             </Link>
 
             {/* Settings */}
             {user && (
               <Link to="/settings" className="utility-item" title={t('nav.settings')} aria-label={t('nav.settings')}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d={ICONS.settings} />
-                </svg>
+                <AppIcon name={ICONS.settings} size={16} />
               </Link>
             )}
 
@@ -357,9 +346,7 @@ const Navbar = () => {
                     <AvatarContent />
                   </div>
                   <span className="utility-profile-name">{user.full_name || t('nav.roleUser')}</span>
-                  <svg className={`utility-profile-chevron ${dropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
+                  <AppIcon className={`utility-profile-chevron ${dropdownOpen ? 'open' : ''}`} name="chevDown" size={12} strokeWidth={2.5} />
                 </button>
 
                 {dropdownOpen && (
@@ -403,9 +390,7 @@ const Navbar = () => {
                         role="menuitem"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d={link.icon} />
-                        </svg>
+                        <AppIcon name={link.icon} size={16} />
                         {t(link.labelKey)}
                       </Link>
                     ))}
@@ -419,9 +404,7 @@ const Navbar = () => {
                       onClick={handleLogout}
                       style={{ color: 'var(--error)', width: '100%' }}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d={ICONS.signout} />
-                      </svg>
+                      <AppIcon name={ICONS.signout} size={16} />
                       {t('nav.signOut')}
                     </button>
 
@@ -451,14 +434,9 @@ const Navbar = () => {
                   onClick={handleTriggerClick}
                   onKeyDown={(e) => { if (e.key === 'Escape') setDropdownOpen(false); }}
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                  </svg>
+                  <AppIcon name="user" size={16} />
                   <span className="utility-profile-name">{t('nav.signIn')}</span>
-                  <svg className={`utility-profile-chevron ${dropdownOpen ? 'open' : ''}`} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
+                  <AppIcon className={`utility-profile-chevron ${dropdownOpen ? 'open' : ''}`} name="chevDown" size={12} strokeWidth={2.5} />
                 </button>
 
                 {dropdownOpen && (
@@ -533,9 +511,7 @@ const Navbar = () => {
                         role="menuitem"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d={item.icon} />
-                        </svg>
+                        <AppIcon name={item.icon} size={16} />
                         {t(item.labelKey)}
                       </Link>
                     ))}

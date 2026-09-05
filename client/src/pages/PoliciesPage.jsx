@@ -1,8 +1,9 @@
 ﻿import React from 'react'
 import SEO from '../components/SEO'
 import { useI18n } from '../i18n/I18nContext'
+import { AppIcon } from '../components/AppIcon'
 
-const POLICY_ICONS = ['⚖️', '🔒', '🦠', '💊', '🚑', '🤝', '🕐', '📝', '📋', '💰']
+const POLICY_ICONS = ['scale', 'lock', 'biohazard', 'pill', 'ambulance', 'handshake', 'clock', 'pen', 'forms', 'fees']
 
 export default function PoliciesPage() {
   const { t, tr } = useI18n()
@@ -30,7 +31,7 @@ export default function PoliciesPage() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-              <span style={{ fontSize: 28 }} aria-hidden="true">{POLICY_ICONS[index]}</span>
+              <span aria-hidden="true"><AppIcon name={POLICY_ICONS[index]} size={28} /></span>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-strong)', margin: 0 }}>
                 {policy.title}
               </h2>

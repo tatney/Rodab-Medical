@@ -1,29 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useI18n } from '../i18n/I18nContext'
 import { useAccessibility } from '../context/AccessibilityContext'
+import { AppIcon } from './AppIcon'
 
-const GlobeIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="10" />
-    <line x1="2" y1="12" x2="22" y2="12" />
-    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-  </svg>
-)
+const GlobeIcon = () => <AppIcon name="globe" size={14} />
 
 const ChevronIcon = ({ open }) => (
-  <svg
-    className={`lang-chevron ${open ? 'open' : ''}`}
-    width="10"
-    height="10"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    aria-hidden="true"
-  >
-    <polyline points="6 9 12 15 18 9" />
-  </svg>
+  <AppIcon className={`lang-chevron ${open ? 'open' : ''}`} name="chevDown" size={10} strokeWidth={2.5} />
 )
+
+const CheckIcon = () => <AppIcon name="check" size={14} strokeWidth={2.5} />
 
 export default function LanguageSelector({ variant = 'utility', onNavigate }) {
   const { lang, setLang, t, LANGUAGES } = useI18n()
@@ -85,9 +71,7 @@ export default function LanguageSelector({ variant = 'utility', onNavigate }) {
               >
                 <span>{l.native}</span>
                 {l.code === lang && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  <CheckIcon />
                 )}
               </button>
             ))}
@@ -124,9 +108,7 @@ export default function LanguageSelector({ variant = 'utility', onNavigate }) {
               >
                 <span className="lang-native">{l.native}</span>
                 {l.code === lang && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
+                  <CheckIcon />
                 )}
               </button>
             </li>

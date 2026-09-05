@@ -5234,6 +5234,10 @@ button.chip-active:hover {
   background-color: #0b1220;
 }
 
+.where-we-work-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
 .where-we-work-map .leaflet-control-zoom a {
   color: #94a3b8;
 }

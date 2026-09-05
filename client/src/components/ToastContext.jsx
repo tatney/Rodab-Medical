@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react'
+import { AppIcon } from './AppIcon'
 
 const ToastContext = createContext(null)
 
@@ -41,10 +42,10 @@ export function ToastProvider({ children }) {
 }
 
 const STYLES = {
-  success: { bg: '#dcfce7', border: '#16a34a', color: '#166534', icon: '✓' },
-  error: { bg: '#fee2e2', border: '#dc2626', color: '#991b1b', icon: '✕' },
-  warning: { bg: '#fef3c7', border: '#d97706', color: '#92400e', icon: '⚠' },
-  info: { bg: '#dbeafe', border: '#2563eb', color: '#1e40af', icon: 'ℹ' },
+  success: { bg: '#dcfce7', border: '#16a34a', color: '#166534', icon: 'success' },
+  error: { bg: '#fee2e2', border: '#dc2626', color: '#991b1b', icon: 'error' },
+  warning: { bg: '#fef3c7', border: '#d97706', color: '#92400e', icon: 'warning' },
+  info: { bg: '#dbeafe', border: '#2563eb', color: '#1e40af', icon: 'info' },
 }
 
 function ToastItem({ toast, onDismiss }) {
@@ -68,7 +69,9 @@ function ToastItem({ toast, onDismiss }) {
         animation: 'toast-in 0.25s ease',
       }}
     >
-      <span style={{ fontWeight: 700, fontSize: 16, lineHeight: 1, flexShrink: 0 }}>{s.icon}</span>
+      <span style={{ flexShrink: 0 }}>
+        <AppIcon name={s.icon} size={16} color={s.color} strokeWidth={2.5} />
+      </span>
       <span style={{ flex: 1 }}>{toast.message}</span>
       <button
         onClick={onDismiss}

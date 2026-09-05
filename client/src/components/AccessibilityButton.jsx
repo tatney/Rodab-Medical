@@ -1,28 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useAccessibility, FONT_SCALES } from '../context/AccessibilityContext'
 import { useI18n } from '../i18n/I18nContext'
+import { AppIcon } from './AppIcon'
 
-const AccessibilityIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 8h.01" />
-    <path d="M12 11v5" />
-    <path d="M9.5 13.5L12 12l2.5 1.5" />
-  </svg>
-)
+const AccessibilityIcon = () => <AppIcon name="accessibility" size={16} />
 
-const SunIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-  </svg>
-)
+const SunIcon = () => <AppIcon name="sun" size={16} />
 
-const MoonIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-  </svg>
-)
+const MoonIcon = () => <AppIcon name="moon" size={16} />
 
 export default function AccessibilityButton({ variant = 'utility', onNavigate }) {
   const { t } = useI18n()
