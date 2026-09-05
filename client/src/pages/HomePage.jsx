@@ -53,10 +53,10 @@ const MEDICAL_IMAGES = [
 ]
 
 const FEATURE_IMAGES = [
-  unsplashUrl('1767462315180-d72bf3aea0c1'),
+  unsplashUrl('1516549655169-df83a0774514'),
   unsplashUrl('1693417920099-d985b3e0fa44'),
-  unsplashUrl('1675172872009-6cc93e127a47'),
-  unsplashUrl('1720463903383-c45df62da719'),
+  unsplashUrl('1666214280557-f1b5022eb634'),
+  unsplashUrl('1554224155-6726b3ff858f'),
 ]
 
 export default function HomePage() {
