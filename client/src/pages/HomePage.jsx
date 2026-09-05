@@ -27,7 +27,17 @@ const SLIDE_LINKS = ['/services', '/about-us', '/sos', '/find-doctor']
 
 const STAT_VALUES = ['15+', '50+', '10K+', '24/7']
 
+const unsplashUrl = (id, w = 600, q = 80) => `https://images.unsplash.com/photo-${id}?q=${q}&w=${w}&auto=format&fit=crop`
+
 const ONLINE_ICONS = ['forms', 'ambulance', 'chat', 'pill', 'document', 'forms']
+const ONLINE_IMAGES = [
+  unsplashUrl('1506784365847-bbad939e9335'),
+  unsplashUrl('1563213126-a4273aed2016'),
+  unsplashUrl('1576091160399-112ba8d25d1d'),
+  unsplashUrl('1587854692152-cbe660dbde88'),
+  unsplashUrl('1450101499163-c8848c66ca85'),
+  unsplashUrl('1576091160550-2173dba999ef'),
+]
 const ONLINE_LINKS = [
   '/appointments',
   '/sos',
@@ -40,8 +50,6 @@ const ONLINE_LINKS = [
 const MEDICAL_ICONS = ['ambulance', 'heart', 'brain', 'bone', 'baby', 'microscope']
 
 const FEATURE_ICONS = ['clock', 'hardhat', 'doctor', 'fees']
-
-const unsplashUrl = (id, w = 600, q = 80) => `https://images.unsplash.com/photo-${id}?q=${q}&w=${w}&auto=format&fit=crop`
 
 const MEDICAL_IMAGES = [
   unsplashUrl('1758653501273-c83f93bd6740'),
@@ -277,7 +285,21 @@ export default function HomePage() {
                       onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'translateY(0)' }}
                     >
-                      <div style={{ marginBottom: 12 }}><AppIcon name={ONLINE_ICONS[index]} size={36} /></div>
+                      <div style={{ position: 'relative', width: '100%', height: 150, marginBottom: 12, borderRadius: 8, overflow: 'hidden', backgroundColor: 'var(--surface-soft)' }}>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <AppIcon name={ONLINE_ICONS[index]} size={36} />
+                        </div>
+                        {ONLINE_IMAGES[index] && (
+                          <img
+                            src={ONLINE_IMAGES[index]}
+                            alt={svc.title}
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        )}
+                      </div>
                       <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 6 }}>{svc.title}</h3>
                       <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.5 }}>{svc.desc}</p>
                     </Link>
