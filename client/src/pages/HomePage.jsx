@@ -32,7 +32,7 @@ const unsplashUrl = (id, w = 600, q = 80) => `https://images.unsplash.com/photo-
 const ONLINE_ICONS = ['forms', 'ambulance', 'chat', 'pill', 'document', 'forms']
 const ONLINE_IMAGES = [
   unsplashUrl('1506784365847-bbad939e9335'),
-  unsplashUrl('1563213126-a4273aed2016'),
+  unsplashUrl('1762805080882-84c2d3855963'),
   unsplashUrl('1576091160399-112ba8d25d1d'),
   unsplashUrl('1587854692152-cbe660dbde88'),
   unsplashUrl('1450101499163-c8848c66ca85'),
