@@ -41,6 +41,24 @@ const MEDICAL_ICONS = ['ambulance', 'heart', 'brain', 'bone', 'baby', 'microscop
 
 const FEATURE_ICONS = ['clock', 'hardhat', 'doctor', 'fees']
 
+const unsplashUrl = (id, w = 600, q = 80) => `https://images.unsplash.com/photo-${id}?q=${q}&w=${w}&auto=format&fit=crop`
+
+const MEDICAL_IMAGES = [
+  unsplashUrl('1758653501273-c83f93bd6740'),
+  unsplashUrl('1505751172876-fa1923c5c528'),
+  unsplashUrl('1758691463110-697a814b2033'),
+  unsplashUrl('1564725075388-cc8338732289'),
+  unsplashUrl('1519689680058-324335c77eba'),
+  unsplashUrl('1631651363531-fd29aec4cb5c'),
+]
+
+const FEATURE_IMAGES = [
+  unsplashUrl('1767462315180-d72bf3aea0c1'),
+  unsplashUrl('1693417920099-d985b3e0fa44'),
+  unsplashUrl('1675172872009-6cc93e127a47'),
+  unsplashUrl('1720463903383-c45df62da719'),
+]
+
 export default function HomePage() {
   const { t, tr } = useI18n()
   const location = useLocation()
@@ -292,7 +310,21 @@ export default function HomePage() {
                       onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
                       onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'translateY(0)' }}
                     >
-                      <div style={{ marginBottom: 12 }}><AppIcon name={MEDICAL_ICONS[index]} size={40} /></div>
+                      <div style={{ position: 'relative', width: '100%', height: 150, marginBottom: 12, borderRadius: 8, overflow: 'hidden', backgroundColor: 'var(--surface-soft)' }}>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <AppIcon name={MEDICAL_ICONS[index]} size={40} />
+                        </div>
+                        {MEDICAL_IMAGES[index] && (
+                          <img
+                            src={MEDICAL_IMAGES[index]}
+                            alt={svc.title}
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        )}
+                      </div>
                       <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{svc.title}</h3>
                       <p style={{ fontSize: 15, color: 'var(--text-muted)', lineHeight: 1.6 }}>{svc.desc}</p>
                     </div>
@@ -326,7 +358,19 @@ export default function HomePage() {
                 <div key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
                   {features.items.map((feat, index) => (
                     <div key={index} className="marquee-card">
-                      <div style={{ marginBottom: 16 }}><AppIcon name={FEATURE_ICONS[index]} size={48} /></div>
+                      <div style={{ position: 'relative', width: '100%', height: 160, marginBottom: 16, borderRadius: 8, overflow: 'hidden', backgroundColor: 'var(--surface-soft)' }}>
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <AppIcon name={FEATURE_ICONS[index]} size={48} />
+                        </div>
+                        <img
+                          src={FEATURE_IMAGES[index]}
+                          alt={feat.title}
+                          loading="lazy"
+                          decoding="async"
+                          onError={(e) => { e.currentTarget.style.display = 'none' }}
+                          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </div>
                       <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{feat.title}</h3>
                       <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{feat.desc}</p>
                     </div>

@@ -143,7 +143,7 @@ export default {
       'Rodab Medical is opening soon in Entebbe, Uganda. A new hospital bringing compassionate emergency care, cardiology, neurology, orthopedics, and more.',
     slides: [
       {
-        title: 'Compassionate Healthcare, Coming Soon',
+        title: 'Forthcoming Compassionate Healthcare',
         subtitle:
           "We're preparing to bring advanced medical care to Uganda — delivered with compassion and excellence by world-class specialists.",
         cta: 'Our Services',
@@ -177,7 +177,7 @@ export default {
       { label: 'Emergency Care (Planned)' },
     ],
 onlineServices: {
-  heading: 'Online Services — Coming Soon',
+  heading: 'Forthcoming Online Services',
   sub: "We're building a digital healthcare platform so you can book appointments, consult doctors, and manage prescriptions from anywhere.",
   items: [
     { title: 'Book Appointment', desc: 'Schedule a visit with our specialists.' },
@@ -189,7 +189,7 @@ onlineServices: {
   ],
 },
 medicalServices: {
-  heading: 'Our Medical Services — Coming Soon',
+  heading: 'Forthcoming Medical Services',
   sub: 'World-class departments are being established to serve Uganda with emergency medicine, cardiology, neurology, and more.',
   items: [
     { title: 'Emergency Medicine', desc: 'Immediate life-saving care around the clock.' },
