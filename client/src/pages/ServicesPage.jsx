@@ -10,6 +10,20 @@ const SERVICE_COLORS = [
   '#dc2626', '#e11d48', '#7c3aed', '#2563eb', '#16a34a', '#9333ea', '#ec4899', '#0891b2', '#ea580c',
 ]
 
+const unsplashUrl = (id, w = 600, q = 80) => `https://images.unsplash.com/photo-${id}?q=${q}&w=${w}&auto=format&fit=crop`
+
+const SERVICE_IMAGES = [
+  unsplashUrl('1587754041149-2d91f5064737'),
+  unsplashUrl('1559757175-5700dde675bc'),
+  unsplashUrl('1559757463-343ce1b6386f'),
+  unsplashUrl('1576091160550-2173dba999ef'),
+  unsplashUrl('1519689680058-324335c77eba'),
+  unsplashUrl('1579684385127-1ef15d508118'),
+  unsplashUrl('1631651363531-fd29aec4cb5c'),
+  unsplashUrl('1516549655169-df83a0774514'),
+  unsplashUrl('1551190822-a9ce113ee600'),
+]
+
 const containerStyle = {
   padding: '64px 24px',
   maxWidth: 1200,
@@ -60,17 +74,22 @@ export default function ServicesPage() {
               e.currentTarget.style.transform = 'translateY(0)'
             }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                height: 4,
-                backgroundColor: SERVICE_COLORS[index],
-              }}
-            />
-            <div style={{ marginBottom: 16 }} aria-hidden="true"><AppIcon name={SERVICE_ICONS[index]} size={44} /></div>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, backgroundColor: SERVICE_COLORS[index] }} />
+            <div style={{ position: 'relative', width: '100%', height: 160, marginBottom: 16, borderRadius: 12, overflow: 'hidden', backgroundColor: 'var(--surface-container-low)' }}>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AppIcon name={SERVICE_ICONS[index]} size={44} />
+              </div>
+              {SERVICE_IMAGES[index] && (
+                <img
+                  src={SERVICE_IMAGES[index]}
+                  alt={svc.title}
+                  loading="lazy"
+                  decoding="async"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              )}
+            </div>
             <h3 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 10 }}>
               {svc.title}
             </h3>
