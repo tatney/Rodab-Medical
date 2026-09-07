@@ -252,14 +252,7 @@ function App() {
                     </ProtectedRoute>
                   }
                 />
-                <Route
-                  path="/about-us"
-                  element={
-                    <ProtectedRoute>
-                      <AboutUsPage />
-                    </ProtectedRoute>
-                  }
-                />
+                <Route path="/about-us" element={<AboutUsPage />} />
 
                 {/* ── Role-Specific Dashboards ────────────────────────── */}
                 <Route
