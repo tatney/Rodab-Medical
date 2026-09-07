@@ -55,7 +55,7 @@ export default function AboutUsPage() {
           <div className="grid-3-col" style={{ gap: 24 }}>
             {values.map((v, index) => (
               <div key={index} style={{ backgroundColor: 'var(--surface-card)', borderRadius: 12, padding: 28, border: '1px solid var(--border)', textAlign: 'center' }}>
-                <div style={{ marginBottom: 12 }} aria-hidden="true"><AppIcon name={VALUE_ICONS[index]} size={36} /></div>
+                <div style={{ marginBottom: 12 }} aria-hidden="true"><AppIcon name={VALUE_ICONS[index]} size={36} color="var(--primary)" /></div>
                 <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-strong)', marginBottom: 8 }}>{v.title}</h3>
                 <p style={{ fontSize: 14, color: 'var(--text-muted)', lineHeight: 1.6 }}>{v.desc}</p>
               </div>
