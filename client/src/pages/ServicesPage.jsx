@@ -13,15 +13,15 @@ const SERVICE_COLORS = [
 const unsplashUrl = (id, w = 600, q = 80) => `https://images.unsplash.com/photo-${id}?q=${q}&w=${w}&auto=format&fit=crop`
 
 const SERVICE_IMAGES = [
-  unsplashUrl('1587754041149-2d91f5064737'),
-  unsplashUrl('1559757175-5700dde675bc'),
-  unsplashUrl('1559757463-343ce1b6386f'),
+  unsplashUrl('1599700403969-f77b3aa74837'),
+  unsplashUrl('1504813184591-01572f98c85f'),
+  unsplashUrl('1551601651-2a8555f1a136'),
   unsplashUrl('1576091160550-2173dba999ef'),
   unsplashUrl('1519689680058-324335c77eba'),
   unsplashUrl('1579684385127-1ef15d508118'),
+  unsplashUrl('1743571833965-98e5d89749d5'),
   unsplashUrl('1631651363531-fd29aec4cb5c'),
-  unsplashUrl('1516549655169-df83a0774514'),
-  unsplashUrl('1551190822-a9ce113ee600'),
+  unsplashUrl('1504439468489-c8920d796a29'),
 ]
 
 const containerStyle = {
